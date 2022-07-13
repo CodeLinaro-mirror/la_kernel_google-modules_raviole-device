@@ -31,7 +31,7 @@
 #include "../cal-if/fvmap.h"
 #include "fw_header/framework.h"
 
-#define IPC_TIMEOUT				(10000000)
+#define IPC_TIMEOUT				(100000000)
 /*The unit of cnt is 10us*/
 /*10000 * 10us = 100ms*/
 #define SW_CNT_TIMEOUT_100MS			(10000)
@@ -669,16 +669,6 @@ static void acpm_ktop_init(void)
 	spin_unlock_irqrestore(&acpm_debug->lock, flags);
 }
 
-static void acpm_ktop_print(void)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&acpm_debug->lock, flags);
-	if (acpm_debug->ktop_cxt)
-		kernel_top_print(acpm_debug->ktop_cxt);
-	spin_unlock_irqrestore(&acpm_debug->lock, flags);
-}
-
 int __acpm_ipc_send_data(unsigned int channel_id, struct ipc_config *cfg, bool w_mode)
 {
 	volatile unsigned int tx_front, tx_rear, rx_front;
@@ -843,7 +833,10 @@ retry:
 			       __func__, now, timeout, channel->id, seq_num,
 			       channel->bitmap_seqnum[0]);
 
-			acpm_ktop_print();
+			acpm_debug->debug_log_level = 2;
+			acpm_log_print();
+			acpm_debug->debug_log_level = saved_debug_log_level;
+
 			acpm_ramdump();
 			dump_stack();
 			dbg_snapshot_do_dpm_policy(acpm_ipc->panic_action, "acpm_ipc timeout");
