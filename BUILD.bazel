@@ -78,6 +78,7 @@ filegroup(
         "drivers/dma-buf/heaps/samsung/samsung-dma-heap.h",
         "drivers/usb/typec/tcpm/google/tcpci_max77759.h",
         "drivers/usb/typec/tcpm/google/usb_psy.h",
+        "drivers/usb/host/xhci-exynos.h",
 
         # Needed for external modules to include in their makefiles
         "Makefile.include",
