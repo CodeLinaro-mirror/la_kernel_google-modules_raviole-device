@@ -9,13 +9,14 @@
 
 #ifndef __LINUX_USB_DWC3_OTG_H
 #define __LINUX_USB_DWC3_OTG_H
-#include <linux/pm_wakeup.h>
-#include <linux/usb/otg-fsm.h>
 #include <linux/pm_qos.h>
+#include <linux/pm_wakeup.h>
+#include <linux/power_supply.h>
+#include <linux/usb/dwc3-exynos.h>
+#include <linux/usb/otg-fsm.h>
+
 #include <misc/gvotable.h>
 #include <soc/google/exynos_pm_qos.h>
-#include <linux/power_supply.h>
-#include "dwc3-exynos.h"
 
 
 struct dwc3_ext_otg_ops {
