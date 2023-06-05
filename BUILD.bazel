@@ -391,10 +391,10 @@ kernel_images(
     vendor_dlkm_modules_blocklist = "vendor_dlkm.blocklist.slider",
     # No MODULES_BLOCKLIST
     vendor_dlkm_modules_list = ":slider_vendor_dlkm_modules_list",
-    vendor_dlkm_props = "vendor_dlkm.props.slider",
+    vendor_dlkm_props = "vendor_dlkm.props",
     vendor_ramdisk_binaries = ["//prebuilts/boot-artifacts/ramdisks:vendor_ramdisk-oriole.img"],
     deps = [
-        # Keep the following in sync with vendor_dlkm.props.slider:
+        # Keep the following in sync with vendor_dlkm.props:
         # selinux_fc
         "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
     ],
@@ -472,6 +472,6 @@ exports_files([
     # keep sorted
     "build.config.cloudripper",
     "vendor_dlkm.blocklist.cloudripper",
-    "vendor_dlkm.props.slider",
+    "vendor_dlkm.props",
     "vendor_kernel_boot_modules.gs201",
 ])
