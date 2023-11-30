@@ -714,12 +714,13 @@ static void allow_maximum_power(struct gs_tmu_data *data)
 {
 	struct thermal_instance *instance;
 	struct thermal_zone_device *tz = data->tzd;
-	int control_temp = data->pi_param->trip_control_temp;
+	const struct thermal_trip *control_temp_trip
+		= &tz->trips[data->pi_param->trip_control_temp];
 
 	lockdep_assert_held(&tz->lock);
 	mutex_unlock(&data->lock);
 	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-		if (instance->trip != control_temp ||
+		if (instance->trip != control_temp_trip ||
 		    (!cdev_is_power_actor(instance->cdev)))
 			continue;
 		if (data->hardlimit_enable && data->is_hardlimited)
@@ -811,6 +812,8 @@ static int gs_pi_controller(struct gs_tmu_data *data, int control_temp)
 {
 	struct thermal_zone_device *tz = data->tzd;
 	struct gs_pi_param *params = data->pi_param;
+	const struct thermal_trip *control_temp_trip
+		= &tz->trips[params->trip_control_temp];
 	struct thermal_instance *instance;
 	struct thermal_cooling_device *cdev;
 	int ret = 0;
@@ -822,7 +825,7 @@ static int gs_pi_controller(struct gs_tmu_data *data, int control_temp)
 	lockdep_assert_held(&tz->lock);
 	mutex_unlock(&data->lock);
 	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-		if (instance->trip == params->trip_control_temp &&
+		if (instance->trip == control_temp_trip &&
 		    cdev_is_power_actor(instance->cdev)) {
 			found_actor = true;
 			cdev = instance->cdev;
