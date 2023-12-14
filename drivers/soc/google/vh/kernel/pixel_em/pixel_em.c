@@ -8,7 +8,7 @@
 
 #define pr_fmt(fmt) "pixel-em: " fmt
 
-#include <linux/arch_topology.h>
+#include <linux/sched/topology.h>
 #include <linux/bitops.h>
 #include <linux/cpufreq.h>
 #include <linux/cpumask.h>
@@ -38,10 +38,46 @@ extern void vh_arch_set_freq_scale_pixel_mod(void *data,
 extern struct pixel_em_profile **exynos_cpu_cooling_pixel_em_profile;
 #endif
 
+#if IS_ENABLED(CONFIG_VH_SCHED)
 extern int pixel_cpu_num;
 extern int pixel_cluster_num;
 extern int *pixel_cluster_start_cpu;
 extern bool pixel_cpu_init;
+
+static int init_pixel_cpu() {
+	if (!pixel_cpu_init)
+		return -EPROBE_DEFER;
+	return 0;
+}
+#else
+static int pixel_cpu_num;
+static int pixel_cluster_num;
+static int *pixel_cluster_start_cpu;
+
+static int init_pixel_cpu(void) {
+	int i = 0;
+	unsigned long cur_capacity = 0;
+
+	pixel_cluster_num = 0;
+
+	pixel_cpu_num = cpumask_weight(cpu_possible_mask);
+	if (!pixel_cpu_num)
+		return -EPROBE_DEFER;
+
+	for_each_possible_cpu(i) {
+		if (arch_scale_cpu_capacity(i) > cur_capacity) {
+			cur_capacity = arch_scale_cpu_capacity(i);
+			pixel_cluster_num++;
+		}
+	}
+
+	pixel_cluster_start_cpu = kcalloc(pixel_cluster_num, sizeof(int), GFP_KERNEL);
+	if (!pixel_cluster_start_cpu)
+		return -ENOMEM;
+
+	return 0;
+}
+#endif /* CONFIG_VH_SCHED */
 
 static struct mutex profile_list_lock;
 static LIST_HEAD(profile_list);
@@ -60,10 +96,11 @@ static void pixel_em_unpublish_profile(struct pixel_em_profile *);
 
 static int pixel_em_init_cpu_layout(void)
 {
-	int i;
+	int i, ret;
 
-	if (!pixel_cpu_init)
-		return -EPROBE_DEFER;
+	ret = init_pixel_cpu();
+	if (ret)
+		return ret;
 
 	for (i = 0; i < pixel_cluster_num; i++) {
 		struct em_perf_domain *pd = em_cpu_get(pixel_cluster_start_cpu[i]);
@@ -438,8 +475,8 @@ early_return:
 
 static bool generate_em_cluster(struct pixel_em_cluster *dst, struct em_perf_domain *pd)
 {
-    int first_cpu = cpumask_first(em_span_cpus(pd));
-    int cpu_scale = topology_get_cpu_scale(first_cpu);
+	int first_cpu = cpumask_first(em_span_cpus(pd));
+	int cpu_scale = topology_get_cpu_scale(first_cpu);
 	int max_freq_index = pd->nr_perf_states - 1;
 	unsigned long max_freq = pd->table[max_freq_index].frequency;
 	int opp_id;
