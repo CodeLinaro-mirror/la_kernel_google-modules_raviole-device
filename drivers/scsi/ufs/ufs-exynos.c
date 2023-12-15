@@ -455,8 +455,7 @@ static void exynos_ufs_set_features(struct ufs_hba *hba)
 			UFSHCI_QUIRK_BROKEN_REQ_LIST_CLR |
 			UFSHCD_QUIRK_BROKEN_OCS_FATAL_ERROR |
 			UFSHCI_QUIRK_SKIP_MANUAL_WB_FLUSH_CTRL |
-			UFSHCD_QUIRK_SKIP_DEF_UNIPRO_TIMEOUT_SETTING |
-			UFSHCD_QUIRK_4KB_DMA_ALIGNMENT;
+			UFSHCD_QUIRK_SKIP_DEF_UNIPRO_TIMEOUT_SETTING;
 
 	if (of_find_property(np, "fixed-prdt-req_list-ocs", NULL))
 		hba->quirks &= ~(UFSHCD_QUIRK_PRDT_BYTE_GRAN |
@@ -964,6 +963,11 @@ static int __device_reset(struct ufs_hba *hba)
 	return 0;
 }
 
+static void __exynos_ufs_config_scsi_dev(struct scsi_device *sdev)
+{
+	blk_queue_update_dma_alignment(sdev->request_queue, SZ_4K - 1);
+}
+
 static struct ufs_hba_variant_ops exynos_ufs_ops = {
 	.init = exynos_ufs_init,
 	.setup_clocks = exynos_ufs_setup_clocks,
@@ -979,6 +983,7 @@ static struct ufs_hba_variant_ops exynos_ufs_ops = {
 	.apply_dev_quirks = __apply_dev_quirks,
 	.fixup_dev_quirks = __fixup_dev_quirks,
 	.device_reset = __device_reset,
+	.config_scsi_dev = __exynos_ufs_config_scsi_dev,
 };
 
 /*
