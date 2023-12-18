@@ -279,16 +279,27 @@ static unsigned long dmabuf_page_pool_shrink_scan(struct shrinker *shrinker,
 	return dmabuf_page_pool_shrink(sc->gfp_mask, sc->nr_to_scan);
 }
 
-struct shrinker pool_shrinker = {
-	.count_objects = dmabuf_page_pool_shrink_count,
-	.scan_objects = dmabuf_page_pool_shrink_scan,
-	.seeks = DEFAULT_SEEKS,
-	.batch = 0,
-};
+static struct shrinker *pool_shrinker;
 
-static int dmabuf_page_pool_init_shrinker(void)
+static int __init dmabuf_page_pool_init_shrinker(void)
 {
-	return register_shrinker(&pool_shrinker, "dmabuf-page-pool-shrinker");
+	pool_shrinker = shrinker_alloc(0, "dmabuf-page-pool-shrinker");
+	if (!pool_shrinker)
+		return -ENOMEM;
+
+	pool_shrinker->count_objects = dmabuf_page_pool_shrink_count;
+	pool_shrinker->scan_objects = dmabuf_page_pool_shrink_scan;
+
+	shrinker_register(pool_shrinker);
+
+	return 0;
 }
+
+static void __exit dmabuf_page_pool_exit_shrinker(void)
+{
+	shrinker_free(pool_shrinker);
+}
+
 module_init(dmabuf_page_pool_init_shrinker);
+module_exit(dmabuf_page_pool_exit_shrinker);
 MODULE_LICENSE("GPL v2");
