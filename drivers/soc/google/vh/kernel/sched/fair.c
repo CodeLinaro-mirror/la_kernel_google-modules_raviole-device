@@ -2770,6 +2770,9 @@ void rvh_enqueue_task_fair_pixel_mod(void *data, struct rq *rq, struct task_stru
 	struct vendor_rq_struct *vrq = get_vendor_rq_struct(rq);
 	bool force_cpufreq_update = false;
 
+	if (!static_branch_unlikely(&enqueue_dequeue_ready))
+		return;
+
 	if (vp->uclamp_fork_reset)
 		atomic_inc(&vrq->num_adpf_tasks);
 
@@ -2814,6 +2817,9 @@ void rvh_dequeue_task_fair_pixel_mod(void *data, struct rq *rq, struct task_stru
 {
 	struct vendor_task_struct *vp = get_vendor_task_struct(p);
 	struct vendor_rq_struct *vrq = get_vendor_rq_struct(rq);
+
+	if (!static_branch_unlikely(&enqueue_dequeue_ready))
+		return;
 
 	if (vp->uclamp_fork_reset)
 		atomic_dec(&vrq->num_adpf_tasks);
