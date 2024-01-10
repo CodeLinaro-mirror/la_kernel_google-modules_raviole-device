@@ -651,76 +651,6 @@ static int samsung_sysmmu_map(struct iommu_domain *dom, unsigned long l_iova,
 	return ret;
 }
 
-static size_t samsung_sysmmu_unmap(struct iommu_domain *dom,
-				   unsigned long l_iova, size_t size,
-				   struct iommu_iotlb_gather *gather)
-{
-	struct samsung_sysmmu_domain *domain = to_sysmmu_domain(dom);
-	sysmmu_iova_t iova = (sysmmu_iova_t)l_iova;
-	atomic_t *lv2entcnt = &domain->lv2entcnt[lv1ent_offset(iova)];
-	sysmmu_pte_t *sent, *pent;
-	size_t err_pgsize;
-
-	sent = section_entry(domain->page_table, iova);
-
-	if (lv1ent_section(sent)) {
-		if (WARN_ON(size < SECT_SIZE)) {
-			err_pgsize = SECT_SIZE;
-			goto err;
-		}
-
-		*sent = 0;
-		pgtable_flush(sent, sent + 1);
-		size = SECT_SIZE;
-		goto done;
-	}
-
-	if (unlikely(lv1ent_unmapped(sent))) {
-		if (size > SECT_SIZE)
-			size = SECT_SIZE;
-		goto done;
-	}
-
-	/* lv1ent_page(sent) == true here */
-
-	pent = page_entry(sent, iova);
-
-	if (unlikely(lv2ent_unmapped(pent))) {
-		size = SPAGE_SIZE;
-		goto done;
-	}
-
-	if (lv2ent_small(pent)) {
-		*pent = 0;
-		size = SPAGE_SIZE;
-		pgtable_flush(pent, pent + 1);
-		atomic_dec(lv2entcnt);
-		goto done;
-	}
-
-	/* lv1ent_large(pent) == true here */
-	if (WARN_ON(size < LPAGE_SIZE)) {
-		err_pgsize = LPAGE_SIZE;
-		goto err;
-	}
-
-	clear_page_table(pent, SPAGES_PER_LPAGE);
-	pgtable_flush(pent, pent + SPAGES_PER_LPAGE);
-	size = LPAGE_SIZE;
-	atomic_sub(SPAGES_PER_LPAGE, lv2entcnt);
-
-done:
-	iommu_iotlb_gather_add_page(dom, gather, iova, size);
-
-	return size;
-
-err:
-	pr_err("failed: size(%#zx) @ %#x is smaller than page size %#zx\n",
-	       size, iova, err_pgsize);
-
-	return 0;
-}
-
 static inline void clear_and_flush_pgtable(sysmmu_pte_t *ent, int count, atomic_t *lv2entcnt)
 {
 	clear_page_table(ent, count);
@@ -1171,7 +1101,6 @@ static struct iommu_ops samsung_sysmmu_ops = {
 	.default_domain_ops	= &(const struct iommu_domain_ops) {
 		.attach_dev		= samsung_sysmmu_attach_dev,
 		.map			= samsung_sysmmu_map,
-		.unmap			= samsung_sysmmu_unmap,
 		.unmap_pages		= samsung_sysmmu_unmap_pages,
 		.flush_iotlb_all	= samsung_sysmmu_flush_iotlb_all,
 		.iotlb_sync_map		= samsung_sysmmu_iotlb_sync_map,
