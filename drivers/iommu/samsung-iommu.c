@@ -749,8 +749,8 @@ static void samsung_sysmmu_flush_iotlb_all(struct iommu_domain *dom)
 	spin_unlock_irqrestore(&groupdata->sysmmu_list_lock[domain->vid], flags);
 }
 
-static void samsung_sysmmu_iotlb_sync_map(struct iommu_domain *dom,
-					  unsigned long iova, size_t size)
+static int samsung_sysmmu_iotlb_sync_map(struct iommu_domain *dom,
+					 unsigned long iova, size_t size)
 {
 	struct samsung_sysmmu_domain *domain = to_sysmmu_domain(dom);
 	sysmmu_pte_t *sent, *pent;
@@ -775,6 +775,8 @@ next_section:
 		iova = section_end;
 		sent++;
 	}
+
+	return 0;
 }
 
 static void samsung_sysmmu_iotlb_sync(struct iommu_domain *dom,
