@@ -616,8 +616,8 @@ static int lv2set_page(sysmmu_pte_t *pent, phys_addr_t paddr,
 }
 
 static int samsung_sysmmu_map(struct iommu_domain *dom, unsigned long l_iova,
-			      phys_addr_t paddr, size_t size, int prot,
-			      gfp_t unused)
+			      phys_addr_t paddr, size_t size, size_t count,
+			      int prot, gfp_t unused, size_t *mapped)
 {
 	struct samsung_sysmmu_domain *domain = to_sysmmu_domain(dom);
 	sysmmu_iova_t iova = (sysmmu_iova_t)l_iova;
@@ -647,6 +647,8 @@ static int samsung_sysmmu_map(struct iommu_domain *dom, unsigned long l_iova,
 
 	if (ret)
 		pr_err("failed to map %#zx @ %#x, ret:%d\n", size, iova, ret);
+	else
+		*mapped = size;
 
 	return ret;
 }
@@ -1100,7 +1102,7 @@ static struct iommu_ops samsung_sysmmu_ops = {
 	.owner						= THIS_MODULE,
 	.default_domain_ops	= &(const struct iommu_domain_ops) {
 		.attach_dev		= samsung_sysmmu_attach_dev,
-		.map			= samsung_sysmmu_map,
+		.map_pages		= samsung_sysmmu_map,
 		.unmap_pages		= samsung_sysmmu_unmap_pages,
 		.flush_iotlb_all	= samsung_sysmmu_flush_iotlb_all,
 		.iotlb_sync_map		= samsung_sysmmu_iotlb_sync_map,
