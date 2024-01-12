@@ -6,7 +6,6 @@ load("//build/bazel_common_rules/exec:exec.bzl", "exec_test")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "kernel_abi",
-    "kernel_abi_dist",
     "kernel_build",
     "kernel_images",
     "kernel_module",
@@ -392,7 +391,7 @@ genrule(
     name = "gki_aarch64_boot",
     srcs = [":gki_aarch64_boot_lz4"],
     outs = ["boot.img"],
-    cmd = "mv $< $@",
+    cmd = "cp -L $< $@",
 )
 
 slider_dist_targets = [
