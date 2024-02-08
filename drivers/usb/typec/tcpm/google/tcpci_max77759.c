@@ -744,7 +744,7 @@ static int process_rx(struct max77759_plat *chip, u16 status)
 			return -EIO;
 	}
 
-	tcpm_pd_receive(chip->port, &msg);
+	tcpm_pd_receive(chip->port, &msg, TCPC_TX_SOP);
 	return 0;
 }
 
