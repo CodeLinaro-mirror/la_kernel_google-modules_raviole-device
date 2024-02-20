@@ -55,7 +55,7 @@ static int pixel_cluster_num;
 static int *pixel_cluster_start_cpu;
 
 static int init_pixel_cpu(void) {
-	int i = 0;
+	int i = 0, j = 0;
 	unsigned long cur_capacity = 0;
 
 	pixel_cluster_num = 0;
@@ -74,6 +74,14 @@ static int init_pixel_cpu(void) {
 	pixel_cluster_start_cpu = kcalloc(pixel_cluster_num, sizeof(int), GFP_KERNEL);
 	if (!pixel_cluster_start_cpu)
 		return -ENOMEM;
+
+	cur_capacity = 0;
+	for_each_possible_cpu(i) {
+		if (arch_scale_cpu_capacity(i) > cur_capacity) {
+			pixel_cluster_start_cpu[j++] = i;
+			cur_capacity = arch_scale_cpu_capacity(i);
+		}
+	}
 
 	return 0;
 }
@@ -538,8 +546,9 @@ static struct pixel_em_profile *generate_default_em_profile(const char *name)
 	while (!cpumask_empty(&unmatched_cpus)) {
 		int first_cpu = cpumask_first(&unmatched_cpus);
 		struct em_perf_domain *pd = em_cpu_get(first_cpu);
-		// pd is guaranteed not to be NULL, as pixel_em_count_clusters completed earlier.
 		int pd_cpu;
+		// pd is guaranteed not to be NULL, as pixel_em_init_cpu_layout completed earlier.
+		BUG_ON(pd == NULL);
 
 		if (!generate_em_cluster(&res->clusters[current_cluster_id], pd)) {
 			do {
@@ -604,8 +613,9 @@ static struct pixel_idle_em *generate_idle_em(void)
 	while (!cpumask_empty(&unmatched_cpus)) {
 		int first_cpu = cpumask_first(&unmatched_cpus);
 		struct em_perf_domain *pd = em_cpu_get(first_cpu);
-		// pd is guaranteed not to be NULL, as pixel_em_count_clusters completed earlier.
 		int pd_cpu;
+		// pd is guaranteed not to be NULL, as pixel_em_init_cpu_layout completed earlier.
+		BUG_ON(pd == NULL);
 
 		if (!generate_em_cluster(&idle_em->clusters[current_cluster_id], pd)) {
 			do {
@@ -984,6 +994,11 @@ static void pixel_em_drv_undo_probe(void)
 #if IS_ENABLED(CONFIG_VH_SCHED)
 	pixel_em_free_idle(vendor_sched_pixel_idle_em);
 	vendor_sched_pixel_idle_em = NULL;
+#else
+	if (pixel_cluster_start_cpu) {
+		kfree(pixel_cluster_start_cpu);
+		pixel_cluster_start_cpu = NULL;
+	}
 #endif
 
 	if (!platform_dev) {
