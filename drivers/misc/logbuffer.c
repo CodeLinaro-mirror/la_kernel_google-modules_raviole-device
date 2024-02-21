@@ -197,7 +197,7 @@ struct logbuffer *logbuffer_register(const char *name)
 		goto free_instance;
 	}
 
-	strlcpy(instance->name, "logbuffer_", sizeof(instance->name));
+	strscpy(instance->name, "logbuffer_", sizeof(instance->name));
 	strlcat(instance->name, name, sizeof(instance->name));
 	instance->misc.minor = MISC_DYNAMIC_MINOR;
 	instance->misc.name = instance->name;
@@ -209,7 +209,7 @@ struct logbuffer *logbuffer_register(const char *name)
 		goto free_buffer;
 	}
 
-	strlcpy(instance->id, name, sizeof(instance->id));
+	strscpy(instance->id, name, sizeof(instance->id));
 
 	spin_lock_init(&instance->logbuffer_lock);
 
