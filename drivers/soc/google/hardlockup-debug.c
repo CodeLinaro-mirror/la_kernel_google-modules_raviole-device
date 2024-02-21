@@ -152,7 +152,7 @@ static void pm_dev_start(void *data, struct device *dev, const char *pm_ops, int
 	priv->dev = dev;
 	priv->parent = dev->parent;
 	priv->event = event;
-	strlcpy(priv->pm_ops, pm_ops, sizeof(priv->pm_ops));
+	strscpy(priv->pm_ops, pm_ops, sizeof(priv->pm_ops));
 	interval_tree_insert(&priv->node, &pm_dev_rbroot);
 exit:
 	spin_unlock_irqrestore(&pm_trace_lock, flags);
