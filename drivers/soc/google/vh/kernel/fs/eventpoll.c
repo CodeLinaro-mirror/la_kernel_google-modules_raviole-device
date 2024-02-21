@@ -22,7 +22,7 @@ void vh_ep_create_wakeup_source_mod(void *data, char *name, int len)
 	char task_comm_buf[sizeof(current->comm)];
 
 	get_task_comm(task_comm_buf, current);
-	strlcpy(buf, name, sizeof(buf));
+	strscpy(buf, name, sizeof(buf));
 
 	if (!strncmp(name, "eventpoll", sizeof("eventpoll")))
 		snprintf(name, len, "epoll:%s", task_comm_buf);
