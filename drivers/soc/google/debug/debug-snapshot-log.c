@@ -899,7 +899,7 @@ void dbg_snapshot_start_log(void)
 				__func__, dss_freq_size, ARRAY_SIZE(dss_freq_name));
 			break;
 		}
-		strlcpy(dss_freq_name[i], str, sizeof(dss_freq_name[i]));
+		strscpy(dss_freq_name[i], str, sizeof(dss_freq_name[i]));
 		++i;
 	}
 

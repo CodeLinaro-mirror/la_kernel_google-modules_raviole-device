@@ -687,7 +687,7 @@ static ssize_t trigger_write(struct kobject *kobj, struct kobj_attribute *attr,
 			     const char *buf, size_t count)
 {
 	pr_crit("count=%zu, buf=%s", count, buf);
-	strlcpy(trigger, buf, PAGE_SIZE);
+	strscpy(trigger, buf, PAGE_SIZE);
 
 	/*
 	 * "echo" command appends a newline char by default. Replacing the
