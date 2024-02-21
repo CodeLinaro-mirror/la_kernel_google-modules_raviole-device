@@ -62,7 +62,7 @@ static int acpm_mfd_bus_probe(struct platform_device *pdev)
 	if (!acpm_mfd_bus)
 		return -ENOMEM;
 
-	strlcpy(acpm_mfd_bus->adap.name, "i2c-acpm",
+	strscpy(acpm_mfd_bus->adap.name, "i2c-acpm",
 		sizeof(acpm_mfd_bus->adap.name));
 	acpm_mfd_bus->adap.owner   = THIS_MODULE;
 	acpm_mfd_bus->adap.algo    = &acpm_mfd_bus_algorithm;
