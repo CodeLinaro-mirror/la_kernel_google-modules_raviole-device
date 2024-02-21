@@ -552,7 +552,7 @@ void g2d_stamp_task(struct g2d_task *task, u32 stampid, u64 val)
 	if (g2d_stamp_types[stampid].type == G2D_STAMPTYPE_FENCE) {
 		struct dma_fence *fence = (struct dma_fence *)val;
 
-		strlcpy(stamp->fence.name, fence->ops->get_driver_name(fence),
+		strscpy(stamp->fence.name, fence->ops->get_driver_name(fence),
 			sizeof(stamp->fence.name));
 		stamp->fence.seqno = fence->seqno;
 	} else {
