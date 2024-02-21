@@ -182,7 +182,7 @@ static int __mfc_enc_enum_fmt(struct mfc_dev *dev, struct v4l2_fmtdesc *f,
 
 		if (j == f->index) {
 			fmt = &enc_formats[i];
-			strlcpy(f->description, fmt->name,
+			strscpy(f->description, fmt->name,
 				sizeof(f->description));
 			f->pixelformat = fmt->fourcc;
 
