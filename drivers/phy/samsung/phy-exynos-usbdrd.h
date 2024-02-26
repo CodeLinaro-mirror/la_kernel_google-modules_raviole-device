@@ -10,6 +10,8 @@
 #ifndef __PHY_EXYNOS_USBDRD_H__
 #define __PHY_EXYNOS_USBDRD_H__
 
+#include <soc/google/exynos-pd_hsi0.h>
+
 #include "phy-samsung-usb-cal.h"
 #include "phy-exynos-usb3p1.h"
 #include "phy-exynos-usbdp-gen2.h"
@@ -216,6 +218,5 @@ struct exynos_usbdrd_phy {
 };
 
 void __iomem *phy_exynos_usbdp_get_address(void);
-extern bool exynos_pd_hsi0_get_ldo_status(void);
 
 #endif	/* __PHY_EXYNOS_USBDRD_H__ */
