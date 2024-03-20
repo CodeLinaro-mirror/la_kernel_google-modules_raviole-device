@@ -3,6 +3,16 @@
 #
 
 ccflags-y := -DDYNAMIC_DEBUG_MODULE
+CFLAGS_debug-snapshot.o += -Wno-missing-prototypes
+CFLAGS_debug-snapshot-log.o += -Wno-missing-prototypes
+CFLAGS_debug-snapshot-qd.o += -Wno-missing-prototypes
+CFLAGS_exynos-ehld.o += -Wno-missing-prototypes
+CFLAGS_exynos-ehld-ipc.o += -Wno-missing-prototypes
+CFLAGS_exynos-coresight.o += -Wno-missing-prototypes
+CFLAGS_exynos-coresight-etm.o += -Wno-missing-prototypes
+CFLAGS_exynos-adv-tracer.o += -Wno-missing-prototypes
+CFLAGS_exynos-adv-tracer-s2d.o += -Wno-missing-prototypes
+CFLAGS_pixel-debug-test.o += -Wno-missing-prototypes
 
 obj-$(CONFIG_DEBUG_SNAPSHOT) 		:= dss.o
 dss-y 					+= debug-snapshot.o \

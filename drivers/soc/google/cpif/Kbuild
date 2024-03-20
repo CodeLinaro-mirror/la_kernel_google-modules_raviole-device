@@ -5,6 +5,13 @@ ccflags-y += -Wformat
 ccflags-y += -Wformat-zero-length
 ccflags-y += -DCPIF_WAKEPKT_SET_MARK=0x80000000
 ccflags-y += -DCONFIG_OPTION_REGION=\"$(PROJECT_REGION)\"
+CFLAGS_cpif_tp_monitor.o += -Wno-missing-prototypes
+CFLAGS_link_device.o += -Wno-missing-prototypes
+CFLAGS_modem_ctrl.o += -Wno-missing-prototypes
+CFLAGS_modem_ctrl_s5100.o += -Wno-missing-prototypes
+CFLAGS_modem_dump.o += -Wno-missing-prototypes
+CFLAGS_modem_variation.o += -Wno-missing-prototypes
+CFLAGS_s51xx_pcie.o += -Wno-missing-prototypes
 # This gives the drivers access to the logbuffer interface
 subdir-ccflags-y += -I$(KERNEL_SRC)/../private/google-modules/bms
 subdir-ccflags-y += -I$(srctree)/$(src)

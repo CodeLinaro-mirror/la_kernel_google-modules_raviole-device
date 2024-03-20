@@ -3,4 +3,6 @@
 # Makefile for HW Random Number Generator (RNG) device drivers.
 #
 
+CFLAGS_exyswd-rng.o += -Wno-missing-prototypes
+
 obj-$(CONFIG_HW_RANDOM_EXYNOS_SWD) += exyswd-rng.o

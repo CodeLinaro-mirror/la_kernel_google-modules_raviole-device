@@ -3,6 +3,16 @@
 # Makefile for regulator drivers.
 #
 
+CFLAGS_max77826-gs-regulator.o += -Wno-missing-prototypes
+CFLAGS_s2mpg10-powermeter.o += -Wno-missing-prototypes
+CFLAGS_s2mpg10-regulator.o += -Wno-missing-prototypes
+CFLAGS_s2mpg11-powermeter.o += -Wno-missing-prototypes
+CFLAGS_s2mpg11-regulator.o += -Wno-missing-prototypes
+CFLAGS_s2mpg12-powermeter.o += -Wno-missing-prototypes
+CFLAGS_s2mpg12-regulator.o += -Wno-missing-prototypes
+CFLAGS_s2mpg13-powermeter.o += -Wno-missing-prototypes
+CFLAGS_s2mpg13-regulator.o += -Wno-missing-prototypes
+
 obj-$(CONFIG_REGULATOR_MAX77826_GS) += max77826-gs-regulator.o
 obj-$(CONFIG_DRV_SAMSUNG_PMIC) += pmic_class.o
 obj-$(CONFIG_REGULATOR_S2MPG10) += s2mpg10-regulator.o s2mpg10-powermeter.o

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0
 
+CFLAGS_phy-exynos-usbdrd.o += -Wno-missing-prototypes
+CFLAGS_phy-exynos-usb3p1.o += -Wno-missing-prototypes
+CFLAGS_phy-exynos-usbdp-gen2-v4.o += -Wno-missing-prototypes
+
 obj-$(CONFIG_PHY_EXYNOS_USBDRD)		+= phy-exynos-usbdrd-super.o
 phy-exynos-usbdrd-super-y		+= phy-exynos-usbdrd.o
 phy-exynos-usbdrd-super-y		+= phy-exynos-usb3p1.o

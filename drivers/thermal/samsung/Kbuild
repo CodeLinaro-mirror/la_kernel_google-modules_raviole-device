@@ -4,6 +4,9 @@
 #
 
 ccflags-y += -I$(srctree)/drivers/thermal
+CFLAGS_exynos_cpu_cooling.o += -Wno-missing-prototypes
+CFLAGS_gpu_cooling.o += -Wno-missing-prototypes
+CFLAGS_isp_cooling.o += -Wno-missing-prototypes
 
 obj-$(CONFIG_GS101_THERMAL_V2)			+= gs_thermal.o
 gs_thermal-y					+= gs_tmu_v2.o

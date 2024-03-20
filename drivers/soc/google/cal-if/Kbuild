@@ -4,6 +4,13 @@
 
 # Object files in subdirectories
 
+CFLAGS_cal-if.o += -Wno-missing-prototypes
+CFLAGS_fvmap.o += -Wno-missing-prototypes
+CFLAGS_gs101/cal_data.o += -Wno-missing-prototypes
+CFLAGS_gs201/cal_data.o += -Wno-missing-prototypes
+CFLAGS_ra.o += -Wno-missing-prototypes
+CFLAGS_pmucal_powermode.o += -Wno-missing-prototypes
+
 obj-$(CONFIG_CAL_IF)			+= cmupmucal.o
 cmupmucal-y				+= cal-if.o cmucal.o ra.o vclk.o pll_spec.o cmucal-debug.o
 cmupmucal-$(CONFIG_PMUCAL)		+= pmucal_system.o pmucal_local.o pmucal_cpu.o pmucal_rae.o pmucal_powermode.o

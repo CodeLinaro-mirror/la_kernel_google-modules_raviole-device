@@ -1,5 +1,7 @@
 ## SPDX-License-Identifier: GPL-2.0-only
 
+CFLAGS_gsa_core.o += -Wno-missing-prototypes
+
 ccflags-y += -I$(KERNEL_SRC)/../private/google-modules/trusty/include
 
 obj-$(CONFIG_GSA) += gsa.o
