@@ -636,8 +636,8 @@ static inline void enable_cs(struct s3c64xx_spi_driver_data *sdd,
 		if (sdd->tgl_spi != spi) { /* if last mssg on diff device */
 			/* Deselect the last toggled device */
 			cs = sdd->tgl_spi->controller_data;
-			if (spi->cs_gpiod)
-				gpiod_set_value_cansleep(spi->cs_gpiod, 0);
+			if (spi_get_csgpiod(spi, 0))
+				gpiod_set_value_cansleep(spi_get_csgpiod(spi, 0), 0);
 			/* Quiesce the signals */
 			writel(spi->mode & SPI_CS_HIGH ?
 				0 : S3C64XX_SPI_SLAVE_SIG_INACT,
@@ -647,8 +647,8 @@ static inline void enable_cs(struct s3c64xx_spi_driver_data *sdd,
 	}
 
 	cs = spi->controller_data;
-	if (spi->cs_gpiod) {
-		gpiod_set_value_cansleep(spi->cs_gpiod, 1);
+	if (spi_get_csgpiod(spi, 0)) {
+		gpiod_set_value_cansleep(spi_get_csgpiod(spi, 0), 1);
 		if (cs->cs_delay)
 			udelay(cs->cs_delay);
 	}
@@ -752,8 +752,8 @@ static inline void disable_cs(struct s3c64xx_spi_driver_data *sdd,
 	if (sdd->tgl_spi == spi)
 		sdd->tgl_spi = NULL;
 
-	if (spi->cs_gpiod)
-		gpiod_set_value_cansleep(spi->cs_gpiod, 0);
+	if (spi_get_csgpiod(spi, 0))
+		gpiod_set_value_cansleep(spi_get_csgpiod(spi, 0), 0);
 
 	if (cs->cs_mode != AUTO_CS_MODE) {
 		/* Quiesce the signals */
@@ -1237,7 +1237,7 @@ static int s3c64xx_spi_setup(struct spi_device *spi)
 	}
 
 	if (IS_ERR(cs)) {
-		dev_err(&spi->dev, "No CS for SPI(%d)\n", spi->chip_select);
+		dev_err(&spi->dev, "No CS for SPI(%d)\n", spi_get_chipselect(spi, 0));
 		return -ENODEV;
 	}
 
@@ -1315,8 +1315,8 @@ static int s3c64xx_spi_setup(struct spi_device *spi)
 		 * spi driver is configured as active low. So set it here. Refer to
 		 * b/181043058 for more details.
 		 */
-		if (spi->cs_gpiod)
-			gpiod_set_raw_value_cansleep(spi->cs_gpiod, 0);
+		if (spi_get_csgpiod(spi, 0))
+			gpiod_set_raw_value_cansleep(spi_get_csgpiod(spi, 0), 0);
 	}
 
 #ifdef CONFIG_PM
@@ -1344,8 +1344,8 @@ setup_exit:
 		 * spi driver is configured as active low. So set it here. Refer to
 		 * b/181043058 for more details.
 		 */
-		if (spi->cs_gpiod)
-			gpiod_set_raw_value_cansleep(spi->cs_gpiod, 0);
+		if (spi_get_csgpiod(spi, 0))
+			gpiod_set_raw_value_cansleep(spi_get_csgpiod(spi, 0), 0);
 	}
 
 	spi_set_ctldata(spi, NULL);
