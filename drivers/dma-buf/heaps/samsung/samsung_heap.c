@@ -165,7 +165,7 @@ static struct samsung_dma_heap *__samsung_heap_add(struct device *dev, void *pri
 	}
 
 	of_property_read_u32(dev->of_node, "dma-heap,alignment", &alignment);
-	order = min_t(unsigned int, get_order(alignment), MAX_ORDER);
+	order = min_t(unsigned int, get_order(alignment), MAX_PAGE_ORDER);
 
 	heap = devm_kzalloc(dev, sizeof(*heap), GFP_KERNEL);
 	if (!heap)
