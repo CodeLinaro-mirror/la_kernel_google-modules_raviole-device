@@ -472,7 +472,7 @@ static int s2mpg1x_gpio_probe(struct platform_device *pdev)
 	s2mpg1x_gpio->gc.free = gpiochip_generic_free;
 
 	dp = of_find_node_by_name(pdev->dev.parent->of_node, pdev->name);
-	if (!s2mpg1x_gpio->gc.of_node) {
+	if (!dp) {
 		dev_err(&pdev->dev, "Failed to find %s DT node\n", pdev->name);
 		return -EINVAL;
 	}
