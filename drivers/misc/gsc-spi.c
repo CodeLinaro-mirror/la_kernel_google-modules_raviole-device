@@ -408,7 +408,7 @@ static int gsc_probe(struct spi_device *spi)
 	u32 minor;
 
 	/* use chip select as minor */
-	minor = (u32)spi->chip_select;
+	minor = spi_get_chipselect(spi, 0);
 	if (minor >= GSC_MAX_DEVICES) {
 		dev_err(&spi->dev, "minor %u out of boundaries\n", minor);
 		return -ENXIO;
