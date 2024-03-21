@@ -10,8 +10,7 @@
 #include <linux/bug.h>
 #include <linux/delay.h>
 #include <linux/err.h>
-#include <linux/gpio.h>
-#include <linux/of_gpio.h>
+#include <linux/gpio/consumer.h>
 #include <../drivers/pinctrl/samsung/pinctrl-samsung.h>
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -370,10 +369,12 @@ static int s2mpg13_pmic_dt_parse_pdata(struct s2mpg13_dev *iodev,
 	of_property_read_u32(pmic_np, "buck_ocp_ctrl7", &pdata->buck_ocp_ctrl7);
 
 	/* parse OCP_WARN information */
-	pdata->b2_ocp_warn_pin = of_get_gpio(pmic_np, 0);
-	if (pdata->b2_ocp_warn_pin < 0)
-		dev_err(iodev->dev, "b2_ocp_warn_pin < 0: %d\n",
-			pdata->b2_ocp_warn_pin);
+	pdata->b2_ocp_warn_pin = devm_gpiod_get_index(iodev->dev, NULL, 0,
+						      GPIOD_ASIS);
+	if (IS_ERR(pdata->b2_ocp_warn_pin))
+		dev_err(iodev->dev,
+			"failed to get b2_ocp_warn_pin gpio: %ld\n",
+			PTR_ERR(pdata->b2_ocp_warn_pin));
 
 	ret = of_property_read_u32(pmic_np, "b2_ocp_warn_en", &val);
 	pdata->b2_ocp_warn_en = ret ? 0 : val;
@@ -388,10 +389,12 @@ static int s2mpg13_pmic_dt_parse_pdata(struct s2mpg13_dev *iodev,
 	pdata->b2_ocp_warn_lvl = ret ? 0 : val;
 
 	/* parse SOFT_OCP_WARN information */
-	pdata->b2_soft_ocp_warn_pin = of_get_gpio(pmic_np, 1);
-	if (pdata->b2_soft_ocp_warn_pin < 0)
-		dev_err(iodev->dev, "b2_soft_ocp_warn_pin < 0: %d\n",
-			pdata->b2_soft_ocp_warn_pin);
+	pdata->b2_soft_ocp_warn_pin = devm_gpiod_get_index(iodev->dev, NULL, 1,
+							   GPIOD_ASIS);
+	if (IS_ERR(pdata->b2_soft_ocp_warn_pin))
+		dev_err(iodev->dev,
+			"failed to get b2_soft_ocp_warn_pin: %ld\n",
+			PTR_ERR(pdata->b2_soft_ocp_warn_pin));
 
 	ret = of_property_read_u32(pmic_np, "b2_soft_ocp_warn_en", &val);
 	pdata->b2_soft_ocp_warn_en = ret ? 0 : val;
