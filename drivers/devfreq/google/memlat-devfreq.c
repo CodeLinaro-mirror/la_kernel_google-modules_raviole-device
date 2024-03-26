@@ -11,7 +11,10 @@
  *
  */
 
+#include <linux/mod_devicetable.h>
+#include <linux/of.h>
 #include <linux/of_platform.h>
+#include <linux/platform_device.h>
 #include <soc/google/cal-if.h>
 #include <soc/google/exynos-devfreq.h>
 #include <soc/google/ect_parser.h>
