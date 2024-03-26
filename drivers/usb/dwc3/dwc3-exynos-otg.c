@@ -18,7 +18,8 @@
 #include "core-exynos.h"
 #include "exynos-otg.h"
 #include <dwc3/io.h> /* $(srctree)/drivers/usb/dwc3/io.h */
-#include <linux/of_device.h>
+#include <linux/of.h>
+#include <linux/of_platform.h>
 #include <linux/usb/composite.h>
 #include <linux/reboot.h>
 #include "dwc3-exynos.h"
