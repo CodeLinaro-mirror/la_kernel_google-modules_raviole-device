@@ -2692,7 +2692,7 @@ static int exynos_pcie_rc_init(struct dw_pcie_rp *pp)
 }
 
 static struct dw_pcie_host_ops exynos_pcie_rc_ops = {
-	.host_init = exynos_pcie_rc_init,
+	.init = exynos_pcie_rc_init,
 };
 
 void exynos_pcie_msi_post_process(struct dw_pcie_rp *pp)
