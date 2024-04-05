@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0
 
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
-load("//build/bazel_common_rules/exec:exec.bzl", "exec_test")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "extract_symbols",
@@ -446,10 +446,9 @@ copy_to_dist_dir(
 )
 
 # Test that only builds :slider_test_images, but does nothing else
-exec_test(
+build_test(
     name = "slider_images_test",
-    data = [":slider_test_images"],
-    script = "",
+    targets = [":slider_test_images"],
 )
 
 test_suite(
