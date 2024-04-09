@@ -133,7 +133,7 @@ static int gsc_tpm_datagram(struct gsc_data *gsc,
 	int gsc_fell_over = 0;
 
 	/* Lock the SPI bus until we're completely done */
-	spi_bus_lock(spi->master);
+	spi_bus_lock(spi->controller);
 
 	/* Check whether GSC is awake (b/142475097) */
 	ret = gsc_is_awake(gsc);
@@ -213,7 +213,7 @@ static int gsc_tpm_datagram(struct gsc_data *gsc,
 		ret = -EFAULT;
 
 exit:
-	spi_bus_unlock(spi->master);
+	spi_bus_unlock(spi->controller);
 
 	return ret;
 }
@@ -223,7 +223,7 @@ static int gsc_reset(struct gsc_data *gsc)
 	/* Synchronize with the datagrams by locking the SPI bus */
 	struct spi_device *spi = gsc->spi;
 
-	spi_bus_lock(spi->master);
+	spi_bus_lock(spi->controller);
 
 	/* Assert reset for at least 3ms after VDDIOM is stable; 10ms is safe */
 	gpio_set_value(gsc->ctdl_rst, 1);
@@ -233,7 +233,7 @@ static int gsc_reset(struct gsc_data *gsc)
 	gpio_set_value(gsc->ctdl_rst, 0);
 	msleep(100);
 
-	spi_bus_unlock(spi->master);
+	spi_bus_unlock(spi->controller);
 	return 0;
 }
 
