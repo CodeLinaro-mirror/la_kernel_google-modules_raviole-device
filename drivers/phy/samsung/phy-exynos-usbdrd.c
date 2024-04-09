@@ -2027,7 +2027,7 @@ int exynos_usbdrd_pipe3_disable(struct phy *phy)
 EXPORT_SYMBOL_GPL(exynos_usbdrd_pipe3_disable);
 
 static struct phy *exynos_usbdrd_phy_xlate(struct device *dev,
-					   struct of_phandle_args *args)
+					   const struct of_phandle_args *args)
 {
 	struct exynos_usbdrd_phy *phy_drd = dev_get_drvdata(dev);
 
