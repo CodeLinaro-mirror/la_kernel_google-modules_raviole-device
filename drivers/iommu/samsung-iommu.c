@@ -962,7 +962,7 @@ static void samsung_sysmmu_clientdata_release(struct device *dev, void *res)
 }
 
 static int samsung_sysmmu_of_xlate(struct device *dev,
-				   struct of_phandle_args *args)
+				   const struct of_phandle_args *args)
 {
 	struct platform_device *sysmmu = of_find_device_by_node(args->np);
 	struct sysmmu_drvdata *data = platform_get_drvdata(sysmmu);
