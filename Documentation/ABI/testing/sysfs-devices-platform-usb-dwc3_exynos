@@ -43,3 +43,11 @@ Description:
 		This file is used to show the gadget state of dwc3-exynos driver. If
 		peripheral mode is active, it will display "1", otherwise "0".
 		Userspace can read this file to know gadget state of dwc3-exynos.
+
+What:		/sys/devices/platform/*.usb/new_data_role
+Date:		April, 2024
+Contact:	Roy Luo <royluo@google.com>
+Description:
+		This read-only file provides the currently configured data role.
+		Updates to this file occur prior to the processing of role switch
+		requests. The file supports epoll.
