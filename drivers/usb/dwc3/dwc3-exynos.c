@@ -43,6 +43,7 @@
 #include <linux/of_device.h>
 
 #include <soc/google/exynos-cpupm.h>
+#include <soc/google/pkvm-s2mpu.h>
 
 static const struct of_device_id exynos_dwc3_match[] = {
 	{
@@ -114,36 +115,13 @@ err:
 	return -EINVAL;
 }
 
-static int dwc3_exynos_clk_prepare(struct dwc3_exynos *exynos)
+static int dwc3_exynos_clk_prepare_enable(struct dwc3_exynos *exynos)
 {
 	int i;
 	int ret;
 
 	for (i = 0; exynos->clocks[i]; i++) {
-		ret = clk_prepare(exynos->clocks[i]);
-		if (ret)
-			goto err;
-	}
-
-	return 0;
-
-err:
-	dev_err(exynos->dev, "couldn't prepare clock[%d]\n", i);
-
-	/* roll back */
-	for (i = i - 1; i >= 0; i--)
-		clk_unprepare(exynos->clocks[i]);
-
-	return ret;
-}
-
-static int dwc3_exynos_clk_enable(struct dwc3_exynos *exynos)
-{
-	int i;
-	int ret;
-
-	for (i = 0; exynos->clocks[i]; i++) {
-		ret = clk_enable(exynos->clocks[i]);
+		ret = clk_prepare_enable(exynos->clocks[i]);
 		if (ret)
 			goto err;
 	}
@@ -155,25 +133,18 @@ err:
 
 	/* roll back */
 	for (i = i - 1; i >= 0; i--)
-		clk_disable(exynos->clocks[i]);
+		clk_disable_unprepare(exynos->clocks[i]);
 
 	return ret;
 }
 
-static void dwc3_exynos_clk_unprepare(struct dwc3_exynos *exynos)
+static void dwc3_exynos_clk_disable_unprepare(struct dwc3_exynos *exynos)
 {
 	int i;
 
-	for (i = 0; exynos->clocks[i]; i++)
-		clk_unprepare(exynos->clocks[i]);
-}
-
-static void dwc3_exynos_clk_disable(struct dwc3_exynos *exynos)
-{
-	int i;
-
-	for (i = 0; exynos->clocks[i]; i++)
-		clk_disable(exynos->clocks[i]);
+	for (i = 0; exynos->clocks[i]; i++){
+		clk_disable_unprepare(exynos->clocks[i]);
+	}
 }
 
 static void dwc3_core_config(struct dwc3 *dwc, struct dwc3_exynos *exynos)
@@ -819,10 +790,16 @@ static int dwc3_exynos_vbus_notifier(struct notifier_block *nb,
 				     unsigned long action, void *dev)
 {
 	struct dwc3_exynos *exynos = container_of(nb, struct dwc3_exynos, vbus_nb);
+	struct dwc3_otg *dotg = exynos->dotg;
 
-	if (!exynos->usb_data_enabled)
+	dev_info(exynos->dev, "turn %s USB gadget\n", action ? "on" : "off");
+
+	if (!exynos->usb_data_enabled) {
+		dev_info(exynos->dev, "skip the notification due to USB enumeration disabled\n");
 		return NOTIFY_OK;
+	}
 
+	dotg->skip_retry = false;
 	dwc3_exynos_vbus_event(exynos->dev, action);
 
 	return NOTIFY_OK;
@@ -833,8 +810,12 @@ static int dwc3_exynos_id_notifier(struct notifier_block *nb,
 {
 	struct dwc3_exynos *exynos = container_of(nb, struct dwc3_exynos, id_nb);
 
-	if (!exynos->usb_data_enabled)
+	dev_info(exynos->dev, "turn %s USB host\n", action ? "on" : "off");
+
+	if (!exynos->usb_data_enabled) {
+		dev_info(exynos->dev, "skip the notification due to USB enumeration disabled\n");
 		return NOTIFY_OK;
+	}
 
 	dwc3_exynos_id_event(exynos->dev, !action);
 
@@ -1069,6 +1050,8 @@ static ssize_t force_speed_store(struct device *dev, struct device_attribute *at
 		force_speed = USB_SPEED_SUPER;
 	} else if (sysfs_streq(buf, "high-speed")) {
 		force_speed = USB_SPEED_HIGH;
+	} else if (sysfs_streq(buf, "full-speed")) {
+		force_speed = USB_SPEED_FULL;
 	} else {
 		return -EINVAL;
 	}
@@ -1090,6 +1073,15 @@ static ssize_t force_speed_store(struct device *dev, struct device_attribute *at
 }
 static DEVICE_ATTR_RW(force_speed);
 
+static ssize_t dwc3_exynos_gadget_state_show(struct device *dev, struct device_attribute *attr,
+					     char *buf)
+{
+	struct dwc3_exynos	*exynos = dev_get_drvdata(dev);
+
+	return sysfs_emit(buf, "%d\n", exynos->gadget_state);
+}
+static DEVICE_ATTR_RO(dwc3_exynos_gadget_state);
+
 static struct attribute *dwc3_exynos_otg_attrs[] = {
 	&dev_attr_dwc3_exynos_otg_id.attr,
 	&dev_attr_dwc3_exynos_otg_b_sess.attr,
@@ -1097,6 +1089,7 @@ static struct attribute *dwc3_exynos_otg_attrs[] = {
 	&dev_attr_dwc3_exynos_extra_delay.attr,
 	&dev_attr_usb_data_enabled.attr,
 	&dev_attr_force_speed.attr,
+	&dev_attr_dwc3_exynos_gadget_state.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(dwc3_exynos_otg);
@@ -1114,6 +1107,14 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 	if (IS_ERR(temp_usb_phy)) {
 		dev_dbg(dev, "USB phy is not probed - defered return!\n");
 		return  -EPROBE_DEFER;
+	}
+
+	if (IS_ENABLED(CONFIG_PKVM_S2MPU)) {
+		ret = pkvm_s2mpu_of_link(dev);
+		if (ret == -EAGAIN)
+			return -EPROBE_DEFER;
+		else if (ret)
+			return ret;
 	}
 
 	exynos = devm_kzalloc(dev, sizeof(*exynos), GFP_KERNEL);
@@ -1136,16 +1137,6 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 	ret = dwc3_exynos_clk_get(exynos);
 	if (ret)
 		return ret;
-
-	ret = dwc3_exynos_clk_prepare(exynos);
-	if (ret)
-		return ret;
-
-	ret = dwc3_exynos_clk_enable(exynos);
-	if (ret) {
-		dwc3_exynos_clk_unprepare(exynos);
-		return ret;
-	}
 
 	ret = dwc3_exynos_extcon_register(exynos);
 	if (ret < 0) {
@@ -1182,6 +1173,7 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 
 	exynos_usbdrd_vdd_hsi_manual_control(1);
 	exynos_usbdrd_ldo_manual_control(1);
+	exynos_usbdrd_s2mpu_manual_control(1);
 
 	if (node) {
 		ret = of_platform_populate(node, NULL, NULL, dev);
@@ -1197,7 +1189,7 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 
 	dwc3_pdev = of_find_device_by_node(dwc3_np);
 	exynos->dwc = platform_get_drvdata(dwc3_pdev);
-	if (exynos->dwc == NULL)
+	if (exynos->dwc == NULL || exynos->dwc->dev == NULL || exynos->dwc->gadget == NULL)
 		goto populate_err;
 
 	/* dwc3 core configurations */
@@ -1226,9 +1218,9 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 
 	otg_set_peripheral(&exynos->dotg->otg, exynos->dwc->gadget);
 
-	ret = usb_gadget_deactivate(exynos->dwc->gadget);
-	if (ret < 0)
-		dev_err(dev, "USB gadget deactivate failed with %d\n", ret);
+	/* disconnect gadget in probe */
+	usb_udc_vbus_handler(exynos->dwc->gadget, false);
+
 	/*
 	 * To avoid missing notification in kernel booting check extcon
 	 * state to run state machine.
@@ -1244,8 +1236,7 @@ populate_err:
 	platform_device_unregister(exynos->usb2_phy);
 	platform_device_unregister(exynos->usb3_phy);
 vdd33_err:
-	dwc3_exynos_clk_disable(exynos);
-	dwc3_exynos_clk_unprepare(exynos);
+	dwc3_exynos_clk_disable_unprepare(exynos);
 	exynos_update_ip_idle_status(exynos->idle_ip_index, 1);
 	pm_runtime_put_sync(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
@@ -1273,11 +1264,9 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev)) {
-		dwc3_exynos_clk_disable(exynos);
+		dwc3_exynos_clk_disable_unprepare(exynos);
 		pm_runtime_set_suspended(&pdev->dev);
 	}
-
-	dwc3_exynos_clk_unprepare(exynos);
 
 	return 0;
 }
@@ -1319,7 +1308,7 @@ static int dwc3_exynos_runtime_suspend(struct device *dev)
 		return 0;
 	}
 
-	dwc3_exynos_clk_disable(exynos);
+	dwc3_exynos_clk_disable_unprepare(exynos);
 
 	/* inform what USB state is idle to IDLE_IP */
 	exynos_update_ip_idle_status(exynos->idle_ip_index, 1);
@@ -1347,9 +1336,9 @@ static int dwc3_exynos_runtime_resume(struct device *dev)
 	/* inform what USB state is not idle to IDLE_IP */
 	exynos_update_ip_idle_status(exynos->idle_ip_index, 0);
 
-	ret = dwc3_exynos_clk_enable(exynos);
+	ret = dwc3_exynos_clk_prepare_enable(exynos);
 	if (ret) {
-		dev_err(dev, "%s: clk_enable failed\n", __func__);
+		dev_err(dev, "%s: clk_prepare_enable failed\n", __func__);
 		return ret;
 	}
 
@@ -1366,7 +1355,7 @@ static int dwc3_exynos_suspend(struct device *dev)
 	if (pm_runtime_suspended(dev))
 		return 0;
 
-	dwc3_exynos_clk_disable(exynos);
+	dwc3_exynos_clk_disable_unprepare(exynos);
 
 	return 0;
 }
@@ -1376,9 +1365,9 @@ static int dwc3_exynos_resume(struct device *dev)
 	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
 	int		ret;
 
-	ret = dwc3_exynos_clk_enable(exynos);
+	ret = dwc3_exynos_clk_prepare_enable(exynos);
 	if (ret) {
-		dev_err(dev, "%s: clk_enable failed\n", __func__);
+		dev_err(dev, "%s: clk_prepare_enable failed\n", __func__);
 		return ret;
 	}
 
