@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
 
-load("//build/bazel_common_rules/exec:exec.bzl", "exec_test")
+load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("//build/bazel_common_rules/exec:exec.bzl", "exec_test")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "kernel_abi",
@@ -14,7 +15,6 @@ load(
     "kernel_unstripped_modules_archive",
     "merged_kernel_uapi_headers",
 )
-load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load(":slider.bzl", "SLIDER_DTBOS")
 load(":tests.bzl", "define_slider_kleaf_tests")
 
@@ -366,7 +366,7 @@ kernel_images(
     deps = [
         # Keep the following in sync with vendor_dlkm.props.slider:
         # selinux_fc
-        "//prebuilts/boot-artifacts/selinux:file_contexts",
+        "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
     ],
 )
 
