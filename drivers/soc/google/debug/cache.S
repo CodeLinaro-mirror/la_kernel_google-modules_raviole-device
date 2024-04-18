@@ -10,7 +10,7 @@
 #include <asm/asm-uaccess.h>
 
 /*
- *	flush_cache_all()
+ *	dbg_snapshot_flush_cache_all()
  *	Corrupted registers: x0-x7, x9-x11
  *
  *	Flush the entire cache system.  The data cache flush is now achieved
@@ -20,7 +20,7 @@
  *	unification in a single instruction.
  */
 
-SYM_FUNC_START(flush_cache_all)
+SYM_FUNC_START(dbg_snapshot_flush_cache_all)
 	mov	x12, lr
 	dmb	sy			// ensure ordering with previous memory accesses
 	mrs	x0, clidr_el1		// read clidr

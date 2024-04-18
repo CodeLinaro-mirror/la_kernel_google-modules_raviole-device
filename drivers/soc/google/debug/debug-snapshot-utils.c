@@ -54,7 +54,7 @@ static struct dbg_snapshot_helper_ops dss_soc_ops;
 
 void cache_flush_all(void)
 {
-	flush_cache_all();
+	dbg_snapshot_flush_cache_all();
 }
 EXPORT_SYMBOL_GPL(cache_flush_all);
 
