@@ -1164,23 +1164,6 @@ static void samsung_sysmmu_remove_dev_pasid(struct device *dev, ioasid_t pasid)
 	iommu_group_put(group);
 }
 
-static bool samsung_sysmmu_dev_has_feat(struct device *dev, enum iommu_dev_features f)
-{
-	return false;
-}
-
-static int samsung_sysmmu_dev_enable_feat(struct device *dev, enum iommu_dev_features f)
-{
-	if (!samsung_sysmmu_dev_has_feat(dev, f))
-		return -EINVAL;
-	return 0;
-}
-
-static int samsung_sysmmu_dev_disable_feat(struct device *dev, enum iommu_dev_features f)
-{
-	return -EINVAL;
-}
-
 static void samsung_sysmmu_get_resv_regions(struct device *dev, struct list_head *head)
 {
 	enum iommu_resv_type resvtype[] = {
@@ -1244,8 +1227,6 @@ static struct iommu_ops samsung_sysmmu_ops = {
 	.device_group		= samsung_sysmmu_device_group,
 	.of_xlate		= samsung_sysmmu_of_xlate,
 	.get_resv_regions	= samsung_sysmmu_get_resv_regions,
-	.dev_enable_feat	= samsung_sysmmu_dev_enable_feat,
-	.dev_disable_feat	= samsung_sysmmu_dev_disable_feat,
 	.remove_dev_pasid	= samsung_sysmmu_remove_dev_pasid,
 	.pgsize_bitmap		= SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE,
 	.owner						= THIS_MODULE,
