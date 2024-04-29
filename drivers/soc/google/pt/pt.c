@@ -249,7 +249,7 @@ static int pt_resize_thread(void *data)
 	int id;
 
 	while (!kthread_should_stop()) {
-		spin_lock(&pt_internal_data.sl);
+		spin_lock_irq(&pt_internal_data.sl);
 
 		pts = pt_resize_list_next(&size);
 		if (pts != NULL) {
@@ -264,7 +264,7 @@ static int pt_resize_thread(void *data)
 				(int)size, pts->ptid);
 		}
 
-		spin_unlock(&pt_internal_data.sl);
+		spin_unlock_irq(&pt_internal_data.sl);
 
 		/* List was empty, wait to be notified by pt_resize_list_add */
 		if (pts == NULL) {
