@@ -96,6 +96,7 @@ do {					\
 
 /* This part must be outside protection */
 #undef TRACE_INCLUDE_PATH
+#undef TRACE_INCLUDE_FILE
 #define TRACE_INCLUDE_PATH trace/hooks
 #define TRACE_INCLUDE_FILE systrace
 
