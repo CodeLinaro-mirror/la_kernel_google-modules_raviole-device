@@ -98,6 +98,7 @@ kernel_module_group(
         "//private/google-modules/lwis",
         "//private/google-modules/edgetpu/abrolhos/drivers/edgetpu:edgetpu.abrolhos",
         "//private/google-modules/bms",
+        "//private/google-modules/bms/misc:bms-misc",
         "//private/google-modules/amplifiers/snd_soc_wm_adsp:snd-soc-wm-adsp",
         "//private/google-modules/amplifiers/drv2624",
         "//private/google-modules/amplifiers/cs40l25",
@@ -149,6 +150,7 @@ kernel_build(
         "Kconfig.ext_modules",
         "arch/arm64/configs/slider_gki.fragment",
         "//common:kernel_aarch64_sources",
+        "//private/google-modules/bms/misc:bms-misc.kconfig",
         "//private/google-modules/power/mitigation:bcl.kconfig",
         "//private/google-modules/power/reset:reset.kconfig",
         "//private/google-modules/touch/common:common.kconfig",
@@ -189,6 +191,7 @@ extract_symbols(
 kernel_module(
     name = "gs101_soc",
     srcs = [
+        "//private/google-modules/bms/misc:headers",
         "//private/google-modules/soc/gs:gs_soc_sources",
         "//private/google-modules/trusty:headers",
     ],
@@ -227,8 +230,6 @@ kernel_module(
         "drivers/mfd/slg51000-core.ko",
         "drivers/misc/bbdpl/bcm47765.ko",
         "drivers/misc/gsc-spi.ko",
-        "drivers/misc/gvotable.ko",
-        "drivers/misc/logbuffer.ko",
         "drivers/misc/sbb-mux/sbb-mux.ko",
         "drivers/misc/sscoredump/sscoredump.ko",
         "drivers/pci/controller/dwc/pcie-exynos-gs.ko",
@@ -329,6 +330,7 @@ kernel_module(
     ],
     kernel_build = "//private/google-modules/soc/gs:gs_kernel_build",
     deps = [
+        "//private/google-modules/bms/misc:bms-misc",
         "//private/google-modules/trusty",
     ],
 )

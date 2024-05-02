@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 EXTRA_SYMBOLS += $(OUT_DIR)/../private/google-modules/trusty/Module.symvers
+EXTRA_SYMBOLS += $(OUT_DIR)/../private/google-modules/bms/misc/Module.symvers
 
 modules modules_install headers_install clean:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) \
