@@ -60,7 +60,6 @@ exynos-pd_el3.ko
 exynos-pd_hsi0.ko
 exynos-pm.ko
 exynos-pmu-if.ko
-exynos-reboot.ko
 exynos-seclog.ko
 exynos_devfreq.ko
 exynos_dit.ko
@@ -109,9 +108,14 @@ max20339.ko
 max77729-pmic.ko
 max77729_charger.ko
 max77729_uic.ko
-max77759_charger.ko
+max77759-charger.ko
 max77759_contaminant.ko
 max77759_helper.ko
+max77779-charger.ko
+max77779-fg.ko
+max77779_contaminant.ko
+max77779_pmic.ko
+max777x9_contaminant.ko
 max77826-gs-regulator.ko
 mcps802154.ko
 mcps802154_region_fira.ko
@@ -137,6 +141,7 @@ phy-exynos-usbdrd-super.ko
 pinctrl-exynos-gs.ko
 pixel-boot-metrics.ko
 pixel-debug-test.ko
+pixel-reboot.ko
 pixel-suspend-diag.ko
 pixel_em.ko
 pixel_stat_mm.ko
