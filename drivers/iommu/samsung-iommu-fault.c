@@ -97,16 +97,11 @@ static char *sysmmu_fault_name[SYSMMU_FAULTS_NUM] = {
 	"RESERVED",
 };
 
-static unsigned int sysmmu_fault_type[SYSMMU_FAULTS_NUM] = {
-	IOMMU_FAULT_REASON_WALK_EABT,
-	IOMMU_FAULT_REASON_PTE_FETCH,
-	IOMMU_FAULT_REASON_ACCESS,
-	IOMMU_FAULT_REASON_UNKNOWN,
-};
-
 struct samsung_sysmmu_fault_info {
 	struct sysmmu_drvdata *drvdata;
-	struct iommu_fault_event event;
+	u64 addr;
+	u32 vid;
+	unsigned int type;
 };
 
 static inline u32 __sysmmu_get_intr_status(struct sysmmu_drvdata *data,
@@ -502,20 +497,29 @@ irqreturn_t samsung_sysmmu_irq(int irq, void *dev_id)
 
 static int samsung_sysmmu_fault_notifier(struct device *dev, void *data)
 {
-	struct samsung_sysmmu_fault_info *fi;
-	struct sysmmu_clientdata *client;
-	struct sysmmu_drvdata *drvdata;
+	struct sysmmu_clientdata *client = dev_iommu_priv_get(dev);
+	struct samsung_sysmmu_fault_info *fi = data;
+	struct sysmmu_drvdata *drvdata = fi->drvdata;
+	struct iommu_domain *domain;
 	unsigned int i;
 	int ret, result = 0;
 
-	fi = (struct samsung_sysmmu_fault_info *)data;
-	drvdata = fi->drvdata;
 
-	client = (struct sysmmu_clientdata *) dev_iommu_priv_get(dev);
+	if (fi->vid) {
+		domain = iommu_get_domain_for_dev_pasid(dev, fi->vid, 0);
+		if (IS_ERR(domain))
+			domain = NULL;
+	} else {
+		domain = iommu_get_domain_for_dev(dev);
+	}
+
+	if (!domain)
+		return 0;
 
 	for (i = 0; i < client->sysmmu_count; i++) {
 		if (drvdata == client->sysmmus[i]) {
-			ret = iommu_report_device_fault(dev, &fi->event);
+			ret = report_iommu_fault(domain, dev, fi->addr,
+						 fi->type);
 			if (ret == -EAGAIN)
 				result = ret;
 			break;
@@ -533,26 +537,25 @@ irqreturn_t samsung_sysmmu_irq_thread(int irq, void *dev_id)
 	struct sysmmu_drvdata *drvdata = dev_id;
 	bool is_secure = (irq == drvdata->secure_irq);
 	struct iommu_group *group = drvdata->group;
-	enum iommu_fault_reason reason;
 	struct samsung_sysmmu_fault_info fi = {
 		.drvdata = drvdata,
-		.event.fault.type = IOMMU_FAULT_DMA_UNRECOV,
 	};
 	char fault_msg[128] = "Unspecified SysMMU fault";
+	u32 info;
 
 	/* Prevent power down while handling faults */
 	pm_runtime_get_sync(drvdata->dev);
 
 	sysmmu_get_interrupt_info(drvdata, &itype, &vid, &addr, is_secure);
-	reason = sysmmu_fault_type[itype];
 
-	fi.event.fault.event.addr = addr;
-	fi.event.fault.event.pasid = vid;
-	if (vid)
-		fi.event.fault.event.flags |= IOMMU_FAULT_UNRECOV_PASID_VALID;
-	fi.event.fault.event.reason = reason;
-	if (reason == IOMMU_FAULT_REASON_PTE_FETCH)
-		fi.event.fault.type = IOMMU_FAULT_PAGE_REQ;
+	fi.addr = addr;
+	fi.vid = vid;
+
+	if (is_secure)
+		info = read_sec_info(MMU_SEC_REG(drvdata, IDX_FAULT_TRANS_INFO));
+	else
+		info = readl_relaxed(MMU_VM_REG(drvdata, IDX_FAULT_TRANS_INFO, vid));
+	fi.type = IS_READ_FAULT(info) ? IOMMU_FAULT_READ : IOMMU_FAULT_WRITE;
 
 	ret = iommu_group_for_each_dev(group, &fi,
 				       samsung_sysmmu_fault_notifier);
