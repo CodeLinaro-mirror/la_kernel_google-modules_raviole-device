@@ -22,7 +22,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&usb_pd_irq>;
 		interrupt-parent = <&gpa8>;
-		usbpd,usbpd_int = <&gpa8 2 GPIO_ACTIVE_LOW>;
+		usbpd,usbpd_int-gpio = <&gpa8 2 GPIO_ACTIVE_LOW>;
 		usb-psy-name = "usb";
 		chg-psy-name = "gcpm";
 		no-bc-12;
