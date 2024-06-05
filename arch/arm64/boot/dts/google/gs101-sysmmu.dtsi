@@ -657,5 +657,6 @@
 				      <2 TLB_CFG(BL1, PREFETCH_PREDICTION) DIR_RW   SYSMMU_ID_MASK(0x8, 0xC)>,
 				      <3 TLB_CFG(BL1, PREFETCH_PREDICTION) DIR_RW   SYSMMU_ID_MASK(0xC, 0xC)>;
 		sysmmu,async-fault;
+		pasid-num-bits = <3>;
 	};
 };

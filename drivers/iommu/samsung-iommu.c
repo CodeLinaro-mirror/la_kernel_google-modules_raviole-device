@@ -1344,6 +1344,7 @@ static int sysmmu_parse_dt(struct device *sysmmu, struct sysmmu_drvdata *data)
 {
 	int qos = DEFAULT_QOS_VALUE;
 	int ret;
+	u32 num_bits;
 
 	/* Parsing QoS */
 	ret = of_property_read_u32_index(sysmmu->of_node, "qos", 0, &qos);
@@ -1376,6 +1377,10 @@ static int sysmmu_parse_dt(struct device *sysmmu, struct sysmmu_drvdata *data)
 	ret = sysmmu_parse_tlb_property(sysmmu, data);
 	if (ret)
 		dev_err(sysmmu, "Failed to parse TLB property\n");
+
+	if (!of_property_read_u32(sysmmu->of_node, "pasid-num-bits", &num_bits) && num_bits < 32) {
+		data->iommu.max_pasids = BIT(num_bits);
+	}
 
 	return ret;
 }
