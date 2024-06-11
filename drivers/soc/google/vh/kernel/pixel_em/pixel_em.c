@@ -486,7 +486,8 @@ static bool generate_em_cluster(struct pixel_em_cluster *dst, struct em_perf_dom
 	int first_cpu = cpumask_first(em_span_cpus(pd));
 	int cpu_scale = topology_get_cpu_scale(first_cpu);
 	int max_freq_index = pd->nr_perf_states - 1;
-	unsigned long max_freq = pd->table[max_freq_index].frequency;
+	struct em_perf_state *table;
+	unsigned long max_freq;
 	int opp_id;
 
 	cpumask_copy(&dst->cpus, em_span_cpus(pd));
@@ -497,12 +498,16 @@ static bool generate_em_cluster(struct pixel_em_cluster *dst, struct em_perf_dom
 	if (!dst->opps)
 		return false;
 
+	rcu_read_lock();
+	table = em_perf_state_from_pd(pd);
+	max_freq = table[max_freq_index].frequency;
 	for (opp_id = 0; opp_id < pd->nr_perf_states; opp_id++) {
-		dst->opps[opp_id].freq = pd->table[opp_id].frequency;
-		dst->opps[opp_id].power = pd->table[opp_id].power;
-		dst->opps[opp_id].cost = pd->table[opp_id].cost;
+		dst->opps[opp_id].freq = table[opp_id].frequency;
+		dst->opps[opp_id].power = table[opp_id].power;
+		dst->opps[opp_id].cost = table[opp_id].cost;
 		dst->opps[opp_id].capacity = (dst->opps[opp_id].freq * cpu_scale) / max_freq;
 	}
+	rcu_read_unlock();
 
 	return true;
 }
