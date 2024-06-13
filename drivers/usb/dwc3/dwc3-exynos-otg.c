@@ -255,11 +255,11 @@ static void usb3_phy_control(struct dwc3_otg	*dotg,
 
 	if (on) {
 		dwc3_core_susphy_set(dwc, 0);
-		exynos_usbdrd_pipe3_enable(dwc->usb3_generic_phy);
+		exynos_usbdrd_pipe3_enable(dwc->usb3_generic_phy[0]);
 		dwc3_core_susphy_set(dwc, 1);
 	} else {
 		dwc3_core_susphy_set(dwc, 0);
-		exynos_usbdrd_pipe3_disable(dwc->usb3_generic_phy);
+		exynos_usbdrd_pipe3_disable(dwc->usb3_generic_phy[0]);
 		dwc3_core_susphy_set(dwc, 1);
 	}
 }
@@ -273,7 +273,7 @@ static void dwc3_usb3_phy_restart(struct dwc3_otg *dotg)
 	mutex_lock(&dotg->lock);
 
 	usb3_phy_control(dotg, 0, 0);
-	exynos_usbdrd_phy_tune(dwc->usb3_generic_phy, dotg->otg.state);
+	exynos_usbdrd_phy_tune(dwc->usb3_generic_phy[0], dotg->otg.state);
 	usb3_phy_control(dotg, 0, 1);
 
 	mutex_unlock(&dotg->lock);
@@ -327,9 +327,9 @@ int dwc3_otg_phy_enable(struct otg_fsm *fsm, int owner, bool on)
 				goto err;
 			}
 
-			exynos_usbdrd_phy_tune(dwc->usb2_generic_phy,
+			exynos_usbdrd_phy_tune(dwc->usb2_generic_phy[0],
 							dotg->otg.state);
-			exynos_usbdrd_phy_tune(dwc->usb3_generic_phy,
+			exynos_usbdrd_phy_tune(dwc->usb3_generic_phy[0],
 							dotg->otg.state);
 
 			ret = dwc3_exynos_core_init(dwc, exynos);
@@ -356,10 +356,10 @@ int dwc3_otg_phy_enable(struct otg_fsm *fsm, int owner, bool on)
 			 * Phy_init is called from usb_phy_roothub_init() in
 			 * usb_add_hcd function(usb/core/hcd.c)
 			 */
-			dwc->usb2_generic_phy->init_count = 1;
-			dwc->usb3_generic_phy->init_count = 1;
-			dwc->usb2_generic_phy->power_count = 1;
-			dwc->usb3_generic_phy->power_count = 1;
+			dwc->usb2_generic_phy[0]->init_count = 1;
+			dwc->usb3_generic_phy[0]->init_count = 1;
+			dwc->usb2_generic_phy[0]->power_count = 1;
+			dwc->usb3_generic_phy[0]->power_count = 1;
 
 err:
 			/* We must disable gadget here. (Ignore other job) */
