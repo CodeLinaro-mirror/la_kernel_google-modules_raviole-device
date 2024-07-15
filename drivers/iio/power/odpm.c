@@ -1918,6 +1918,7 @@ static int odpm_probe(struct platform_device *pdev)
 
 	pr_info("odpm: %s: init completed\n", pdev->name);
 
+	smp_store_release(&odpm_info->ready, true);
 	return ret;
 }
 
