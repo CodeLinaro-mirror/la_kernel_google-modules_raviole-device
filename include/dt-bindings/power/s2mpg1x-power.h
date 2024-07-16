@@ -7,6 +7,8 @@
 #ifndef __DT_S2MPG1X_POWER_H
 #define __DT_S2MPG1X_POWER_H
 
+#include <linux/kconfig.h>
+
 #define OCP_WARN_DISABLE	0
 #define OCP_WARN_ENABLE		1
 
