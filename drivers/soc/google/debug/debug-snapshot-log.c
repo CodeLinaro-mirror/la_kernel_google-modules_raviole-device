@@ -801,7 +801,7 @@ static void dbg_snapshot_print_irq(void)
 	for_each_irq_nr(i) {
 		struct irq_data *data;
 		struct irq_desc *desc;
-		unsigned int irq_stat = 0;
+		unsigned int irq_cnt = 0;
 		const char *name;
 
 		data = irq_get_irq_data(i);
@@ -811,9 +811,9 @@ static void dbg_snapshot_print_irq(void)
 		desc = irq_data_to_desc(data);
 
 		for_each_possible_cpu(cpu)
-			irq_stat += *per_cpu_ptr(desc->kstat_irqs, cpu);
+			irq_cnt += per_cpu(desc->kstat_irqs->cnt, cpu);
 
-		if (!irq_stat || irq_stat < irq_filter)
+		if (!irq_cnt || irq_cnt < irq_filter)
 			continue;
 
 		if (desc->action && desc->action->name)
@@ -821,7 +821,7 @@ static void dbg_snapshot_print_irq(void)
 		else
 			name = "???";
 		pr_info("irq-%-4d(hwirq-%-3d) : %8u %s\n",
-			i, (int)desc->irq_data.hwirq, irq_stat, name);
+			i, (int)desc->irq_data.hwirq, irq_cnt, name);
 	}
 }
 
