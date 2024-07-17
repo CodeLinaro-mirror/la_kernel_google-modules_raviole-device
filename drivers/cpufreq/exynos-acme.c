@@ -287,7 +287,7 @@ static int exynos_cpufreq_verify(struct cpufreq_policy_data *new_policy)
 
 	ret = cpufreq_frequency_table_verify(new_policy, domain->freq_table);
 	if (!ret)
-		arch_update_thermal_pressure(&domain->cpus, new_policy->max);
+		arch_update_hw_pressure(&domain->cpus, new_policy->max);
 	return ret;
 }
 
