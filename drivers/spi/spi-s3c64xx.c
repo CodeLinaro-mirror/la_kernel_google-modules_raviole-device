@@ -893,7 +893,7 @@ static int s3c64xx_spi_map_one_msg(struct s3c64xx_spi_driver_data *sdd,
 	struct s3c64xx_spi_info *sci = sdd->cntrlr_info;
 	struct device *dev = &sdd->pdev->dev;
 
-	if (msg->is_dma_mapped || sci->dma_mode != DMA_MODE)
+	if (sci->dma_mode != DMA_MODE)
 		return 0;
 
 	if (xfer->len <= ((FIFO_LVL_MASK(sdd) >> 1) + 1))
@@ -933,7 +933,7 @@ static void s3c64xx_spi_unmap_one_msg(struct s3c64xx_spi_driver_data *sdd,
 	struct s3c64xx_spi_info *sci = sdd->cntrlr_info;
 	struct device *dev = &sdd->pdev->dev;
 
-	if (msg->is_dma_mapped || sci->dma_mode != DMA_MODE)
+	if (sci->dma_mode != DMA_MODE)
 		return;
 
 	if (xfer->len <= ((FIFO_LVL_MASK(sdd) >> 1) + 1))
@@ -976,7 +976,7 @@ static int s3c64xx_spi_transfer_one_message(struct spi_controller *host,
 		s3c64xx_spi_config(sdd);
 	}
 
-	if (!msg->is_dma_mapped && sci->dma_mode == DMA_MODE)
+	if (sci->dma_mode == DMA_MODE)
 		s3c64xx_spi_dma_initialize(sdd, msg);
 
 	/* Configure feedback delay */
