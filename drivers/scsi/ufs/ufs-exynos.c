@@ -506,6 +506,7 @@ static int exynos_ufs_init(struct ufs_hba *hba)
 
 	pixel_init_io_stats(hba);
 
+	hba->host->dma_alignment = SZ_4K - 1;
 	return 0;
 }
 
@@ -963,11 +964,6 @@ static int __device_reset(struct ufs_hba *hba)
 	return 0;
 }
 
-static void __exynos_ufs_config_scsi_dev(struct scsi_device *sdev)
-{
-	blk_queue_update_dma_alignment(sdev->request_queue, SZ_4K - 1);
-}
-
 static struct ufs_hba_variant_ops exynos_ufs_ops = {
 	.init = exynos_ufs_init,
 	.setup_clocks = exynos_ufs_setup_clocks,
@@ -983,7 +979,6 @@ static struct ufs_hba_variant_ops exynos_ufs_ops = {
 	.apply_dev_quirks = __apply_dev_quirks,
 	.fixup_dev_quirks = __fixup_dev_quirks,
 	.device_reset = __device_reset,
-	.config_scsi_dev = __exynos_ufs_config_scsi_dev,
 };
 
 /*
