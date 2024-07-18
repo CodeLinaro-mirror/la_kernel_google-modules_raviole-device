@@ -239,7 +239,7 @@ err:
  */
 static int s2mpg13_spmic_thermal_get_temp(struct thermal_zone_device *tz, int *temp)
 {
-	struct s2mpg13_spmic_thermal_sensor *s = tz->devdata;
+	struct s2mpg13_spmic_thermal_sensor *s = thermal_zone_device_priv(tz);
 	struct s2mpg13_spmic_thermal_chip *s2mpg13_spmic_thermal = s->chip;
 	int raw, ret = 0;
 	u8 mask = 0x1;
@@ -291,7 +291,7 @@ err_exit:
 static int s2mpg13_spmic_thermal_set_trips(struct thermal_zone_device *tz, int low_temp,
 					 int high_temp)
 {
-	struct s2mpg13_spmic_thermal_sensor *s = tz->devdata;
+	struct s2mpg13_spmic_thermal_sensor *s = thermal_zone_device_priv(tz);
 	struct s2mpg13_spmic_thermal_chip *s2mpg13_spmic_thermal = s->chip;
 	struct device *dev = s2mpg13_spmic_thermal->dev;
 	int emul_temp, low_volt, high_volt, ret = 0;
@@ -352,7 +352,7 @@ s2mpg13_spmic_thermal_set_hot_trip(struct s2mpg13_spmic_thermal_sensor *s, int t
  */
 static int s2mpg13_spmic_thermal_set_trip_temp(struct thermal_zone_device *tz, int trip, int temp)
 {
-	struct s2mpg13_spmic_thermal_sensor *s = tz->devdata;
+	struct s2mpg13_spmic_thermal_sensor *s = thermal_zone_device_priv(tz);
 	const struct thermal_trip *trip_points;
 	int ret = 0;
 
@@ -377,7 +377,7 @@ static int s2mpg13_spmic_thermal_set_trip_temp(struct thermal_zone_device *tz, i
  */
 static int s2mpg13_spmic_thermal_set_emul_temp(struct thermal_zone_device *tz, int temp)
 {
-	struct s2mpg13_spmic_thermal_sensor *sensor = tz->devdata;
+	struct s2mpg13_spmic_thermal_sensor *sensor = thermal_zone_device_priv(tz);
 	int ret = 0;
 	u8 value, mask = 0x1;
 
