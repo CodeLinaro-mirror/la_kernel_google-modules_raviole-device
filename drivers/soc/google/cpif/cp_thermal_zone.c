@@ -80,7 +80,7 @@ static const struct attribute_group cp_temp_group = {
 static int cp_sensor_get_temp(struct thermal_zone_device *tz, int *temp)
 {
 	int ret = 0;
-	struct cp_temp_sensor *s = tz->devdata;
+	struct cp_temp_sensor *s = thermal_zone_device_priv(tz);
 
 	if (s && s->valid)
 		*temp = s->temp;
