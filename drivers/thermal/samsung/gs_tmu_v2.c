@@ -715,7 +715,7 @@ static void allow_maximum_power(struct gs_tmu_data *data)
 	struct thermal_instance *instance;
 	struct thermal_zone_device *tz = data->tzd;
 	const struct thermal_trip *control_temp_trip
-		= &tz->trips[data->pi_param->trip_control_temp];
+		= &tz->trips[data->pi_param->trip_control_temp].trip;
 
 	lockdep_assert_held(&tz->lock);
 	mutex_unlock(&data->lock);
@@ -813,7 +813,7 @@ static int gs_pi_controller(struct gs_tmu_data *data, int control_temp)
 	struct thermal_zone_device *tz = data->tzd;
 	struct gs_pi_param *params = data->pi_param;
 	const struct thermal_trip *control_temp_trip
-		= &tz->trips[params->trip_control_temp];
+		= &tz->trips[params->trip_control_temp].trip;
 	struct thermal_instance *instance;
 	struct thermal_cooling_device *cdev;
 	int ret = 0;
