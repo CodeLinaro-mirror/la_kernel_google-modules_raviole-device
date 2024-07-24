@@ -1294,7 +1294,7 @@ static irqreturn_t exynos_serial_tx_chars(struct exynos_uart_port *ourport)
 	struct uart_port *port = &ourport->port;
 	struct circ_buf *xmit = &port->state->xmit;
 	unsigned long flags;
-	int count = port->fifosize, dma_count = 0;
+	int count, dma_count = 0;
 	unsigned char trace_buf[256] = {0, };
 	int trace_cnt = 0;
 	char buf[DATA_BYTES_PER_LINE * 3 + 1];
