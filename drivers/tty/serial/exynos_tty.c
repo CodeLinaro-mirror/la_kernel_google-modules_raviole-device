@@ -1284,7 +1284,7 @@ exynos_serial_rx_chars_pio(void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static irqreturn_t exynos_serial_rx_chars(int irq, void *dev_id)
+static irqreturn_t exynos_serial_rx_chars(void *dev_id)
 {
 	struct exynos_uart_port *ourport = dev_id;
 
@@ -1293,7 +1293,7 @@ static irqreturn_t exynos_serial_rx_chars(int irq, void *dev_id)
 	return exynos_serial_rx_chars_pio(dev_id);
 }
 
-static irqreturn_t exynos_serial_tx_chars(int irq, void *id)
+static irqreturn_t exynos_serial_tx_chars(void *id)
 {
 	struct exynos_uart_port *ourport = id;
 	struct uart_port *port = &ourport->port;
@@ -1404,10 +1404,10 @@ static irqreturn_t s3c64xx_serial_handle_irq(int irq, void *id)
 	irqreturn_t ret = IRQ_HANDLED;
 
 	if (rd_regl(port, S3C64XX_UINTP) & S3C64XX_UINTM_RXD_MSK)
-		ret = exynos_serial_rx_chars(irq, id);
+		ret = exynos_serial_rx_chars(id);
 
 	if (rd_regl(port, S3C64XX_UINTP) & S3C64XX_UINTM_TXD_MSK)
-		ret = exynos_serial_tx_chars(irq, id);
+		ret = exynos_serial_tx_chars(id);
 
 	return ret;
 }
