@@ -1100,10 +1100,9 @@ static void enable_rx_pio(struct exynos_uart_port *ourport)
 
 static void exynos_serial_rx_drain_fifo(struct exynos_uart_port *ourport);
 
-static irqreturn_t exynos_serial_rx_chars_dma(void *dev_id)
+static irqreturn_t exynos_serial_rx_chars_dma(struct exynos_uart_port *ourport)
 {
 	unsigned int utrstat, ufstat, received;
-	struct exynos_uart_port *ourport = dev_id;
 	struct uart_port *port = &ourport->port;
 	struct exynos_uart_dma *dma = ourport->dma;
 	struct tty_port *t = &port->state->port;
@@ -1271,9 +1270,8 @@ static void exynos_serial_rx_drain_fifo(struct exynos_uart_port *ourport)
 }
 
 static irqreturn_t
-exynos_serial_rx_chars_pio(void *dev_id)
+exynos_serial_rx_chars_pio(struct exynos_uart_port *ourport)
 {
-	struct exynos_uart_port *ourport = dev_id;
 	struct uart_port *port = &ourport->port;
 	unsigned long flags;
 
@@ -1284,18 +1282,15 @@ exynos_serial_rx_chars_pio(void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static irqreturn_t exynos_serial_rx_chars(void *dev_id)
+static irqreturn_t exynos_serial_rx_chars(struct exynos_uart_port *ourport)
 {
-	struct exynos_uart_port *ourport = dev_id;
-
 	if (ourport->dma && ourport->dma->rx_chan)
-		return exynos_serial_rx_chars_dma(dev_id);
-	return exynos_serial_rx_chars_pio(dev_id);
+		return exynos_serial_rx_chars_dma(ourport);
+	return exynos_serial_rx_chars_pio(ourport);
 }
 
-static irqreturn_t exynos_serial_tx_chars(void *id)
+static irqreturn_t exynos_serial_tx_chars(struct exynos_uart_port *ourport)
 {
-	struct exynos_uart_port *ourport = id;
 	struct uart_port *port = &ourport->port;
 	struct circ_buf *xmit = &port->state->xmit;
 	unsigned long flags;
@@ -1404,10 +1399,10 @@ static irqreturn_t s3c64xx_serial_handle_irq(int irq, void *id)
 	irqreturn_t ret = IRQ_HANDLED;
 
 	if (rd_regl(port, S3C64XX_UINTP) & S3C64XX_UINTM_RXD_MSK)
-		ret = exynos_serial_rx_chars(id);
+		ret = exynos_serial_rx_chars(ourport);
 
 	if (rd_regl(port, S3C64XX_UINTP) & S3C64XX_UINTM_TXD_MSK)
-		ret = exynos_serial_tx_chars(id);
+		ret = exynos_serial_tx_chars(ourport);
 
 	return ret;
 }
