@@ -1341,7 +1341,7 @@ static irqreturn_t exynos_serial_tx_chars(struct exynos_uart_port *ourport)
 		dma_count = 0;
 	}
 
-	while (!uart_circ_empty(xmit) && count-- > 0) {
+	while (!uart_circ_empty(xmit) && count > 0) {
 		if (rd_regl(port, S3C2410_UFSTAT) & ourport->info->tx_fifofull)
 			break;
 
@@ -1351,6 +1351,7 @@ static irqreturn_t exynos_serial_tx_chars(struct exynos_uart_port *ourport)
 						  char)xmit->buf[xmit->tail];
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
+		count--;
 	}
 
 	if (!count && dma_count) {
