@@ -7,8 +7,8 @@ CFLAGS_arm-memlat-mon.o += -Wno-missing-prototypes
 CFLAGS_gs-devfreq.o += -Wno-missing-prototypes
 
 # Needed for the trace points
-CFLAGS_governor_memlat.o	= -I$(srctree)/$(src)
-CFLAGS_gs-ppc.o			= -I$(srctree)/$(src)
+CFLAGS_governor_memlat.o	= -I$(src)
+CFLAGS_gs-ppc.o			= -I$(src)
 
 obj-$(CONFIG_ARM_EXYNOS_DEVFREQ)		+= exynos_devfreq.o
 exynos_devfreq-objs				+= gs-devfreq.o governor_simpleinteractive.o
