@@ -1423,10 +1423,10 @@ static unsigned int exynos_serial_tx_empty(struct uart_port *port)
 		    (ufstat & info->tx_fifofull))
 			return 0;
 
-		return 1;
+		return TIOCSER_TEMT;
 	}
 
-	return exynos_serial_txempty_nofifo(port);
+	return exynos_serial_txempty_nofifo(port) ? TIOCSER_TEMT : 0;
 }
 
 /* no modem control lines */
