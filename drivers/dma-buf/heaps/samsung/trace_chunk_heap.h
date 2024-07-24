@@ -24,7 +24,7 @@ TRACE_EVENT(chunk_heap_allocate,
 
 	TP_fast_assign(
 		__entry->dmabuf		= dmabuf;
-		__assign_str(name, name);
+		__assign_str(name);
 		__entry->len		= len;
 		__entry->nr_chunks	= nr_chunks;
 	),
