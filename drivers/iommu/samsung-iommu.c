@@ -1107,11 +1107,11 @@ group_put:
 	return ret;
 }
 
-static void samsung_sysmmu_remove_dev_pasid(struct device *dev, ioasid_t pasid)
+static void samsung_sysmmu_remove_dev_pasid(struct device *dev, ioasid_t pasid,
+					    struct iommu_domain *dom)
 {
 	struct sysmmu_clientdata *client;
-	struct iommu_domain *dom;
-	struct samsung_sysmmu_domain *domain;
+	struct samsung_sysmmu_domain *domain = to_sysmmu_domain(dom);
 	struct iommu_group *group;
 	struct sysmmu_groupdata *groupdata;
 	struct sysmmu_drvdata *drvdata;
@@ -1124,10 +1124,6 @@ static void samsung_sysmmu_remove_dev_pasid(struct device *dev, ioasid_t pasid)
 	WARN(vid >= MAX_VIDS, "VID %u for device %s above or equal maximum of %u\n",
 	     vid, dev_name(dev), MAX_VIDS);
 
-	dom = iommu_get_domain_for_dev_pasid(dev, pasid, 0);
-	if (WARN_ON(IS_ERR(dom)) || !dom)
-		return;
-	domain = to_sysmmu_domain(dom);
 	client = (struct sysmmu_clientdata *)dev_iommu_priv_get(dev);
 	if (WARN_ON(!domain->vid) || WARN_ON(vid != domain->vid))
 		return;
