@@ -1146,14 +1146,15 @@ finish:
 static void exynos_serial_rx_drain_fifo(struct exynos_uart_port *ourport)
 {
 	struct uart_port *port = &ourport->port;
-	unsigned int ufcon, ch, flag, ufstat, uerstat;
+	unsigned int ufcon, ufstat, uerstat;
 	unsigned int fifocnt = 0;
 	int max_count = port->fifosize;
-	unsigned char insert_buf[256] = {0, };
+	u8 insert_buf[256] = {0, };
 	unsigned int insert_cnt = 0;
 	unsigned char trace_buf[256] = {0, };
 	int trace_cnt = 0;
 	char buf[DATA_BYTES_PER_LINE * 3 + 1];
+	u8 ch, flag;
 
 	exynos_set_bit(port, S3C64XX_UINTM_RXD, S3C64XX_UINTM);
 	wr_regl(port, S3C64XX_UINTP, S3C64XX_UINTM_RXD_MSK);
