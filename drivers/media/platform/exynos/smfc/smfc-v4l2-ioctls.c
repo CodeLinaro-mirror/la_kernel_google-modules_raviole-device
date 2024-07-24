@@ -926,11 +926,11 @@ static int v4l2_smfc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf
 
 	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, buf->type);
 
-	if (vq->num_buffers > SMFC_MAX_PLANES) {
+	if (vb2_get_num_buffers(vq) > SMFC_MAX_PLANES) {
 		return -EINVAL;
 	}
 
-	for (index = 0; index < vq->num_buffers; index++) {
+	for (index = 0; index < vb2_get_num_buffers(vq); index++) {
 		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vq->bufs[index]);
 		struct v4l2_m2m_buffer *mbuf = container_of(vbuf, typeof(*mbuf), vb);
 		struct vb2_smfc_buffer *sbuf = container_of(mbuf, typeof(*sbuf), mb);
