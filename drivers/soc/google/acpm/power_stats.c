@@ -651,10 +651,6 @@ static int power_stats_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ps_dev);
 
-	ret = devm_device_add_groups(&pdev->dev, power_stats_groups);
-	if (ret)
-		dev_err(&pdev->dev, "Failed to add device groups\n");
-
 	return 0;
 }
 
@@ -679,6 +675,7 @@ static struct platform_driver power_stats_dev = {
 		.name	= "power_stats",
 		.owner	= THIS_MODULE,
 		.of_match_table = power_stats_match,
+		.dev_groups = power_stats_groups,
 	},
 };
 
