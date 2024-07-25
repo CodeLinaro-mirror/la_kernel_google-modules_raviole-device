@@ -446,9 +446,9 @@ static void sysmmu_show_fault_information(struct sysmmu_drvdata *drvdata,
 static void sysmmu_get_interrupt_info(struct sysmmu_drvdata *data, unsigned int *intr_type,
 				      unsigned int *vid, sysmmu_iova_t *addr, bool is_secure)
 {
-	u32 istatus;
+	unsigned int istatus;
 
-	istatus = (unsigned int)__ffs(__sysmmu_get_intr_status(data, is_secure));
+	istatus = __ffs(__sysmmu_get_intr_status(data, is_secure));
 	*vid = istatus / 4;
 	*intr_type = istatus % 4;
 	*addr = __sysmmu_get_fault_address(data, *vid, is_secure);
