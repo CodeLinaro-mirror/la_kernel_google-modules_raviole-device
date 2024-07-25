@@ -1131,7 +1131,7 @@ static void eh_setup_dcmd(struct eh_device *eh_dev, unsigned int index,
 		       eh_dev->regs + EH_REG_DCMD_RES(index));
 #endif
 
-	src_data = (__ffs(alignment) - 5) << EH_DCMD_BUF_SIZE_SHIFT;
+	src_data = ((u64)(__ffs(alignment) - 5)) << EH_DCMD_BUF_SIZE_SHIFT;
 	src_data |= src_paddr;
 
 	/*
