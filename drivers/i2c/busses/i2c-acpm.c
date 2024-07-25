@@ -67,7 +67,7 @@ static int acpm_mfd_bus_probe(struct platform_device *pdev)
 	acpm_mfd_bus->adap.owner   = THIS_MODULE;
 	acpm_mfd_bus->adap.algo    = &acpm_mfd_bus_algorithm;
 	acpm_mfd_bus->adap.retries = 2;
-	acpm_mfd_bus->adap.class   = I2C_CLASS_HWMON | I2C_CLASS_SPD;
+	acpm_mfd_bus->adap.class   = I2C_CLASS_HWMON;
 
 	acpm_mfd_bus->dev = &pdev->dev;
 
