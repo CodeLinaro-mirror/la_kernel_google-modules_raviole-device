@@ -3,8 +3,8 @@
 ccflags-y += -I$(KERNEL_SRC)/../private/google-modules/trusty/include
 
 # Needed for the trace points
-CFLAGS_samsung_heap.o = -I$(srctree)/$(src)
-CFLAGS_chunk_heap.o = -I$(srctree)/$(src)
+CFLAGS_samsung_heap.o = -I$(src)
+CFLAGS_chunk_heap.o = -I$(src)
 
 CFLAGS_samsung_heap.o += -Wno-missing-prototypes
 
