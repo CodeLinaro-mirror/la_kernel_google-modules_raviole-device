@@ -14,7 +14,7 @@ CFLAGS_modem_variation.o += -Wno-missing-prototypes
 CFLAGS_s51xx_pcie.o += -Wno-missing-prototypes
 # This gives the drivers access to the logbuffer interface
 subdir-ccflags-y += -I$(KERNEL_SRC)/../private/google-modules/bms
-subdir-ccflags-y += -I$(srctree)/$(src)
+subdir-ccflags-y += -I$(src)
 
 obj-$(CONFIG_MCU_IPC) += mcu_ipc.o
 obj-$(CONFIG_SHM_IPC) += shm_ipc.o
