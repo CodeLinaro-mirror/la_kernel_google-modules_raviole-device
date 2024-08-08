@@ -256,15 +256,12 @@ static int gs101_spmic_thermal_set_hot_trip(struct gs101_spmic_thermal_sensor *s
  * programmed as shutdown threshold.
  */
 static int gs101_spmic_thermal_set_trip_temp(struct thermal_zone_device *tz,
-					     int trip_id, int temp)
+					     const struct thermal_trip *trip,
+					     int temp)
 {
 	struct gs101_spmic_thermal_sensor *s = thermal_zone_device_priv(tz);
-	struct thermal_trip trip;
 
-	if (__thermal_zone_get_trip(s->tzd, trip_id, &trip))
-		return -EINVAL;
-
-	if (trip.type != THERMAL_TRIP_HOT)
+	if (trip->type != THERMAL_TRIP_HOT)
 		return 0;
 
 	/* Use THERMAL_TRIP_HOT for HW thermal shutdown */
