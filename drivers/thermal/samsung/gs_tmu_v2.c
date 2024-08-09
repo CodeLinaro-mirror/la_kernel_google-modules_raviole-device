@@ -418,19 +418,20 @@ static int gs_tmu_initialize(struct platform_device *pdev)
 	mutex_lock(&data->lock);
 
 	for (i = (thermal_zone_get_num_trips(tz) - 1); i >= 0; i--) {
-		struct thermal_trip trip;
+		const struct thermal_trip *trip;
 
-		ret = __thermal_zone_get_trip(tz, i, &trip);
-		if (ret) {
+		trip = gs_thermal_zone_get_trip(tz, i);
+		if (IS_ERR(trip)) {
 			dev_err(&pdev->dev, "Failed to get trip %d\n", i);
+			ret = PTR_ERR(trip);
 			goto out;
 		}
 
-		if (trip.type == THERMAL_TRIP_PASSIVE)
+		if (trip->type == THERMAL_TRIP_PASSIVE)
 			continue;
 
-		threshold[i] = (unsigned char)(trip.temperature / MCELSIUS);
-		hysteresis[i] = (unsigned char)(trip.hysteresis / MCELSIUS);
+		threshold[i] = trip->temperature / MCELSIUS;
+		hysteresis[i] = trip->hysteresis / MCELSIUS;
 
 		inten |= (1 << i);
 	}
@@ -880,7 +881,7 @@ static void gs_pi_thermal(struct gs_tmu_data *data)
 {
 	struct thermal_zone_device *tz = data->tzd;
 	struct gs_pi_param *params = data->pi_param;
-	struct thermal_trip trip;
+	const struct thermal_trip *trip;
 	int ret, delay;
 
 	if (atomic_read(&gs_tmu_in_suspend))
@@ -902,8 +903,8 @@ static void gs_pi_thermal(struct gs_tmu_data *data)
 	mutex_lock(&tz->lock);
 	mutex_lock(&data->lock);
 
-	ret = __thermal_zone_get_trip(tz, params->trip_switch_on, &trip);
-	if (!ret && tz->temperature < trip.temperature) {
+	trip = gs_thermal_zone_get_trip(tz, params->trip_switch_on);
+	if (!IS_ERR(trip) && tz->temperature < trip->temperature) {
 		reset_pi_params(data);
 		allow_maximum_power(data);
 		params->switched_on = false;
@@ -912,14 +913,14 @@ static void gs_pi_thermal(struct gs_tmu_data *data)
 
 	params->switched_on = true;
 
-	ret = __thermal_zone_get_trip(tz, params->trip_control_temp, &trip);
-	if (ret) {
-		pr_warn("Failed to get trip %d: %d\n",
-			params->trip_control_temp, ret);
+	trip = gs_thermal_zone_get_trip(tz, params->trip_control_temp);
+	if (IS_ERR(trip)) {
+		pr_warn("Failed to get trip %d: %ld\n",
+			params->trip_control_temp, PTR_ERR(trip));
 		goto polling;
 	}
 
-	ret = gs_pi_controller(data, trip.temperature);
+	ret = gs_pi_controller(data, trip->temperature);
 
 	if (ret) {
 		pr_debug("Failed to calculate pi controller: %d\n",
