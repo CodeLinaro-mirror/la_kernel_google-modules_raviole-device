@@ -605,10 +605,10 @@ static int gs_tmu_set_trip_temp(struct thermal_zone_device *tz, int trip_id,
 		if (trip.type == THERMAL_TRIP_PASSIVE)
 			continue;
 
-		if (i != trip_id)
-			temp = trip.temperature;
-
-		threshold[i] = (unsigned char)(temp / MCELSIUS);
+		if (i == trip_id)
+			threshold[i] = temp / MCELSIUS;
+		else
+			threshold[i] = trip.temperature / MCELSIUS;
 	}
 	mutex_lock(&data->lock);
 	if (data->enabled) {
