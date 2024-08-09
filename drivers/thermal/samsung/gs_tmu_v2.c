@@ -8,6 +8,7 @@
  */
 
 #include <linux/delay.h>
+#include <linux/err.h>
 #include <linux/io.h>
 #include <linux/interrupt.h>
 #include <linux/module.h>
@@ -390,6 +391,20 @@ static void gs_report_trigger(struct gs_tmu_data *p)
 	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
 }
 
+/*
+ * Differs from the core thermal_zone_get_trip() method as it does not hold the
+ * thermal zone lock when getting the trip point. And it returns a constant
+ * pointer to the trip point instead of copying the trip values.
+ */
+static const struct thermal_trip *
+gs_thermal_zone_get_trip(struct thermal_zone_device *tz, int trip_id)
+{
+	if (!tz || trip_id < 0 || trip_id >= tz->num_trips)
+		return ERR_PTR(-EINVAL);
+
+	return &tz->trips[trip_id].trip;
+}
+
 static int gs_tmu_initialize(struct platform_device *pdev)
 {
 	struct gs_tmu_data *data = platform_get_drvdata(pdev);
@@ -578,37 +593,29 @@ static int gs_get_trend(struct thermal_zone_device *tz,
 	return 0;
 }
 
-static int gs_tmu_set_trip_temp(struct thermal_zone_device *tz, int trip_id,
-				    int temp)
+static int gs_tmu_set_trip_temp(struct thermal_zone_device *tz,
+				const struct thermal_trip *trip, int temp)
 {
 	struct gs_tmu_data *data = thermal_zone_device_priv(tz);
-	struct thermal_trip trip;
-	int i, ret;
+	const struct thermal_trip *trip_iterator;
+	int i;
 	unsigned char threshold[8] = {0, };
 
-	ret = __thermal_zone_get_trip(tz, trip_id, &trip);
-	if (ret) {
-		pr_err("Failed to get trip %d\n", trip_id);
-		return ret;
-	}
-
-	if (trip.type == THERMAL_TRIP_PASSIVE)
+	if (trip->type == THERMAL_TRIP_PASSIVE)
 		return 0;
 
 	for (i = (thermal_zone_get_num_trips(tz) - 1); i >= 0; i--) {
-		ret = __thermal_zone_get_trip(tz, i, &trip);
-		if (ret) {
-			pr_err("Failed to get trip %d\n", i);
-			return ret;
-		}
+		trip_iterator = gs_thermal_zone_get_trip(tz, i);
+		if (IS_ERR(trip_iterator))
+			return PTR_ERR(trip_iterator);
 
-		if (trip.type == THERMAL_TRIP_PASSIVE)
+		if (trip_iterator->type == THERMAL_TRIP_PASSIVE)
 			continue;
 
-		if (i == trip_id)
+		if (trip_iterator == trip)
 			threshold[i] = temp / MCELSIUS;
 		else
-			threshold[i] = trip.temperature / MCELSIUS;
+			threshold[i] = trip_iterator->temperature / MCELSIUS;
 	}
 	mutex_lock(&data->lock);
 	if (data->enabled) {
@@ -3055,6 +3062,7 @@ static int gs_tmu_ect_get_param(struct ect_pidtm_block *pidtm_block, char *name)
 static int gs_tmu_parse_ect(struct gs_tmu_data *data)
 {
 	struct thermal_zone_device *tz = data->tzd;
+	const struct thermal_trip *trip;
 	int ntrips = 0;
 
 	if (!tz)
@@ -3090,8 +3098,10 @@ static int gs_tmu_parse_ect(struct gs_tmu_data *data)
 		for (i = 0; i < function->num_of_range; ++i) {
 			temperature = function->range_list[i].lower_bound_temperature;
 			freq = function->range_list[i].max_frequency;
-
-			tz->ops.set_trip_temp(tz, i, temperature  * MCELSIUS);
+			trip = gs_thermal_zone_get_trip(tz, i);
+			if (IS_ERR(trip))
+				return PTR_ERR(trip);
+			tz->ops.set_trip_temp(tz, trip, temperature * MCELSIUS);
 
 			pr_info("Parsed From ECT : [%d] Temperature : %d, frequency : %u\n",
 				i, temperature, freq);
@@ -3154,7 +3164,11 @@ static int gs_tmu_parse_ect(struct gs_tmu_data *data)
 		for (i = 0; i < pidtm_block->num_of_temperature; ++i) {
 			temperature = pidtm_block->temperature_list[i];
 
-			tz->ops.set_trip_temp(tz, i, temperature  * MCELSIUS);
+			trip = gs_thermal_zone_get_trip(tz, i);
+			if (IS_ERR(trip))
+				return PTR_ERR(trip);
+
+			tz->ops.set_trip_temp(tz, trip, temperature * MCELSIUS);
 
 			pr_info("Parsed From ECT : [%d] Temperature : %d\n", i, temperature);
 		}
@@ -3231,7 +3245,12 @@ static int gs_tmu_parse_ect(struct gs_tmu_data *data)
 		if (value != -1) {
 			pr_info("Parse from ECT limited_threshold: %d\n", value);
 			limited_threshold = value * MCELSIUS;
-			tz->ops.set_trip_temp(tz, 3, temperature  * MCELSIUS);
+
+			trip = gs_thermal_zone_get_trip(tz, 3);
+			if (IS_ERR(trip))
+				return PTR_ERR(trip);
+
+			tz->ops.set_trip_temp(tz, trip, temperature * MCELSIUS);
 			data->limited_threshold = value;
 		}
 
