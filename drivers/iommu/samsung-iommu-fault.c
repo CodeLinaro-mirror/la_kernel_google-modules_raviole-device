@@ -500,26 +500,13 @@ static int samsung_sysmmu_fault_notifier(struct device *dev, void *data)
 	struct sysmmu_clientdata *client = dev_iommu_priv_get(dev);
 	struct samsung_sysmmu_fault_info *fi = data;
 	struct sysmmu_drvdata *drvdata = fi->drvdata;
-	struct iommu_domain *domain;
 	unsigned int i;
 	int ret, result = 0;
 
-
-	if (fi->vid) {
-		domain = iommu_get_domain_for_dev_pasid(dev, fi->vid, 0);
-		if (IS_ERR(domain))
-			domain = NULL;
-	} else {
-		domain = iommu_get_domain_for_dev(dev);
-	}
-
-	if (!domain)
-		return 0;
-
 	for (i = 0; i < client->sysmmu_count; i++) {
-		if (drvdata == client->sysmmus[i]) {
-			ret = report_iommu_fault(domain, dev, fi->addr,
-						 fi->type);
+		if (drvdata == client->sysmmus[i] && drvdata->domain) {
+			ret = report_iommu_fault(&drvdata->domain->domain, dev,
+						 fi->addr, fi->type);
 			if (ret == -EAGAIN)
 				result = ret;
 			break;
