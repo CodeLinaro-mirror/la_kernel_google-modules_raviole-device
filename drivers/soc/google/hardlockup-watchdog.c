@@ -396,12 +396,11 @@ static int hardlockup_watchdog_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int hardlockup_watchdog_remove(struct platform_device *pdev)
+static void hardlockup_watchdog_remove(struct platform_device *pdev)
 {
 	platform_set_drvdata(pdev, NULL);
 	hardlockup_watchdog_cleanup();
 	free_percpu(hardlockup_watchdog_pcpu);
-	return 0;
 }
 
 #ifdef CONFIG_PM_SLEEP

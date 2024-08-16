@@ -521,11 +521,6 @@ static int s2mpg1x_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int s2mpg1x_gpio_remove(struct platform_device *pdev)
-{
-	return 0;
-}
-
 static const struct platform_device_id s2mpg1x_gpio_id[] = {
 	{ "s2mpg10_gpio", ID_S2MPG10 },
 	{ "s2mpg11_gpio", ID_S2MPG11 },
@@ -539,7 +534,6 @@ static struct platform_driver s2mpg1x_gpio_driver = {
 		   .owner = THIS_MODULE,
 		   },
 	.probe = s2mpg1x_gpio_probe,
-	.remove = s2mpg1x_gpio_remove,
 	.id_table = s2mpg1x_gpio_id,
 };
 

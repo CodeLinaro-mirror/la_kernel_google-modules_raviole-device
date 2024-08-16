@@ -3401,7 +3401,7 @@ err_sensor:
 	return ret;
 }
 
-static int gs_tmu_remove(struct platform_device *pdev)
+static void gs_tmu_remove(struct platform_device *pdev)
 {
 	struct gs_tmu_data *data = platform_get_drvdata(pdev);
 	struct gs_tmu_data *devnode;
@@ -3421,8 +3421,6 @@ static int gs_tmu_remove(struct platform_device *pdev)
 #if IS_ENABLED(CONFIG_PIXEL_METRICS)
 	unregister_temp_residency_stats(data->tr_handle);
 #endif
-
-	return 0;
 }
 
 #if IS_ENABLED(CONFIG_PM_SLEEP)

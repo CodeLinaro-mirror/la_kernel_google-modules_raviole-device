@@ -5372,11 +5372,9 @@ probe_fail:
 	return ret;
 }
 
-static int exynos_pcie_rc_remove(struct platform_device *pdev)
+static void exynos_pcie_rc_remove(struct platform_device *pdev)
 {
 	dev_info(&pdev->dev, "%s\n", __func__);
-
-	return 0;
 }
 
 #if IS_ENABLED(CONFIG_PM)

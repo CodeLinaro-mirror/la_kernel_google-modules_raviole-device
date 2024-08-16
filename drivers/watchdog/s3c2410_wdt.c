@@ -1836,15 +1836,13 @@ static int s3c2410wdt_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static int s3c2410wdt_remove(struct platform_device *dev)
+static void s3c2410wdt_remove(struct platform_device *dev)
 {
-	int ret = 0;
 	struct s3c2410_wdt *wdt = platform_get_drvdata(dev);
 
-	if (wdt->drv_data->pmu_reset_func)
-		ret = wdt->drv_data->pmu_reset_func(wdt, true);
-	if (ret < 0)
-		return ret;
+	if (wdt->drv_data->pmu_reset_func &&
+	    wdt->drv_data->pmu_reset_func(wdt, true) < 0)
+		return;
 
 	watchdog_unregister_device(&wdt->wdt_device);
 
@@ -1860,8 +1858,6 @@ static int s3c2410wdt_remove(struct platform_device *dev)
 		WARN_ON(unregister_trace_android_vh_scheduler_tick(vh_scheduler_tick, wdt));
 		free_percpu(wdt->schedstat);
 	}
-
-	return ret;
 }
 
 static void s3c2410wdt_shutdown(struct platform_device *dev)

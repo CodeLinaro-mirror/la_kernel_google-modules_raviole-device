@@ -1051,15 +1051,13 @@ static void smfc_deinit_clock(struct smfc_dev *smfc)
 		clk_put(smfc->clk_gate);
 }
 
-static int exynos_smfc_remove(struct platform_device *pdev)
+static void exynos_smfc_remove(struct platform_device *pdev)
 {
 	struct smfc_dev *smfc = platform_get_drvdata(pdev);
 
 	g2d_pm_qos_remove_request(smfc);
 
 	smfc_deinit_clock(smfc);
-
-	return 0;
 }
 
 #ifdef CONFIG_PM_SLEEP

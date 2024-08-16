@@ -561,13 +561,11 @@ err_s2d_info:
 	return ret;
 }
 
-static int adv_tracer_s2d_remove(struct platform_device *pdev)
+static void adv_tracer_s2d_remove(struct platform_device *pdev)
 {
 	struct adv_tracer_plugin *s2d = platform_get_drvdata(pdev);
 
 	adv_tracer_ipc_release_channel(s2d->id);
-
-	return 0;
 }
 
 static const struct of_device_id adv_tracer_s2d_match[] = {

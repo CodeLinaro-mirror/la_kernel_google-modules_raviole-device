@@ -945,7 +945,7 @@ static void g2d_shutdown(struct platform_device *pdev)
 	g2d_stamp_task(NULL, G2D_STAMP_STATE_SHUTDOWN, 1);
 }
 
-static int g2d_remove(struct platform_device *pdev)
+static void g2d_remove(struct platform_device *pdev)
 {
 	struct g2d_device *g2d_dev = platform_get_drvdata(pdev);
 
@@ -959,8 +959,6 @@ static int g2d_remove(struct platform_device *pdev)
 	misc_deregister(&g2d_dev->misc[1]);
 
 	pm_runtime_disable(&pdev->dev);
-
-	return 0;
 }
 
 #ifdef CONFIG_PM

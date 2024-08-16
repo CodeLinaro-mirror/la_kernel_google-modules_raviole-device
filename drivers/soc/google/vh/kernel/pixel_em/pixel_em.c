@@ -1110,11 +1110,9 @@ static int pixel_em_drv_probe(struct platform_device *dev)
 	return 0;
 }
 
-static int pixel_em_drv_remove(struct platform_device *dev)
+static void pixel_em_drv_remove(struct platform_device *dev)
 {
 	pixel_em_drv_undo_probe();
-
-	return 0;
 }
 
 static const struct of_device_id pixel_em_of_match[] = {

@@ -545,7 +545,7 @@ put_dev:
 	return ret;
 }
 
-static int usb_cdev_remove(struct platform_device *pdev)
+static void usb_cdev_remove(struct platform_device *pdev)
 {
 	struct usb_port_cooling_dev_info *usb_cdev_info = platform_get_drvdata(pdev);
 
@@ -553,8 +553,6 @@ static int usb_cdev_remove(struct platform_device *pdev)
 	extcon_unregister_notifier(usb_cdev_info->edev, EXTCON_MECHANICAL,
 				   &usb_cdev_info->connected_nb);
 	put_device(&pdev->dev);
-
-	return 0;
 }
 
 static const struct of_device_id match_table[] = {

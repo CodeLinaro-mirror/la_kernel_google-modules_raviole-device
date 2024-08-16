@@ -738,7 +738,7 @@ fail:
 	return ret;
 }
 
-static int gs101_spmic_thermal_remove(struct platform_device *pdev)
+static void gs101_spmic_thermal_remove(struct platform_device *pdev)
 {
 	int i;
 	u8 __maybe_unused mask = 0x01;
@@ -756,8 +756,6 @@ static int gs101_spmic_thermal_remove(struct platform_device *pdev)
 	}
 	gs101_spmic_thermal_unregister_tzd(chip);
 	gs101_spmic_set_enable(chip, false);
-
-	return 0;
 }
 
 static const struct platform_device_id gs101_spmic_thermal_id_table[] = {

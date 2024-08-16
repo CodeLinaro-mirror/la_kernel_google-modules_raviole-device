@@ -813,18 +813,15 @@ fail1:
 	return -EAGAIN;
 }
 
-static int sscoredump_remove(struct platform_device *pdev)
+static void sscoredump_remove(struct platform_device *pdev)
 {
 	struct sscd_device *sdev = platform_get_drvdata(pdev);
 	int minor;
 
 	dev_info(&sdev->dev, "remove");
 
-	if (!sdev)
-		return -ENODEV;
-
-	if (atomic_read(&sdev->report_active))
-		return -EBUSY;
+	if (!sdev && atomic_read(&sdev->report_active))
+		return;
 
 	minor = MINOR(sdev->chrdev.dev);
 
@@ -836,8 +833,6 @@ static int sscoredump_remove(struct platform_device *pdev)
 	ida_simple_remove(&sscd_ida, minor);
 
 	put_device(&sdev->dev);
-
-	return 0;
 }
 
 static struct platform_driver sscoredump_driver = {

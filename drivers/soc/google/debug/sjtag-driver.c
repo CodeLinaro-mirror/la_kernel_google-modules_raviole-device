@@ -959,11 +959,6 @@ static int sjtag_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int sjtag_remove(struct platform_device *pdev)
-{
-	return 0;
-}
-
 static const struct of_device_id sjtag_of_match[] = {
 	{ .compatible = "google,sjtag", },
 	{},
@@ -972,7 +967,6 @@ MODULE_DEVICE_TABLE(of, sjtag_of_match);
 
 static struct platform_driver sjtag_driver = {
 	.probe = sjtag_probe,
-	.remove = sjtag_remove,
 	.driver	= {
 		.name = "sjtag",
 		.of_match_table = sjtag_of_match,

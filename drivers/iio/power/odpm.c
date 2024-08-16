@@ -1715,16 +1715,14 @@ static const struct iio_info odpm_iio_info = {
 	.write_raw = odpm_write_raw,
 };
 
-static int odpm_remove(struct platform_device *pdev)
+static void odpm_remove(struct platform_device *pdev)
 {
 	struct iio_dev *indio_dev = dev_get_drvdata(&pdev->dev);
 	struct odpm_info *info = iio_priv(indio_dev);
-	int ret;
 
-	ret = alarm_cancel(&info->alarmtimer_refresh);
-	if (ret < 0) {
+	if (alarm_cancel(&info->alarmtimer_refresh) < 0) {
 		pr_err("odpm: cannot delete the refresh timer\n");
-		return ret;
+		return;
 	}
 	if (info->work_queue) {
 		cancel_work_sync(&info->work_refresh);
@@ -1739,8 +1737,6 @@ static int odpm_remove(struct platform_device *pdev)
 
 	if (info->ws)
 		wakeup_source_unregister(info->ws);
-
-	return ret;
 }
 
 static void odpm_probe_init_device_specific(struct odpm_info *info, int id)

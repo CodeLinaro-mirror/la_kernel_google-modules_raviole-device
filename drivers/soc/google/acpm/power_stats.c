@@ -654,11 +654,9 @@ static int power_stats_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int power_stats_remove(struct platform_device *pdev)
+static void power_stats_remove(struct platform_device *pdev)
 {
 	platform_set_drvdata(pdev, NULL);
-
-	return 0;
 }
 
 static const struct of_device_id power_stats_match[] = {

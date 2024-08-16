@@ -304,7 +304,7 @@ err_get_pdata_fail:
 	return ret;
 }
 
-static int keydebug_remove(struct platform_device *pdev)
+static void keydebug_remove(struct platform_device *pdev)
 {
 	struct keydebug_platform_data *pdata = dev_get_platdata(&pdev->dev);
 
@@ -314,7 +314,6 @@ static int keydebug_remove(struct platform_device *pdev)
 	if (kdbg_wq)
 		destroy_workqueue(kdbg_wq);
 	probe_cnt = 0;
-	return 0;
 }
 
 #ifdef CONFIG_OF

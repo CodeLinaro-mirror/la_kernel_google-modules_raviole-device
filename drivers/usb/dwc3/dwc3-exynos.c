@@ -1263,7 +1263,7 @@ vdd33_err:
 	return ret;
 }
 
-static int dwc3_exynos_remove(struct platform_device *pdev)
+static void dwc3_exynos_remove(struct platform_device *pdev)
 {
 	struct dwc3_exynos	*exynos = platform_get_drvdata(pdev);
 	struct dwc3	*dwc = exynos->dwc;
@@ -1285,8 +1285,6 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
 		dwc3_exynos_clk_disable_unprepare(exynos);
 		pm_runtime_set_suspended(&pdev->dev);
 	}
-
-	return 0;
 }
 
 static void dwc3_exynos_shutdown(struct platform_device *pdev)

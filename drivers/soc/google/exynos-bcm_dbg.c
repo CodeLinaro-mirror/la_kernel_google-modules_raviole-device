@@ -3318,19 +3318,17 @@ err_data:
 	return ret;
 }
 
-static int exynos_bcm_dbg_remove(struct platform_device *pdev)
+static void exynos_bcm_dbg_remove(struct platform_device *pdev)
 {
 	struct exynos_bcm_dbg_data *data =
 					platform_get_drvdata(pdev);
-	int ret;
 
 	debugfs_remove_recursive(debugfs_lookup("bcm_attr", NULL));
 	kfree(bcm_dbg_file_fops);
 	platform_set_drvdata(pdev, NULL);
-	ret = exynos_bcm_dbg_pd_sync_exit(data);
-	if (ret) {
+	if (exynos_bcm_dbg_pd_sync_exit(data)) {
 		BCM_ERR("%s: failed to pd_sync_exit\n", __func__);
-		return ret;
+		return;
 	}
 
 	exynos_bcm_dbg_ipc_channel_release(data);
@@ -3342,8 +3340,6 @@ static int exynos_bcm_dbg_remove(struct platform_device *pdev)
 #endif
 
 	BCM_INFO("%s: exynos bcm is removed!!\n", __func__);
-
-	return 0;
 }
 
 static struct platform_device_id exynos_bcm_dbg_driver_ids[] = {

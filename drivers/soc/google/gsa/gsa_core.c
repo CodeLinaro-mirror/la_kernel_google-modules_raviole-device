@@ -626,15 +626,13 @@ static int gsa_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int gsa_remove(struct platform_device *pdev)
+static void gsa_remove(struct platform_device *pdev)
 {
 	struct gsa_dev_state *s = platform_get_drvdata(pdev);
 
 	/* close connection to tz services */
 	gsa_tz_chan_close(&s->aoc_srv);
 	gsa_tz_chan_close(&s->tpu_srv);
-
-	return 0;
 }
 
 static const struct of_device_id gsa_of_match[] = {

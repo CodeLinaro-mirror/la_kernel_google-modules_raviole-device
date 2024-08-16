@@ -1147,8 +1147,3 @@ int acpm_ipc_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "acpm_ipc probe done.\n");
 	return ret;
 }
-
-int acpm_ipc_remove(struct platform_device *pdev)
-{
-	return 0;
-}

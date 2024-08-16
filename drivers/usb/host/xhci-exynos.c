@@ -667,7 +667,7 @@ disable_runtime:
 	return ret;
 }
 
-static int xhci_exynos_remove(struct platform_device *dev)
+static void xhci_exynos_remove(struct platform_device *dev)
 {
 	struct xhci_hcd_exynos *xhci_exynos = platform_get_drvdata(dev);
 	struct usb_hcd	*hcd = xhci_exynos->hcd;
@@ -708,8 +708,6 @@ remove_hcd:
 	pm_runtime_disable(&dev->dev);
 	pm_runtime_put_noidle(&dev->dev);
 	pm_runtime_set_suspended(&dev->dev);
-
-	return 0;
 }
 
 static void xhci_exynos_shutdown(struct platform_device *dev)

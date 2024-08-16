@@ -137,11 +137,6 @@ fail:
 	return ret;
 }
 
-static int cp_thermal_zone_remove(struct platform_device *pdev)
-{
-	return 0;
-}
-
 static const struct of_device_id cp_thermal_zone_match[] = {
 	{
 		.compatible = "google,gs101-cp-thermal",
@@ -157,7 +152,6 @@ static struct platform_driver cp_thermal_zone_driver = {
 		.of_match_table = of_match_ptr(cp_thermal_zone_match),
 	},
 	.probe = cp_thermal_zone_probe,
-	.remove = cp_thermal_zone_remove,
 };
 module_platform_driver(cp_thermal_zone_driver);
 

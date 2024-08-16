@@ -200,11 +200,6 @@ void exynos_acpm_set_device(void *dev)
 }
 EXPORT_SYMBOL_GPL(exynos_acpm_set_device);
 
-static int acpm_dvfs_remove(struct platform_device *pdev)
-{
-	return 0;
-}
-
 static const struct of_device_id acpm_dvfs_match[] = {
 	{ .compatible = "samsung,exynos-acpm-dvfs" },
 	{},
@@ -213,7 +208,6 @@ MODULE_DEVICE_TABLE(of, acpm_dvfs_match);
 
 static struct platform_driver samsung_acpm_dvfs_driver = {
 	.probe	= acpm_dvfs_probe,
-	.remove	= acpm_dvfs_remove,
 	.driver	= {
 		.name = "exynos-acpm-dvfs",
 		.owner	= THIS_MODULE,

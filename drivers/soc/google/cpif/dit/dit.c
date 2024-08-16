@@ -2694,9 +2694,9 @@ static int dit_probe(struct platform_device *pdev)
 	return dit_create(pdev);
 }
 
-static int dit_remove(struct platform_device *pdev)
+static void dit_remove(struct platform_device *pdev)
 {
-	return 0;
+	return;
 }
 
 static int dit_suspend(struct device *dev)

@@ -787,7 +787,7 @@ err_pm:
 }
 
 /* Remove the driver */
-static int mfc_core_remove(struct platform_device *pdev)
+static void mfc_core_remove(struct platform_device *pdev)
 {
 	struct mfc_core *core = platform_get_drvdata(pdev);
 
@@ -830,7 +830,6 @@ static int mfc_core_remove(struct platform_device *pdev)
 #endif
 
 	dev_dbg(&pdev->dev, "%s--\n", __func__);
-	return 0;
 }
 
 static void mfc_core_shutdown(struct platform_device *pdev)
