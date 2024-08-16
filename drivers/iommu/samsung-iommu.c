@@ -399,23 +399,12 @@ static int samsung_sysmmu_set_domain_range(struct iommu_domain *dom,
 
 static struct samsung_sysmmu_domain *attach_helper(struct iommu_domain *dom, struct device *dev)
 {
-	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-	struct samsung_sysmmu_domain *domain;
-
-	if (!fwspec || fwspec->ops != &samsung_sysmmu_ops) {
-		dev_err(dev, "failed to attach, IOMMU instance data %s.\n",
-			!fwspec ? "is not initialized" : "has different ops");
-		return ERR_PTR(-ENXIO);
-	}
-
 	if (!dev_iommu_priv_get(dev)) {
 		dev_err(dev, "has no IOMMU\n");
 		return ERR_PTR(-ENODEV);
 	}
 
-	domain = to_sysmmu_domain(dom);
-
-	return domain;
+	return to_sysmmu_domain(dom);
 }
 
 static int samsung_sysmmu_attach_dev(struct iommu_domain *dom,
@@ -828,11 +817,6 @@ static struct iommu_device *samsung_sysmmu_probe_device(struct device *dev)
 
 	if (!fwspec) {
 		dev_dbg(dev, "IOMMU instance data is not initialized\n");
-		return ERR_PTR(-ENODEV);
-	}
-
-	if (fwspec->ops != &samsung_sysmmu_ops) {
-		dev_err(dev, "has different IOMMU ops\n");
 		return ERR_PTR(-ENODEV);
 	}
 
