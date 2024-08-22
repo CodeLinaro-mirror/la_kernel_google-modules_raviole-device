@@ -5372,7 +5372,7 @@ probe_fail:
 	return ret;
 }
 
-static int __exit exynos_pcie_rc_remove(struct platform_device *pdev)
+static int exynos_pcie_rc_remove(struct platform_device *pdev)
 {
 	dev_info(&pdev->dev, "%s\n", __func__);
 
