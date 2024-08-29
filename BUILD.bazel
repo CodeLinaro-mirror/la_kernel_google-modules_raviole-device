@@ -6,7 +6,7 @@ load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load("//build/bazel_common_rules/exec:exec.bzl", "exec_test")
 load(
     "//build/kernel/kleaf:kernel.bzl",
-    "kernel_abi",
+    "extract_symbols",
     "kernel_build",
     "kernel_images",
     "kernel_module",
@@ -134,10 +134,6 @@ _SLIDER_MODULE_OUTS = [
     "net/wireless/cfg80211.ko",
 ]
 
-# This can be set to true if you want to generate a symbol list to see what
-# symbols the drivers are using.
-DEFINE_SYMBOL_LIST = False
-
 kernel_build(
     name = "slider",
     srcs = glob([
@@ -170,7 +166,6 @@ kernel_build(
     dtstree = "//private/google-modules/soc/gs/arch/arm64/boot/dts:dt",
     implicit_outs = SLIDER_DTBOS,
     kconfig_ext = "Kconfig.ext",
-    kmi_symbol_list = "abi_gki_aarch64_pixel" if DEFINE_SYMBOL_LIST else None,
     make_goals = [
         "modules",
         "dtbs",
@@ -181,8 +176,8 @@ kernel_build(
     toolchain_version = CLANG_VERSION,
 )
 
-kernel_abi(
-    name = "slider_abi",
+extract_symbols(
+    name = "slider_extract_symbols",
     kernel_build = ":slider",
     kernel_modules = [":slider_ext_modules"],
     kmi_symbol_list_add_only = False,
@@ -429,6 +424,7 @@ slider_dist_targets = [
     ":slider_merged_kernel_uapi_headers",
     ":slider_modules_install",
     ":slider_unstripped_modules_archive",
+    ":slider_extract_symbols",
     "//common:kernel_aarch64_download_or_build",
 ] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
 
