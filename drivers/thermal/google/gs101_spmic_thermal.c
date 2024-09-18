@@ -327,19 +327,28 @@ static ssize_t channel_temp_show(struct kobject *kobj,
 
 static struct kobj_attribute channel_temp_attr = __ATTR_RO(channel_temp);
 
+static int gs101_spmic_thermal_get_hot_temp_walk_cb(struct thermal_trip *trip,
+						    void *data)
+{
+	const struct thermal_trip **found_trip = data;
+
+	if (trip->type != THERMAL_TRIP_HOT)
+		return 0;
+
+	*found_trip = trip;
+	/* return nonzero to terminate the search */
+	return 1;
+}
+
 static int gs101_spmic_thermal_get_hot_temp(struct thermal_zone_device *tzd)
 {
-	struct thermal_trip trip;
-	int i;
+	const struct thermal_trip *found_trip = NULL;
 
-	for (i = 0; i < thermal_zone_get_num_trips(tzd); i++) {
-		if (thermal_zone_get_trip(tzd, i, &trip))
-			continue;
-		if (trip.type == THERMAL_TRIP_HOT)
-			return trip.temperature;
-	}
+	thermal_zone_for_each_trip(tzd,
+				   gs101_spmic_thermal_get_hot_temp_walk_cb,
+				   &found_trip);
 
-	return THERMAL_TEMP_INVALID;
+	return found_trip ? found_trip->temperature : THERMAL_TEMP_INVALID;
 }
 
 /*
