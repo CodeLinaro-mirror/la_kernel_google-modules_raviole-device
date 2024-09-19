@@ -679,51 +679,57 @@ static void start_pi_polling(struct gs_tmu_data *data, int delay)
 				 msecs_to_jiffies(delay));
 }
 
+struct reset_pi_trips_tripwalkdata {
+	struct gs_pi_param *params;
+	bool found_first_passive;
+	int last_active;
+	int last_passive;
+	int index;
+};
+
+static int reset_pi_trips_walk_cb(struct thermal_trip *trip, void *data)
+{
+	struct reset_pi_trips_tripwalkdata * const twd = data;
+
+	if (trip->type == THERMAL_TRIP_PASSIVE) {
+		if (!twd->found_first_passive) {
+			twd->params->trip_switch_on = twd->index;
+			twd->found_first_passive = true;
+			/* return nonzero to terminate the search */
+			return 1;
+		}
+
+		twd->last_passive = twd->index;
+	} else if (trip->type == THERMAL_TRIP_ACTIVE) {
+		twd->last_active = twd->index;
+	} else {
+		/* return nonzero to terminate the search */
+		return 1;
+	}
+
+	++twd->index;
+	return 0;
+}
+
 static void reset_pi_trips(struct gs_tmu_data *data)
 {
 	struct thermal_zone_device *tz = data->tzd;
-	struct gs_pi_param *params = data->pi_param;
-	int i, last_active, last_passive;
-	bool found_first_passive;
+	struct reset_pi_trips_tripwalkdata twd = {
+		.params = data->pi_param,
+		.last_active = INVALID_TRIP,
+		.last_passive = INVALID_TRIP,
+	};
 
-	found_first_passive = false;
-	last_active = INVALID_TRIP;
-	last_passive = INVALID_TRIP;
+	thermal_zone_for_each_trip(tz, reset_pi_trips_walk_cb, &twd);
 
-	for (i = 0; i < tz->num_trips; i++) {
-		struct thermal_trip trip;
-		int ret;
-
-		ret = thermal_zone_get_trip(tz, i, &trip);
-		if (ret) {
-			dev_warn(&tz->device,
-				 "Failed to get trip point %d: %d\n", i, ret);
-			continue;
-		}
-
-		if (trip.type == THERMAL_TRIP_PASSIVE) {
-			if (!found_first_passive) {
-				params->trip_switch_on = i;
-				found_first_passive = true;
-				break;
-			}
-
-			last_passive = i;
-		} else if (trip.type == THERMAL_TRIP_ACTIVE) {
-			last_active = i;
-		} else {
-			break;
-		}
-	}
-
-	if (last_passive != INVALID_TRIP) {
-		params->trip_control_temp = last_passive;
-	} else if (found_first_passive) {
-		params->trip_control_temp = params->trip_switch_on;
-		params->trip_switch_on = last_active;
+	if (twd.last_passive != INVALID_TRIP) {
+		twd.params->trip_control_temp = twd.last_passive;
+	} else if (twd.found_first_passive) {
+		twd.params->trip_control_temp = twd.params->trip_switch_on;
+		twd.params->trip_switch_on = twd.last_active;
 	} else {
-		params->trip_switch_on = INVALID_TRIP;
-		params->trip_control_temp = last_active;
+		twd.params->trip_switch_on = INVALID_TRIP;
+		twd.params->trip_control_temp = twd.last_active;
 	}
 }
 
