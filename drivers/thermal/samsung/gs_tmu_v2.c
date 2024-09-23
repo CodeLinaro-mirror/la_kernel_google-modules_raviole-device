@@ -1294,12 +1294,11 @@ static void gs_throttle_hard_limit(struct kthread_work *work)
 	unsigned long state, max_state, prev_max_state;
 
 	mutex_lock(&tz->lock);
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-		if (!strncmp(data->tmu_name, instance->tz->type, THERMAL_NAME_LENGTH)) {
-			cdev = instance->cdev;
-			break;
-		}
-	}
+	// TODO(b/369062829): how to pick the right cdev if multiple instances
+	instance = list_first_entry_or_null(&tz->thermal_instances,
+					    typeof(*instance), tz_node);
+	if (instance)
+		cdev = instance->cdev;
 	mutex_unlock(&tz->lock);
 
 	if (!cdev) {
