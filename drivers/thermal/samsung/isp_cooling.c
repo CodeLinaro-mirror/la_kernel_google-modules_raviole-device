@@ -343,24 +343,14 @@ static int parse_ect_cooling_level(struct thermal_cooling_device *cdev,
 {
 	struct thermal_instance *instance;
 	struct thermal_zone_device *tz;
-	bool foundtz = false;
 	void *thermal_block;
 	struct ect_ap_thermal_function *function;
 	int i, temperature;
 	unsigned int freq;
 
-	mutex_lock(&cdev->lock);
-	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
-		tz = instance->tz;
-		if (!strncasecmp(cooling_name, tz->type, THERMAL_NAME_LENGTH)) {
-			foundtz = true;
-			break;
-		}
-	}
-	mutex_unlock(&cdev->lock);
-
-	if (!foundtz)
-		goto skip_ect;
+	tz = thermal_zone_get_zone_by_name(cooling_name);
+	if (IS_ERR(tz))
+		return 0;
 
 	thermal_block = ect_get_block(BLOCK_AP_THERMAL);
 	if (!thermal_block)
