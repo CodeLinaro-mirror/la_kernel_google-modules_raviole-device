@@ -841,57 +841,6 @@ int gpufreq_cooling_remove_notifier(struct notifier_block *nb)
 }
 EXPORT_SYMBOL_GPL(gpufreq_cooling_remove_notifier);
 
-static struct thermal_zone_device * parse_ect_cooling_level(
-	struct thermal_cooling_device *cdev, char *cooling_name)
-{
-	struct thermal_instance *instance;
-	struct thermal_zone_device *tz;
-	void *thermal_block;
-	struct ect_ap_thermal_function *function;
-	int i, temperature;
-	unsigned int freq;
-	struct gpufreq_cooling_device *gpufreq_cdev = cdev->devdata;
-
-	tz = thermal_zone_get_zone_by_name(cooling_name);
-	if (IS_ERR(tz))
-		return NULL;
-
-	thermal_block = ect_get_block(BLOCK_AP_THERMAL);
-	if (!thermal_block)
-		goto skip_ect;
-
-	function = ect_ap_thermal_get_function(thermal_block, cooling_name);
-	if (!function)
-		goto skip_ect;
-
-	for (i = 0; i < function->num_of_range; ++i) {
-		unsigned long max_level = 0;
-		int level;
-
-		temperature = function->range_list[i].lower_bound_temperature;
-		freq = function->range_list[i].max_frequency;
-
-		instance = get_thermal_instance(tz, cdev, i);
-		if (!instance) {
-			pr_err("%s: (%s, %d)instance isn't valid\n", __func__, cooling_name, i);
-			goto skip_ect;
-		}
-
-		cdev->ops->get_max_state(cdev, &max_level);
-		level = gpufreq_cooling_get_level(gpufreq_cdev, freq);
-
-		if (level == THERMAL_CSTATE_INVALID)
-			level = max_level;
-
-		instance->upper = level;
-
-		pr_info("Parsed From ECT : %s: [%d] Temperature : %d, frequency : %u, level: %d\n",
-			cooling_name, i, temperature, freq, level);
-	}
-skip_ect:
-	return tz;
-}
-
 /**
  * gpu_cooling_table_init() - function to make GPU throttling table.
  *
@@ -1090,7 +1039,9 @@ static struct thermal_cooling_device *__gpufreq_cooling_register(struct device_n
 		goto free_cool_dev;
 	}
 
-	gpufreq_cdev->tzd = parse_ect_cooling_level(cool_dev, "G3D");
+	gpufreq_cdev->tzd = thermal_zone_get_zone_by_name("G3D");
+	if (IS_ERR(gpufreq_cdev->tzd))
+		gpufreq_cdev->tzd = NULL;
 
 	gpufreq_cdev->cool_dev = cool_dev;
 	gpufreq_cdev->gpufreq_state = 0;
