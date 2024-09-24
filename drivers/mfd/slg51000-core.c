@@ -741,24 +741,24 @@ static void slg51000_i2c_remove(struct i2c_client *client)
 
 	if (gpio_is_valid(slg51000->chip_pu_pin)) {
 		desc = gpio_to_desc(slg51000->chip_pu_pin);
-		ret |= gpiod_direction_output_raw(desc, GPIOF_INIT_LOW);
+		ret |= gpiod_direction_output_raw(desc, 0);
 		usleep_range(1000, 1020);
 	}
 	if (gpio_is_valid(slg51000->chip_cs_pin)) {
 		desc = gpio_to_desc(slg51000->chip_cs_pin);
-		ret |= gpiod_direction_output_raw(desc, GPIOF_INIT_LOW);
+		ret |= gpiod_direction_output_raw(desc, 0);
 		/* Put SLG51000 back to Reset state */
 		usleep_range(SLEEP_10000_USEC,
 				SLEEP_10000_USEC + SLEEP_RANGE_USEC);
 	}
 	if (gpio_is_valid(slg51000->chip_buck_pin)) {
 		desc = gpio_to_desc(slg51000->chip_buck_pin);
-		ret |= gpiod_direction_output_raw(desc, GPIOF_INIT_LOW);
+		ret |= gpiod_direction_output_raw(desc, 0);
 		usleep_range(1000, 1020);
 	}
 	if (gpio_is_valid(slg51000->chip_bb_pin)) {
 		desc = gpio_to_desc(slg51000->chip_bb_pin);
-		ret |= gpiod_direction_output_raw(desc, GPIOF_INIT_LOW);
+		ret |= gpiod_direction_output_raw(desc, 0);
 		usleep_range(1000, 1020);
 	}
 
