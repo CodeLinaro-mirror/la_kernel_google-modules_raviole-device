@@ -82,7 +82,7 @@ static int slg51000_gpio_get_direction(struct gpio_chip *chip,
 	case SLG51000_SEQ2:
 	case SLG51000_SEQ3:
 	case SLG51000_SEQ4:
-		return GPIOF_DIR_OUT;
+		return GPIO_LINE_DIRECTION_OUT;
 	default:
 		return -EOPNOTSUPP;
 	}
@@ -94,7 +94,9 @@ static int slg51000_gpio_get_direction(struct gpio_chip *chip,
 		return ret;
 	}
 
-	return (val & SLG51000_GPIO_DIR_MASK) ? GPIOF_DIR_OUT : GPIOF_DIR_IN;
+	return ((val & SLG51000_GPIO_DIR_MASK)
+		? GPIO_LINE_DIRECTION_OUT
+		: GPIO_LINE_DIRECTION_IN);
 }
 
 static int slg51000_generic_seq_get_direction(struct gpio_chip *chip,
@@ -109,7 +111,7 @@ static int slg51000_generic_seq_get_direction(struct gpio_chip *chip,
 	case SLG51000_GENERIC_SEQ5:
 	case SLG51000_GENERIC_SEQ6:
 	case SLG51000_GENERIC_SEQ7:
-		return GPIOF_DIR_OUT;
+		return GPIO_LINE_DIRECTION_OUT;
 	default:
 		return -EOPNOTSUPP;
 	}
