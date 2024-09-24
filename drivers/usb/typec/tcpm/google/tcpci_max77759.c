@@ -538,7 +538,7 @@ EXPORT_SYMBOL_GPL(register_orientation_callback);
 #ifdef CONFIG_GPIOLIB
 static int ext_bst_en_gpio_get_direction(struct gpio_chip *chip, unsigned int offset)
 {
-	return GPIOF_DIR_OUT;
+	return GPIO_LINE_DIRECTION_OUT;
 }
 
 static int ext_bst_en_gpio_get(struct gpio_chip *gpio, unsigned int offset)
