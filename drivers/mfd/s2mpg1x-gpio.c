@@ -119,14 +119,16 @@ static int s2mpg1x_gpio_get_direction(struct gpio_chip *chip,
 {
 	struct s2mpg1x_gpio *data = gpiochip_get_data(chip);
 
-	return !s2mpg1x_read_gpio_ctrl_bit(data, offset, GPIO_CTRL3_OFFSET);
+	return (s2mpg1x_read_gpio_ctrl_bit(data, offset, GPIO_CTRL3_OFFSET)
+		? GPIO_LINE_DIRECTION_OUT
+		: GPIO_LINE_DIRECTION_IN);
 }
 
 static int s2mpg1x_gpio_get(struct gpio_chip *chip, unsigned int offset)
 {
 	struct s2mpg1x_gpio *data = gpiochip_get_data(chip);
 
-	if (s2mpg1x_gpio_get_direction(chip, offset))
+	if (s2mpg1x_gpio_get_direction(chip, offset) == GPIO_LINE_DIRECTION_IN)
 		return s2mpg1x_read_gpio_ctrl_bit(data, offset,
 						  GPIO_CTRL1_OFFSET);
 	else
@@ -139,7 +141,7 @@ static void s2mpg1x_gpio_set(struct gpio_chip *chip, unsigned int offset,
 {
 	struct s2mpg1x_gpio *data = gpiochip_get_data(chip);
 
-	if (!s2mpg1x_gpio_get_direction(chip, offset))
+	if (s2mpg1x_gpio_get_direction(chip, offset) == GPIO_LINE_DIRECTION_OUT)
 		s2mpg1x_write_gpio_ctrl_bit(data, offset, GPIO_CTRL2_OFFSET,
 					    value);
 }
