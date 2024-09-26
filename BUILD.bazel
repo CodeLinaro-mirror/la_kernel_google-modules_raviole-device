@@ -432,6 +432,8 @@ slider_dist_targets = [
     ":slider_modules_install",
     ":slider_unstripped_modules_archive",
     ":slider_abi_gki_aarch64_pixel",
+    "vendor_dlkm.props",
+    "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
     "//common:kernel_aarch64_download_or_build",
 ] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
 
