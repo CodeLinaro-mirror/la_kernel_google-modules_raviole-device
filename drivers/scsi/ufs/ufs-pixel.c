@@ -938,10 +938,8 @@ static ssize_t manual_gc_store(struct device *dev,
 
 	pm_runtime_get_sync(hba->dev);
 
-	if (!ufs->manual_gc.hagc_support) {
-		err = ufshcd_bkops_ctrl(hba, (value == MANUAL_GC_ON) ?
-					BKOPS_STATUS_NON_CRITICAL:
-					BKOPS_STATUS_CRITICAL);
+	if (!ufs->manual_gc.hagc_support && value == MANUAL_GC_ON) {
+		err = ufshcd_bkops_ctrl(hba);
 		if (!hba->auto_bkops_enabled)
 			err = -EAGAIN;
 	}
