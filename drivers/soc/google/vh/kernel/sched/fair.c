@@ -137,7 +137,7 @@ static unsigned long capacity_curr_of(int cpu)
 {
 	unsigned long max_cap = cpu_rq(cpu)->cpu_capacity_orig;
 
-	return cap_scale(max_cap, per_cpu(freq_scale, cpu));
+	return cap_scale(max_cap, per_cpu(arch_freq_scale, cpu));
 }
 
 /* Runqueue only has SCHED_IDLE tasks enqueued */
