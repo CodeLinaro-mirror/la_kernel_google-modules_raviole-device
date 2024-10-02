@@ -89,9 +89,9 @@ struct usb_psy_data {
 	struct usb_psy_ops *psy_ops;
 
 	/* For voting current limit */
-	char *chg_psy_name;
+	const char *chg_psy_name;
 	/* For reading USB current now */
-	char *main_chg_psy_name;
+	const char *main_chg_psy_name;
 
 	/*
 	 * Setting CURRENT limit on charger side can fail.
@@ -797,7 +797,7 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 		goto unreg_usb_type_wq;
 	}
 
-	usb->chg_psy_name = (char *)of_get_property(dn, "chg-psy-name", NULL);
+	usb->chg_psy_name = of_get_property(dn, "chg-psy-name", NULL);
 	if (!usb->chg_psy_name) {
 		dev_err(&client->dev, "chg-psy-name not set\n");
 	} else {
@@ -806,7 +806,7 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 			dev_err(&client->dev, "chg psy not up\n");
 	}
 
-	usb->main_chg_psy_name = (char *)of_get_property(dn, "main-chg-psy-name", NULL);
+	usb->main_chg_psy_name = of_get_property(dn, "main-chg-psy-name", NULL);
 
 	usb_cfg.drv_data = usb;
 	usb_cfg.of_node =  dev->of_node;

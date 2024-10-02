@@ -666,7 +666,7 @@ static int fusb307b_probe(struct i2c_client *client)
 	int ret;
 	struct fusb307b_plat *chip;
 	struct device_node *dn;
-	char *usb_psy_name;
+	const char *usb_psy_name;
 	u32 handle;
 
 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
@@ -756,7 +756,7 @@ static int fusb307b_probe(struct i2c_client *client)
 		goto unreg_psy;
 	}
 
-	usb_psy_name = (char *)of_get_property(dn, "usb-psy-name", NULL);
+	usb_psy_name = of_get_property(dn, "usb-psy-name", NULL);
 	if (!usb_psy_name) {
 		dev_err(&client->dev, "usb-psy-name not set\n");
 		ret = -EINVAL;

@@ -2671,7 +2671,7 @@ static int max77759_probe(struct i2c_client *client)
 {
 	int ret, i;
 	struct max77759_plat *chip;
-	char *usb_psy_name;
+	const char *usb_psy_name;
 	struct device_node *dn, *ovp_dn, *conn;
 	u8 power_status;
 	u16 device_id;
@@ -2814,7 +2814,7 @@ static int max77759_probe(struct i2c_client *client)
 		goto unreg_psy;
 	}
 
-	usb_psy_name = (char *)of_get_property(dn, "usb-psy-name", NULL);
+	usb_psy_name = of_get_property(dn, "usb-psy-name", NULL);
 	if (!usb_psy_name) {
 		dev_err(&client->dev, "usb-psy-name not set\n");
 		ret = -EINVAL;
