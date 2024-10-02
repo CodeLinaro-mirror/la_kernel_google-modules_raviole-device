@@ -723,9 +723,8 @@ static int process_rx(struct max77759_plat *chip, u16 status)
 	 * Read complete, clear RX status alert bit.
 	 * Clear overflow as well if set.
 	 */
-	ret = max77759_write16(chip->data.regmap, TCPC_ALERT, status & TCPC_ALERT_RX_BUF_OVF ?
-			       TCPC_ALERT_RX_STATUS | TCPC_ALERT_RX_BUF_OVF :
-			       TCPC_ALERT_RX_STATUS);
+	ret = max77759_write16(chip->data.regmap, TCPC_ALERT,
+			       TCPC_ALERT_RX_STATUS | (status & TCPC_ALERT_RX_BUF_OVF));
 	if (ret < 0)
 		return -EIO;
 
@@ -1440,9 +1439,8 @@ static irqreturn_t _max77759_irq_locked(struct max77759_plat *chip, u16 status,
 	u16 vendor_status = 0, vendor_status2 = 0, raw;
 	struct tcpci *tcpci = chip->tcpci;
 	int ret;
-	const u16 mask = status & TCPC_ALERT_RX_BUF_OVF ? status &
-		~(TCPC_ALERT_RX_STATUS | TCPC_ALERT_RX_BUF_OVF) :
-		status & ~TCPC_ALERT_RX_STATUS;
+	const u16 mask = status & ~(TCPC_ALERT_RX_STATUS
+				    | (status & TCPC_ALERT_RX_BUF_OVF));
 	u8 reg_status;
 	bool contaminant_cc_update_handled = false, invoke_tcpm_for_cc_update = false,
 		port_clean = false;
