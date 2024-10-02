@@ -1757,7 +1757,7 @@ static irqreturn_t max77759_irq(int irq, void *dev_id)
 	mutex_lock(&chip->irq_status_lock);
 	while (status) {
 		irq_return = _max77759_irq_locked(chip, status, chip->log);
-		/* Do not return if the ALERT is already set. */
+		/* Do not return if a (new) ALERT is set (again). */
 		LOG(LOG_LVL_DEBUG, chip->log, "TCPC_ALERT read alert status");
 		ret = max77759_read16(chip->tcpci->regmap, TCPC_ALERT, &status);
 		if (ret < 0)
