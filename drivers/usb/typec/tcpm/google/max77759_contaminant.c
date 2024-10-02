@@ -370,10 +370,11 @@ static int enable_dry_detection(struct max77759_contaminant *contaminant)
 	 * tunable: 1000mV/1000K thershold for water detection
 	 * tunable: 4.8s water cycle
 	 */
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL3, CCWTRDEB_MASK | CCWTRSEL_MASK
-				    | WTRCYCLE_MASK, CCWTRDEB_1MS << CCWTRDEB_SHIFT |
-				    CCWTRSEL_1V << CCWTRSEL_SHIFT | WTRCYCLE_4_8_S <<
-				    WTRCYCLE_SHIFT);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL3,
+				    CCWTRDEB | CCWTRSEL | WTRCYCLE,
+				    FIELD_PREP(CCWTRDEB, CCWTRDEB_1MS)
+				    | FIELD_PREP(CCWTRSEL, CCWTRSEL_1V)
+				    | FIELD_PREP(WTRCYCLE, WTRCYCLE_4_8_S));
 	if (ret < 0)
 		return -EIO;
 
@@ -747,10 +748,11 @@ int enable_contaminant_detection(struct max77759_plat *chip, bool maxq)
 	 * tunable: 1000mV/1000K thershold for water detection
 	 * tunable: 4.8s water cycle
 	 */
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL3, CCWTRDEB_MASK | CCWTRSEL_MASK
-				    | WTRCYCLE_MASK, CCWTRDEB_1MS << CCWTRDEB_SHIFT |
-				    CCWTRSEL_1V << CCWTRSEL_SHIFT | WTRCYCLE_4_8_S <<
-				    WTRCYCLE_SHIFT);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL3,
+				    CCWTRDEB | CCWTRSEL | WTRCYCLE,
+				    FIELD_PREP(CCWTRDEB, CCWTRDEB_1MS)
+				    | FIELD_PREP(CCWTRSEL, CCWTRSEL_1V)
+				    | FIELD_PREP(WTRCYCLE, WTRCYCLE_4_8_S));
 	if (ret < 0)
 		return -EIO;
 
