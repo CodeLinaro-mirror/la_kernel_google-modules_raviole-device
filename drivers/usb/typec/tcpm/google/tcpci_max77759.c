@@ -2693,16 +2693,14 @@ static int max77759_probe(struct i2c_client *client)
 	chip->client->dev.init_name = "i2c-max77759tcpc";
 	chip->data.regmap = devm_regmap_init_i2c(client,
 						 &max77759_regmap_config);
-	if (IS_ERR(chip->data.regmap)) {
-		dev_err(&client->dev, "Regmap init failed\n");
-		return PTR_ERR(chip->data.regmap);
-	}
+	if (IS_ERR(chip->data.regmap))
+		return dev_err_probe(&client->dev, PTR_ERR(chip->data.regmap),
+				     "Regmap init failed\n");
 
 	dn = dev_of_node(&client->dev);
-	if (!dn) {
-		dev_err(&client->dev, "of node not found\n");
-		return -EINVAL;
-	}
+	if (!dn)
+		return dev_err_probe(&client->dev, -EINVAL,
+				     "of node not found\n");
 
 	chip->charger_mode_votable = gvotable_election_get_handle(GBMS_MODE_VOTABLE);
 	if (IS_ERR_OR_NULL(chip->charger_mode_votable)) {
@@ -2756,7 +2754,8 @@ static int max77759_probe(struct i2c_client *client)
 	ret = max77759_read8(chip->data.regmap, TCPC_POWER_STATUS,
 			     &power_status);
 	if (ret < 0)
-		return ret;
+		return dev_err_probe(&client->dev, ret,
+				     "Failed to read TCPC_POWER_STATUS\n");
 
 	if (power_status & TCPC_POWER_STATUS_UNINIT) {
 		dev_err(&client->dev, "TCPC not ready!");
@@ -2765,11 +2764,9 @@ static int max77759_probe(struct i2c_client *client)
 
 	chip->toggle_disable_votable =
 		gvotable_create_bool_election(NULL, max77759_toggle_disable_votable_callback, chip);
-	if (IS_ERR_OR_NULL(chip->toggle_disable_votable)) {
-		ret = PTR_ERR(chip->toggle_disable_votable);
-		dev_err(chip->dev, "no toggle_disable votable (%d)\n", ret);
-		return ret;
-	}
+	if (IS_ERR_OR_NULL(chip->toggle_disable_votable))
+		return dev_err_probe(chip->dev, PTR_ERR(chip->toggle_disable_votable),
+				     "no toggle_disable votable\n");
 	gvotable_set_vote2str(chip->toggle_disable_votable, gvotable_v2s_int);
 	gvotable_election_set_name(chip->toggle_disable_votable, "TOGGLE_DISABLE");
 
@@ -2784,11 +2781,9 @@ static int max77759_probe(struct i2c_client *client)
 	chip->data.check_contaminant = max_tcpci_check_contaminant;
 
 	chip->compliance_warnings = init_compliance_warnings(chip);
-	if (IS_ERR_OR_NULL(chip->compliance_warnings)) {
-		ret = PTR_ERR(chip->compliance_warnings);
-		dev_err(&client->dev, "init_compliance_warnings failed, ptr: %d", ret);
-		return ret;
-	}
+	if (IS_ERR_OR_NULL(chip->compliance_warnings))
+		return dev_err_probe(&client->dev, PTR_ERR(chip->compliance_warnings),
+				     "init_compliance_warnings failed");
 
 	chip->log = logbuffer_register("usbpd");
 	if (IS_ERR_OR_NULL(chip->log)) {
