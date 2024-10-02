@@ -283,7 +283,6 @@ static const struct file_operations gsc_fops = {
 	.poll		= gsc_poll,
 	.release	= gsc_release,
 	.unlocked_ioctl	= gsc_ioctl,
-	.llseek		= no_llseek,
 	.owner		= THIS_MODULE,
 };
 
