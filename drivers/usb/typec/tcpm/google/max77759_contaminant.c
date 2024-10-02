@@ -5,6 +5,7 @@
  * USB contaminant detection
  */
 
+#include <linux/bitfield.h>
 #include <linux/device.h>
 #include <linux/irqreturn.h>
 #include <linux/module.h>
@@ -83,11 +84,6 @@ static int adc_to_mv(struct max77759_contaminant *contaminant, enum fladc_select
 		logbuffer_log(contaminant->chip->log, "ADC ERROR: SCALE UNKNOWN");
 
 	return fladc;
-}
-
-static inline bool status_check(u8 reg, u8 mask, u8 val)
-{
-	return ((reg) & (mask)) == (val);
 }
 
 static int read_adc_mv(struct max77759_contaminant *contaminant,
@@ -478,11 +474,8 @@ static int maxq_detect_contaminant(struct max77759_contaminant *contaminant, u8 
 
 static bool is_cc_open(u8 cc_status)
 {
-	return status_check(cc_status, TCPC_CC_STATUS_CC1_MASK << TCPC_CC_STATUS_CC1_SHIFT,
-			    TCPC_CC_STATE_SRC_OPEN) && status_check(cc_status,
-								    TCPC_CC_STATUS_CC2_MASK <<
-								    TCPC_CC_STATUS_CC2_SHIFT,
-								    TCPC_CC_STATE_SRC_OPEN);
+	return (FIELD_GET(TCPC_CC_STATUS_CC1, cc_status) == TCPC_CC_STATE_SRC_OPEN
+		&& FIELD_GET(TCPC_CC_STATUS_CC2, cc_status) == TCPC_CC_STATE_SRC_OPEN);
 }
 
 static void update_contaminant_state(struct max77759_contaminant *contaminant,
@@ -545,12 +538,10 @@ int process_contaminant_alert(struct max77759_contaminant *contaminant, bool deb
 	if (contaminant->state == NOT_DETECTED || contaminant->state == SINK ||
 	    contaminant->state == FLOATING_CABLE) {
 		/* ConnectResult = 0b -> Rp */
-		if ((status_check(cc_status, TCPC_CC_STATUS_TERM, TCPC_CC_STATUS_TERM_RP)) &&
-		    ((status_check(cc_status, TCPC_CC_STATUS_CC1_MASK << TCPC_CC_STATUS_CC1_SHIFT,
-				   TCPC_CC_STATE_WTRSEL << TCPC_CC_STATUS_CC1_SHIFT)) ||
-		    (status_check(cc_status, TCPC_CC_STATUS_CC2_MASK << TCPC_CC_STATUS_CC2_SHIFT,
-				  TCPC_CC_STATE_WTRSEL << TCPC_CC_STATUS_CC2_SHIFT))) &&
-		    (status_check(cc_status, TCPC_CC_STATUS_TOGGLING, 0))) {
+		if ((FIELD_GET(TCPC_CC_STATUS_TERM, cc_status) == TCPC_CC_STATUS_TERM_RP)
+		    && ((FIELD_GET(TCPC_CC_STATUS_CC1, cc_status) == TCPC_CC_STATE_WTRSEL)
+			|| (FIELD_GET(TCPC_CC_STATUS_CC2, cc_status) == TCPC_CC_STATE_WTRSEL))
+		    && (!(cc_status & TCPC_CC_STATUS_TOGGLING))) {
 			logbuffer_log(chip->log, "Contaminant: Check if wet: CC 0x3");
 			ret = contaminant_detect_maxq ?
 				maxq_detect_contaminant(contaminant, cc_status)
@@ -650,7 +641,7 @@ int process_contaminant_alert(struct max77759_contaminant *contaminant, bool deb
 		*cc_update_handled = false;
 		return 0;
 	} else if (contaminant->state == DETECTED) {
-		if (status_check(cc_status, TCPC_CC_STATUS_TOGGLING, 0)) {
+		if (!(cc_status & TCPC_CC_STATUS_TOGGLING)) {
 			logbuffer_log(chip->log, "Contaminant: Check if dry");
 			state = contaminant_detect_maxq ?
 				maxq_detect_contaminant(contaminant, cc_status)
@@ -701,9 +692,10 @@ int disable_contaminant_detection(struct max77759_plat *chip)
 	if (ret < 0)
 		return -EIO;
 
-	ret = max77759_write8(regmap, TCPC_ROLE_CTRL, TCPC_ROLE_CTRL_DRP |
-			      (TCPC_ROLE_CTRL_CC_RD << TCPC_ROLE_CTRL_CC1_SHIFT) |
-			      (TCPC_ROLE_CTRL_CC_RD << TCPC_ROLE_CTRL_CC2_SHIFT));
+	ret = max77759_write8(regmap, TCPC_ROLE_CTRL,
+			      TCPC_ROLE_CTRL_DRP
+			      | FIELD_PREP(TCPC_ROLE_CTRL_CC1, TCPC_ROLE_CTRL_CC_RD)
+			      | FIELD_PREP(TCPC_ROLE_CTRL_CC2, TCPC_ROLE_CTRL_CC_RD));
 	if (ret < 0)
 		return -EIO;
 
@@ -799,11 +791,10 @@ int enable_contaminant_detection(struct max77759_plat *chip, bool maxq)
 		}
 	}
 
-	ret = max77759_write8(regmap, TCPC_ROLE_CTRL, TCPC_ROLE_CTRL_DRP |
-			      (TCPC_ROLE_CTRL_CC_RD <<
-			       TCPC_ROLE_CTRL_CC1_SHIFT) |
-			      (TCPC_ROLE_CTRL_CC_RD <<
-			       TCPC_ROLE_CTRL_CC2_SHIFT));
+	ret = max77759_write8(regmap, TCPC_ROLE_CTRL,
+			      TCPC_ROLE_CTRL_DRP
+			      | FIELD_PREP(TCPC_ROLE_CTRL_CC1, TCPC_ROLE_CTRL_CC_RD)
+			      | FIELD_PREP(TCPC_ROLE_CTRL_CC2, TCPC_ROLE_CTRL_CC_RD));
 	if (ret < 0) {
 		logbuffer_log(chip->log, "[%s]: Enabling DRP failed ret:%d", __func__,
 			      ret);
