@@ -142,8 +142,9 @@ static int read_resistance_kohm(struct max77759_contaminant *contaminant,
 	if (channel == CC1_SCALE1 || channel == CC2_SCALE1 || channel == CC1_SCALE2 ||
 	    channel == CC2_SCALE2) {
 		/* Enable 1uA current source */
-		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-					    ULTRA_LOW_POWER_MODE);
+		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+					    FIELD_PREP(CCLPMODESEL,
+						       ULTRA_LOW_POWER_MODE));
 		if (ret < 0)
 			return -EIO;
 		/*
@@ -155,7 +156,8 @@ static int read_resistance_kohm(struct max77759_contaminant *contaminant,
 		 */
 
 		/* Enable 1uA current source */
-		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL_MASK, UA_1_SRC);
+		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL,
+					    FIELD_PREP(CCRPCTRL, UA_1_SRC));
 		if (ret < 0)
 			return -EIO;
 
@@ -180,8 +182,8 @@ static int read_resistance_kohm(struct max77759_contaminant *contaminant,
 	 * SBU measurement
 	 * OVP disable
 	 */
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-				    ULTRA_LOW_POWER_MODE);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+				    FIELD_PREP(CCLPMODESEL, ULTRA_LOW_POWER_MODE));
 	if (ret < 0)
 		return -EIO;
 
@@ -236,7 +238,8 @@ static int read_comparators(struct max77759_contaminant *contaminant,
 	logbuffer_log(log, "Contaminant: enable comparators");
 
 	/* Enable 80uA source */
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL_MASK, UA_80_SRC);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL,
+				    FIELD_PREP(CCRPCTRL, UA_80_SRC));
 	if (ret < 0)
 		return -EIO;
 
@@ -248,8 +251,8 @@ static int read_comparators(struct max77759_contaminant *contaminant,
 	MAX77759_LOG_REGISTER(regmap, TCPC_VENDOR_CC_CTRL1, log);
 
 	/* Disable low power mode */
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-				    LOW_POWER_MODE_DISABLE);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+				    FIELD_PREP(CCLPMODESEL, LOW_POWER_MODE_DISABLE));
 	if (ret < 0)
 		return -EIO;
 	MAX77759_LOG_REGISTER(regmap, TCPC_VENDOR_CC_CTRL2, log);
@@ -284,7 +287,8 @@ static int read_comparators(struct max77759_contaminant *contaminant,
 	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL1, CCCOMPEN, 0);
 	if (ret < 0)
 		return -EIO;
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL_MASK, 0);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCRPCTRL,
+				    FIELD_PREP(CCRPCTRL, 0));
 	if (ret < 0)
 		return -EIO;
 
@@ -387,8 +391,8 @@ static int enable_dry_detection(struct max77759_contaminant *contaminant)
 		return -EIO;
 	logbuffer_log(chip->log, "Contaminant: TCPC_VENDOR_CC_CTRL1 %u", temp);
 
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-				    ULTRA_LOW_POWER_MODE);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+				    FIELD_PREP(CCLPMODESEL, ULTRA_LOW_POWER_MODE));
 	if (ret < 0)
 		return -EIO;
 	ret = max77759_read8(regmap, TCPC_VENDOR_CC_CTRL2, &temp);
@@ -688,7 +692,7 @@ int disable_contaminant_detection(struct max77759_plat *chip)
 	if (!contaminant)
 		return 0;
 
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK, 0);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL, 0);
 	if (ret < 0)
 		return -EIO;
 
@@ -699,8 +703,8 @@ int disable_contaminant_detection(struct max77759_plat *chip)
 	if (ret < 0)
 		return -EIO;
 
-	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-				    LOW_POWER_MODE_DISABLE);
+	ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+				    FIELD_PREP(CCLPMODESEL, LOW_POWER_MODE_DISABLE));
 	if (ret < 0)
 		return -EIO;
 
@@ -761,8 +765,9 @@ int enable_contaminant_detection(struct max77759_plat *chip, bool maxq)
 
 	if (!contaminant->auto_ultra_low_power_mode_disabled) {
 		/* tunable: Periodic contaminant detection */
-		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-					    AUTO_ULTRA_LOW_POWER_MODE);
+		ret = max77759_update_bits8(regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+					    FIELD_PREP(CCLPMODESEL,
+						       AUTO_ULTRA_LOW_POWER_MODE));
 		if (ret < 0)
 			return -EIO;
 	}
@@ -853,8 +858,11 @@ void disable_auto_ultra_low_power_mode(struct max77759_plat *chip, bool disable)
 		return;
 	}
 
-	ret = max77759_update_bits8(chip->data.regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL_MASK,
-				    disable ? LOW_POWER_MODE_DISABLE : AUTO_ULTRA_LOW_POWER_MODE);
+	ret = max77759_update_bits8(chip->data.regmap, TCPC_VENDOR_CC_CTRL2, CCLPMODESEL,
+				    FIELD_PREP(CCLPMODESEL,
+					       (disable
+						? LOW_POWER_MODE_DISABLE
+						: AUTO_ULTRA_LOW_POWER_MODE)));
 
 	logbuffer_log(chip->log, "Contaminant: Auto ultra low power mode %s ret:%d",
 		      disable ? "disable" : "enable", ret);
