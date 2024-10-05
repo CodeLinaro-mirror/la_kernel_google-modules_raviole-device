@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
 
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
@@ -20,7 +19,6 @@ load(
 )
 load("//common:modules.bzl", "get_gki_modules_list")
 load(":slider.bzl", "SLIDER_DTBOS")
-load(":tests.bzl", "define_slider_kleaf_tests")
 
 package(
     default_visibility = [
@@ -469,16 +467,9 @@ copy_to_dist_dir(
     log = "info",
 )
 
-# Test that only builds :slider_test_images, but does nothing else
-build_test(
-    name = "slider_images_test",
-    targets = [":slider_test_images"],
-)
-
 test_suite(
     name = "slider_tests",
     tests = [
-        ":slider_images_test",
         ":slider_modules_test",
         ":slider_test",
         "//common:kernel_aarch64_tests",
@@ -486,8 +477,6 @@ test_suite(
     # TODO(b/236871190): re-add this with the kernel_module_group
     #+ [m + "_test" for m in _slider_modules],
 )
-
-define_slider_kleaf_tests()
 
 exports_files([
     # keep sorted
