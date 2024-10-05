@@ -6,14 +6,17 @@ load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load(
     "//build/kernel/kleaf:kernel.bzl",
+    "dtbo",
     "extract_symbols",
+    "initramfs",
     "kernel_build",
-    "kernel_images",
     "kernel_module",
     "kernel_module_group",
     "kernel_modules_install",
     "kernel_unstripped_modules_archive",
     "merged_kernel_uapi_headers",
+    "vendor_boot_image",
+    "vendor_dlkm_image",
 )
 load("//common:modules.bzl", "get_gki_modules_list")
 load(":slider.bzl", "SLIDER_DTBOS")
@@ -376,28 +379,43 @@ write_file(
     ],
 )
 
-kernel_images(
-    name = "slider_images",
-    build_boot = False,
-    build_dtbo = True,
-    build_initramfs = True,
-    build_vendor_boot = True,
-    build_vendor_dlkm = True,
-    dtbo_srcs = [":slider/" + e for e in SLIDER_DTBOS],
+dtbo(
+    name = "slider_dtbo",
+    srcs = [":slider/" + e for e in SLIDER_DTBOS],
     kernel_build = ":slider",
+)
+
+initramfs(
+    name = "slider_initramfs",
     kernel_modules_install = ":slider_modules_install",
-    # Keep the following in sync with build.config.slider:
-    modules_list = "vendor_boot_modules.gs101",
-    vendor_dlkm_modules_blocklist = "vendor_dlkm.blocklist.slider",
-    # No MODULES_BLOCKLIST
-    vendor_dlkm_modules_list = ":slider_vendor_dlkm_modules_list",
-    vendor_dlkm_props = "vendor_dlkm.props",
-    vendor_ramdisk_binaries = ["//prebuilts/boot-artifacts/ramdisks:vendor_ramdisk-oriole.img"],
-    deps = [
-        # Keep the following in sync with vendor_dlkm.props:
-        # selinux_fc
-        "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
+    modules_list = ":vendor_boot_modules.gs101",
+    vendor_boot_name = "vendor_boot",
+)
+
+vendor_boot_image(
+    name = "slider_vendor_boot_image",
+    outs = [
+        "dtb.img",
+        "ramdisk.lz4",
+        "vendor-bootconfig.img",
+        "vendor_boot.img",
     ],
+    initramfs = ":slider_initramfs",
+    kernel_build = ":slider",
+    unpack_ramdisk = True,
+    vendor_boot_name = "vendor_boot",
+    vendor_ramdisk_binaries = ["//prebuilts/boot-artifacts/ramdisks:vendor_ramdisk-oriole.img"],
+)
+
+vendor_dlkm_image(
+    name = "slider_vendor_dlkm_image",
+    archive = True,
+    kernel_modules_install = ":slider_modules_install",
+    modules_blocklist = "vendor_dlkm.blocklist.slider",
+    modules_list = ":slider_vendor_dlkm_modules_list",
+    props = "vendor_dlkm.props",
+    vendor_boot_modules_load = ":slider_initramfs",
+    deps = ["//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts"],
 )
 
 filegroup(
@@ -422,7 +440,10 @@ genrule(
 
 slider_dist_targets = [
     ":slider",
-    ":slider_images",
+    ":slider_dtbo",
+    ":slider_initramfs",
+    ":slider_vendor_boot_image",
+    ":slider_vendor_dlkm_image",
     ":gki_aarch64_boot",
     # At the time of writing (2022-02-04), this intentionally diverges from
     # the behavior of build.sh-style mixed builds by also incorporating
