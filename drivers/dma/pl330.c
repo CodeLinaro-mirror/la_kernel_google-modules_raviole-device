@@ -26,7 +26,7 @@
 #include <linux/bug.h>
 #include <linux/cpumask.h>
 #include <linux/of_address.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 
 #include "dmaengine.h"
 
