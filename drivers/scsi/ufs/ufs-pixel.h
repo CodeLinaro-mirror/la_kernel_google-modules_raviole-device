@@ -10,7 +10,6 @@
 #ifndef _UFS_PIXEL_H_
 #define _UFS_PIXEL_H_
 
-#include <asm/unaligned.h>
 #include <ufs/ufshcd.h>
 
 /* 1% lifetime C */

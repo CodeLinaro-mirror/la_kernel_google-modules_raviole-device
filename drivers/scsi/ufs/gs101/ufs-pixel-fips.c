@@ -11,7 +11,7 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <scsi/scsi_proto.h>
 #include "ufs-pixel-fips.h"
 #include "ufs-pixel-fips_sha256.h"
