@@ -1447,8 +1447,9 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 			return -ENOMEM;
 		i++;
 	}
+
 #ifdef CONFIG_EXYNOS_CORESIGHT_ETR
-	np = of_find_node_by_type(etm_np, "etr");
+	np = of_find_node_by_type(of_node_get(etm_np), "etr");
 	if (!np)
 		return -EINVAL;
 	if (of_property_read_u32(np, "offset", &offset))
@@ -1480,7 +1481,8 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 
 	ee_info->etr.hwacg = true;
 #endif
-	np = of_find_node_by_type(etm_np, "bdu");
+
+	np = of_find_node_by_type(of_node_get(etm_np), "bdu");
 	if (!np)
 		return -EINVAL;
 	if (of_property_read_u32(np, "offset", &offset)) {
@@ -1493,7 +1495,8 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 	if (of_property_read_u32_array(np, "funnel-port",
 				       ee_info->bdu.f_port, 2))
 		ee_info->bdu.f_port[CHANNEL] = NONE;
-	np = of_find_node_by_type(etm_np, "bdu_etf");
+
+	np = of_find_node_by_type(of_node_get(etm_np), "bdu_etf");
 	if (!np)
 		return -EINVAL;
 	if (of_property_read_u32(np, "offset", &offset)) {
