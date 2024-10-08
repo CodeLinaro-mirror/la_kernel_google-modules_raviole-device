@@ -1233,6 +1233,11 @@ static int init_domain(struct exynos_cpufreq_domain *domain,
 	return 0;
 }
 
+static void exynos_acme_of_node_put(void *node)
+{
+	of_node_put(node);
+}
+
 static int exynos_cpufreq_probe(struct platform_device *pdev)
 {
 	struct device_node *dn;
@@ -1258,7 +1263,15 @@ static int exynos_cpufreq_probe(struct platform_device *pdev)
 			continue;
 		}
 
-		domain->dn = dn;
+		domain->dn = of_node_get(dn);
+		ret = devm_add_action_or_reset(&pdev->dev,
+					       exynos_acme_of_node_put,
+					       domain->dn);
+		if (ret) {
+			kfree(domain->freq_table);
+			kfree(domain);
+			continue;
+		}
 		list_add_tail(&domain->list, &domains);
 
 		print_domain_info(domain);
