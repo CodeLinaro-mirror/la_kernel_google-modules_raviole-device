@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/cleanup.h>
 #include <linux/configfs.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -494,8 +495,9 @@ static int odpm_parse_dt_rail(struct odpm_rail_data *rail_data,
 static int odpm_parse_dt_rails(struct device *dev, struct odpm_info *info,
 			       struct device_node *pmic_np)
 {
-	struct device_node *iter_np, *regulators_np;
-	struct device_node *rails_np;
+	struct device_node *iter_np;
+	struct device_node *rails_np __free(device_node);
+	struct device_node *regulators_np __free(device_node) = NULL;
 	bool use_regulators_as_rails = false;
 	struct odpm_rail_data *rail_data;
 	int rail_i = 0, num_rails = 0;
@@ -622,7 +624,8 @@ static int odpm_parse_dt_channels(struct odpm_info *info,
 static int odpm_parse_dt(struct device *dev, struct odpm_info *info)
 {
 	struct device_node *pmic_np = dev->parent->parent->of_node;
-	struct device_node *odpm_np, *channels_np;
+	struct device_node *odpm_np __free(device_node) = NULL;
+	struct device_node *channels_np __free(device_node) = NULL;
 	u32 sampling_rate;
 	int sampling_rate_i;
 	int ret;
