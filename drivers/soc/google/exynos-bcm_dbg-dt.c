@@ -124,6 +124,7 @@ static int exynos_bcm_ipc_node_parse_dt(struct device_node *np,
 		BCM_DBG("%s: child node name: %s\n", __func__, node_name);
 		if (!strcmp(node_name, "ipc_bcm_event")) {
 			data->ipc_node = child_np;
+			return 0;
 		} else {
 			BCM_ERR("%s: No device node name: %s\n", __func__,
 				node_name);
