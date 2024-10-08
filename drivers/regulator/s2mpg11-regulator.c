@@ -327,7 +327,12 @@ static int s2mpg11_pmic_dt_parse_pdata(struct s2mpg11_dev *iodev,
 		rdata->id = i;
 		rdata->initdata = of_get_regulator_init_data(iodev->dev, reg_np,
 							     &regulators[i]);
-		rdata->reg_node = reg_np;
+		/*
+		 * We take an extra reference here, as reg_node/reg_np goes out
+		 * of scope otherwise, to later pass the node into
+		 * regulator_register() in s2mpg11_pmic_probe().
+		 */
+		rdata->reg_node = of_node_get(reg_np);
 		rdata++;
 	}
 
@@ -656,26 +661,29 @@ static int s2mpg11_pmic_probe(struct platform_device *pdev)
 	int irq_base;
 	int i, ret;
 
-	if (iodev->dev->of_node) {
-		ret = s2mpg11_pmic_dt_parse_pdata(iodev, pdata);
-		if (ret)
-			return ret;
-	}
-
 	if (!pdata) {
 		dev_err(pdev->dev.parent, "Platform data not supplied\n");
 		return -ENODEV;
 	}
 
+	if (iodev->dev->of_node) {
+		ret = s2mpg11_pmic_dt_parse_pdata(iodev, pdata);
+		if (ret)
+			goto out_release_of_nodes;
+	}
+
 	s2mpg11 = devm_kzalloc(&pdev->dev, sizeof(struct s2mpg11_pmic),
 			       GFP_KERNEL);
-	if (!s2mpg11)
-		return -ENOMEM;
+	if (!s2mpg11) {
+		ret = -ENOMEM;
+		goto out_release_of_nodes;
+	}
 
 	irq_base = pdata->irq_base;
 	if (!irq_base) {
 		dev_err(&pdev->dev, "Failed to get irq base %d\n", irq_base);
-		return -ENODEV;
+		ret = -ENODEV;
+		goto out_release_of_nodes;
 	}
 
 	s2mpg11->rdev = devm_kzalloc(&pdev->dev,
@@ -715,11 +723,18 @@ static int s2mpg11_pmic_probe(struct platform_device *pdev)
 
 		s2mpg11->rdev[i] = devm_regulator_register(&pdev->dev,
 							   &regulators[id], &config);
+		/*
+		 * regulator_register() bumps the reference count, so now it's
+		 * safe to drop the extra reference again which we took in
+		 * s2mpg11_pmic_dt_parse_pdata().
+		 */
+		of_node_put(pdata->regulators[i].reg_node);
+		pdata->regulators[i].reg_node = NULL;
 		if (IS_ERR(s2mpg11->rdev[i])) {
 			ret = PTR_ERR(s2mpg11->rdev[i]);
 			dev_err(&pdev->dev, "regulator init failed for %d\n",
 				i);
-			return ret;
+			goto out_release_of_nodes;
 		}
 
 		if (s2m_is_enabled(s2mpg11->rdev[i]))
@@ -762,6 +777,12 @@ static int s2mpg11_pmic_probe(struct platform_device *pdev)
 			   DCTRLSEL_AP_ACTIVE_N, GENMASK(3, 0));
 
 	return 0;
+
+out_release_of_nodes:
+	for (i = 0; i < pdata->num_regulators; ++i)
+		of_node_put(pdata->regulators[i].reg_node);
+
+	return ret;
 }
 
 static void s2mpg11_pmic_remove(struct platform_device *pdev)
