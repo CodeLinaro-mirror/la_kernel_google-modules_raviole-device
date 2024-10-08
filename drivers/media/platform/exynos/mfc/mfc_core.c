@@ -10,6 +10,7 @@
  * (at your option) any later version.
  */
 
+#include <linux/cleanup.h>
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/platform_device.h>
@@ -87,9 +88,9 @@ void mfc_core_butler_worker(struct work_struct *work)
 }
 
 static int __mfc_core_parse_mfc_qos_platdata(struct device_node *np,
-		char *node_name, struct mfc_qos *qosdata, struct mfc_core *core)
+		const char *node_name, struct mfc_qos *qosdata, struct mfc_core *core)
 {
-	struct device_node *np_qos;
+	struct device_node *np_qos __free(device_node);
 
 	/* balance of_node_put() in of_find_node_by_name() */
 	of_node_get(np);
@@ -204,7 +205,7 @@ int mfc_core_sysmmu_fault_handler(struct iommu_domain *domain,
 static int __mfc_core_parse_dt(struct device_node *np, struct mfc_core *core)
 {
 	struct mfc_core_platdata *pdata = core->core_pdata;
-	struct device_node *np_qos;
+	struct device_node *np_qos __free(device_node) = NULL;
 	char node_name[50];
 	int i;
 
