@@ -495,12 +495,14 @@ static int odpm_parse_dt_rails(struct device *dev, struct odpm_info *info,
 			       struct device_node *pmic_np)
 {
 	struct device_node *iter_np, *regulators_np;
+	struct device_node *rails_np;
 	bool use_regulators_as_rails = false;
 	struct odpm_rail_data *rail_data;
 	int rail_i = 0, num_rails = 0;
 
-	struct device_node *rails_np = of_find_node_by_name(pmic_np, "rails");
-
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(pmic_np);
+	rails_np = of_find_node_by_name(pmic_np, "rails");
 	if (!rails_np) {
 		pr_err("odpm: cannot find rails DT node!\n");
 		return -EINVAL;
@@ -510,6 +512,8 @@ static int odpm_parse_dt_rails(struct device *dev, struct odpm_info *info,
 	use_regulators_as_rails =
 		of_property_read_bool(rails_np, "use-regulators-as-rails");
 	if (use_regulators_as_rails) {
+		/* balance of_node_put() in of_find_node_by_name() */
+		of_node_get(pmic_np);
 		regulators_np = of_find_node_by_name(pmic_np, "regulators");
 		if (!regulators_np) {
 			pr_err("odpm: Could not find regulators sub-node\n");
@@ -627,11 +631,15 @@ static int odpm_parse_dt(struct device *dev, struct odpm_info *info)
 		pr_err("odpm: cannot find parent DT node!\n");
 		return -EINVAL;
 	}
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(pmic_np);
 	odpm_np = of_find_node_by_name(pmic_np, "odpm");
 	if (!odpm_np) {
 		pr_err("odpm: cannot find main DT node!\n");
 		return -EINVAL;
 	}
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(pmic_np);
 	channels_np = of_find_node_by_name(pmic_np, "channels");
 	if (!channels_np) {
 		pr_err("odpm: cannot find channels DT node!\n");

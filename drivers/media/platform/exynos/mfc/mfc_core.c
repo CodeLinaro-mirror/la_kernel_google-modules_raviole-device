@@ -91,6 +91,8 @@ static int __mfc_core_parse_mfc_qos_platdata(struct device_node *np,
 {
 	struct device_node *np_qos;
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(np);
 	np_qos = of_find_node_by_name(np, node_name);
 	if (!np_qos) {
 		dev_err(core->device, "%s: could not find mfc_qos_platdata node\n",
@@ -260,6 +262,8 @@ static int __mfc_core_parse_dt(struct device_node *np, struct mfc_core *core)
 	/* performance boost mode */
 	pdata->qos_boost_table = devm_kzalloc(core->device,
 			sizeof(struct mfc_qos_boost), GFP_KERNEL);
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(np);
 	np_qos = of_find_node_by_name(np, "mfc_perf_boost_table");
 	if (!np_qos) {
 		dev_err(core->device, "[QoS][BOOST] could not find mfc_perf_boost_table node\n");

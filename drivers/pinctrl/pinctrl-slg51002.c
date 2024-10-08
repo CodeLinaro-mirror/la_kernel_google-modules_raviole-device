@@ -490,6 +490,8 @@ static int slg51002_pinctrl_probe(struct platform_device *pdev)
 	slg51002_pctl->gc.request = gpiochip_generic_request;
 	slg51002_pctl->gc.free = gpiochip_generic_free;
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(pdev->dev.parent->of_node);
 	dp = of_find_node_by_name(pdev->dev.parent->of_node, pdev->name);
 	if (!dp) {
 		dev_err(&pdev->dev, "Failed to find %s DT node\n", pdev->name);

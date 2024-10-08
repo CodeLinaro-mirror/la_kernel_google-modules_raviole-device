@@ -191,6 +191,8 @@ static bool slc_version_check(struct slc_acpm_driver_data *driver_data)
 		driver_data->version >> 16,
 		driver_data->version & 0xffff);
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(driver_data->pdev->dev.of_node);
 	sub_node = of_find_node_by_name(driver_data->pdev->dev.of_node,
 					"async");
 	if (IS_ERR(sub_node) || (driver_data->version < PT_VERSION_ASYNC)) {

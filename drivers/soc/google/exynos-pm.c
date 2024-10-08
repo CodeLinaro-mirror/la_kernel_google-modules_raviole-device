@@ -468,6 +468,8 @@ static void parse_dt_wakeup_stat_names(struct device *dev, struct device_node *n
 	int ret;
 	int size, n, idx = 0;
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(np);
 	root = of_find_node_by_name(np, "wakeup_stats");
 	n = of_get_child_count(root);
 

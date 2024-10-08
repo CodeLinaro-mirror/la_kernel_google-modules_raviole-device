@@ -576,6 +576,8 @@ static int ext_bst_en_gpio_init(struct max77759_plat *chip)
 	chip->gpio.base = -1;
 	chip->gpio.ngpio = 1;
 	chip->gpio.can_sleep = true;
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(chip->dev->of_node);
 	dp = of_find_node_by_name(chip->dev->of_node, chip->gpio.label);
 	if (!dp)
 		dev_err(chip->dev, "Failed to find %s DT node\n", chip->gpio.label);

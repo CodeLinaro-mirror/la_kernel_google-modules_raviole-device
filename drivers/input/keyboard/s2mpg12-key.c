@@ -202,6 +202,8 @@ power_keys_get_devtree_pdata(struct s2mpg12_dev *iodev)
 		goto err_out;
 	}
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(mfd_np);
 	key_np = of_find_node_by_name(mfd_np, "s2mpg12-keys");
 	if (!key_np) {
 		dev_err(dev, "could not find current_node\n");

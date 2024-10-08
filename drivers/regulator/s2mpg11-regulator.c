@@ -297,6 +297,8 @@ static int s2mpg11_pmic_dt_parse_pdata(struct s2mpg11_dev *iodev,
 		return -ENODEV;
 	}
 
+	/* balance of_node_put() in of_find_node_by_name() */
+	of_node_get(pmic_np);
 	regulators_np = of_find_node_by_name(pmic_np, "regulators");
 	if (!regulators_np) {
 		dev_err(iodev->dev, "could not find regulators sub-node\n");
