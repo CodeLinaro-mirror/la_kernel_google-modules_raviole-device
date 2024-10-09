@@ -405,9 +405,18 @@ vendor_boot_image(
     vendor_ramdisk_binaries = ["//prebuilts/boot-artifacts/ramdisks:vendor_ramdisk-oriole.img"],
 )
 
+filegroup(
+    name = "slider_insmod_cfgs",
+    srcs = [
+        "insmod_cfg/init.insmod.oriole.cfg",
+        "insmod_cfg/init.insmod.raven.cfg",
+    ],
+)
+
 vendor_dlkm_image(
     name = "slider_vendor_dlkm_image",
     archive = True,
+    etc_files = [":slider_insmod_cfgs"],
     kernel_modules_install = ":slider_modules_install",
     modules_blocklist = "vendor_dlkm.blocklist.slider",
     modules_list = ":slider_vendor_dlkm_modules_list",
@@ -454,6 +463,7 @@ slider_dist_targets = [
     ":slider_modules_install",
     ":slider_unstripped_modules_archive",
     ":slider_abi_gki_aarch64_pixel",
+    ":slider_insmod_cfgs",
     "vendor_dlkm.props",
     "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
     "//common:kernel_aarch64_download_or_build",
