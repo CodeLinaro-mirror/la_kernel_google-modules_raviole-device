@@ -725,7 +725,7 @@ static int fusb307b_probe(struct i2c_client *client)
 	} else {
 		dev_err(&client->dev, "ls device node not found\n");
 		ret = -EINVAL;
-		goto unreg_log;
+		goto unreg_of_nodes;
 	}
 
 	chip->psy_ops.tcpc_get_vbus_voltage_mv =
@@ -742,7 +742,7 @@ static int fusb307b_probe(struct i2c_client *client)
 	if (IS_ERR_OR_NULL(chip->usb_psy_data)) {
 		dev_err(&client->dev, "USB psy failed to initialize");
 		ret = PTR_ERR(chip->usb_psy_data);
-		goto unreg_log;
+		goto unreg_of_nodes;
 	}
 
 	chip->data.set_vbus = fusb307_set_vbus;
@@ -812,6 +812,9 @@ psy_put:
 	power_supply_put(chip->usb_psy);
 unreg_psy:
 	usb_psy_teardown(chip->usb_psy_data);
+unreg_of_nodes:
+	of_node_put(chip->ls_device_node);
+	of_node_put(chip->uic_device_node);
 unreg_log:
 	logbuffer_unregister(chip->log);
 
@@ -829,6 +832,9 @@ static void fusb307b_remove(struct i2c_client *client)
 	kthread_destroy_worker(chip->wq);
 	power_supply_unreg_notifier(&chip->psy_notifier);
 	fusb307b_teardown_data_notifier(chip);
+
+	of_node_put(chip->ls_device_node);
+	of_node_put(chip->uic_device_node);
 }
 
 static const struct i2c_device_id fusb307b_id[] = {

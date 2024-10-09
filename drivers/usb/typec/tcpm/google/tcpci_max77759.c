@@ -2736,11 +2736,13 @@ static int max77759_probe(struct i2c_client *client)
 				= devm_gpiod_get(&client->dev, "in-switch", GPIOD_ASIS);
 			if (IS_ERR(chip->in_switch_gpio)) {
 				dev_err(&client->dev, "in-switch-gpio not found\n");
+				of_node_put(ovp_dn);
 				return -EPROBE_DEFER;
 			}
 			chip->in_switch_gpio_active_high
 				= gpiod_is_active_low(chip->in_switch_gpio) ? 0 : 1;
 		}
+		of_node_put(ovp_dn);
 	}
 
 	chip->dev = &client->dev;
