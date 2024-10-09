@@ -8,6 +8,7 @@
 
 #include <linux/async.h>
 #include <linux/bug.h>
+#include <linux/cleanup.h>
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/gpio/consumer.h>
@@ -303,7 +304,8 @@ static struct regulator_desc regulators[S2MPG13_REGULATOR_MAX] = {
 static int s2mpg13_pmic_dt_parse_pdata(struct s2mpg13_dev *iodev,
 				       struct s2mpg13_platform_data *pdata)
 {
-	struct device_node *pmic_np, *regulators_np, *reg_np;
+	struct device_node *pmic_np, *reg_np;
+	struct device_node *regulators_np __free(device_node) = NULL;
 	struct s2mpg13_regulator_data *rdata;
 	unsigned int i;
 	int ret, len;
