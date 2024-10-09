@@ -8,6 +8,7 @@
  * Author: Hongseock Kim <hongpooh.kim@samsung.com>
  */
 
+#include <linux/cleanup.h>
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio/consumer.h>
@@ -5079,7 +5080,7 @@ EXPORT_SYMBOL_GPL(pcie_linkup_stat);
 #if IS_ENABLED(CONFIG_GS_S2MPU)
 static int setup_s2mpu_mem(struct device *dev, struct exynos_pcie *exynos_pcie)
 {
-	struct device_node *np;
+	struct device_node *np __free(device_node);
 	struct resource res;
 	struct phys_mem *pm;
 	phys_addr_t addr;
