@@ -4,6 +4,7 @@
  *              http://www.samsung.com/
  */
 
+#include <linux/cleanup.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/cpu.h>
@@ -1367,7 +1368,8 @@ static const struct attribute_group *exynos_coresight_sysfs_groups[] = {
 
 static int exynos_etm_cs_etm_init_dt(struct device *dev)
 {
-	struct device_node *np, *etm_np = dev->of_node;
+	struct device_node *etm_np = dev->of_node;
+	struct device_node *np __free(device_node) = NULL;
 	unsigned int offset, cs_base;
 	int i = 0;
 #ifdef CONFIG_EXYNOS_CORESIGHT_ETR
@@ -1480,6 +1482,7 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 		return -EINVAL;
 
 	ee_info->etr.hwacg = true;
+	of_node_put(np);
 #endif
 
 	np = of_find_node_by_type(of_node_get(etm_np), "bdu");
@@ -1495,6 +1498,7 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 	if (of_property_read_u32_array(np, "funnel-port",
 				       ee_info->bdu.f_port, 2))
 		ee_info->bdu.f_port[CHANNEL] = NONE;
+	of_node_put(np);
 
 	np = of_find_node_by_type(of_node_get(etm_np), "bdu_etf");
 	if (!np)
@@ -1509,6 +1513,9 @@ static int exynos_etm_cs_etm_init_dt(struct device *dev)
 	ee_info->bdu.filter_addr_mask = 0xFFFFFFFFF;
 	ee_info->bdu.filter_rdwr_mask = 0x1;
 	ee_info->bdu.filter_arpath_mask = 0xFF;
+	of_node_put(np);
+	np = NULL;
+
 	if (of_property_read_u32(etm_np, "trex-num", &ee_info->trex_num))
 		return -EINVAL;
 	ee_info->trex = devm_kcalloc(dev, ee_info->trex_num, sizeof(struct trex_info), GFP_KERNEL);
