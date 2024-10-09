@@ -464,6 +464,7 @@ static int s2mpg1x_gpio_probe(struct platform_device *pdev)
 	if (of_property_read_u32(dp, "ngpios", &ngpios)) {
 		dev_err(&pdev->dev, "Failed to get ngpios from %s DT node\n",
 			pdev->name);
+		of_node_put(dp);
 		return -EINVAL;
 	}
 	s2mpg1x_gpio->gc.ngpio = ngpios;
