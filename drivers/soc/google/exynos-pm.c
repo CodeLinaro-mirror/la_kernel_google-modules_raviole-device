@@ -3,6 +3,7 @@
  * Copyright (c) 2020 Samsung Electronics Co., Ltd.
  */
 
+#include <linux/cleanup.h>
 #include <linux/module.h>
 #include <linux/suspend.h>
 #include <linux/wakeup_reason.h>
@@ -464,7 +465,8 @@ static struct notifier_block exynos_pm_notifier_block = {
 
 static void parse_dt_wakeup_stat_names(struct device *dev, struct device_node *np)
 {
-	struct device_node *root, *child;
+	struct device_node *root __free(device_node);
+	struct device_node *child;
 	int ret;
 	int size, n, idx = 0;
 
