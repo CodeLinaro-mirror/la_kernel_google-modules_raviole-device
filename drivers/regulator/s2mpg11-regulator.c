@@ -286,7 +286,7 @@ static struct regulator_desc regulators[S2MPG11_REGULATOR_MAX] = {
 static int s2mpg11_pmic_dt_parse_pdata(struct s2mpg11_dev *iodev,
 				       struct s2mpg11_platform_data *pdata)
 {
-	struct device_node *pmic_np, *reg_np;
+	struct device_node *pmic_np;
 	struct device_node *regulators_np __free(device_node) = NULL;
 	struct s2mpg11_regulator_data *rdata;
 	unsigned int i;
@@ -314,7 +314,7 @@ static int s2mpg11_pmic_dt_parse_pdata(struct s2mpg11_dev *iodev,
 		return -ENOMEM;
 
 	pdata->regulators = rdata;
-	for_each_child_of_node(regulators_np, reg_np) {
+	for_each_child_of_node_scoped(regulators_np, reg_np) {
 		for (i = 0; i < ARRAY_SIZE(regulators); i++)
 			if (!of_node_cmp(reg_np->name, regulators[i].name))
 				break;
