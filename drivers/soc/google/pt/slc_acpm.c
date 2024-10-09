@@ -197,6 +197,7 @@ static bool slc_version_check(struct slc_acpm_driver_data *driver_data)
 					"async");
 	if (IS_ERR(sub_node) || (driver_data->version < PT_VERSION_ASYNC)) {
 		dev_err(&driver_data->pdev->dev, "No asynchronous node");
+		of_node_put(sub_node);
 		return true;
 	}
 
@@ -205,10 +206,14 @@ static bool slc_version_check(struct slc_acpm_driver_data *driver_data)
 					&driver_data->async_id,
 					&driver_data->async_size) < 0) {
 		dev_err(&driver_data->pdev->dev, "No asynchronous channel");
+		of_node_put(sub_node);
 		return true;
 	}
 	dev_info(&driver_data->pdev->dev,
 			"Asynchronous notification enabled");
+
+	/* FIXME: this leaks sub_node */
+
 	return true;
 }
 
