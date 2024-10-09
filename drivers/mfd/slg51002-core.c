@@ -13,6 +13,7 @@
 #include <linux/mfd/core.h>
 #include <linux/mfd/slg51002.h>
 #include <linux/of_gpio.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/regmap.h>
 
 #define SLG51002_CHIP_ID_LEN            3
