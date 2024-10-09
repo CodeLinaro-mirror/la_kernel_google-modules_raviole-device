@@ -481,9 +481,7 @@ static int parse_dt_ipc_region_pdata(struct device *dev, struct device_node *np,
 static int parse_dt_iodevs_pdata(struct device *dev, struct device_node *np,
 				 struct modem_data *pdata)
 {
-	struct device_node *child = NULL;
-
-	for_each_child_of_node(np, child) {
+	for_each_child_of_node_scoped(np, child) {
 		struct modem_io_t *p_iod = NULL;
 		struct modem_io_t *iod;
 		unsigned int ch_count = 0;

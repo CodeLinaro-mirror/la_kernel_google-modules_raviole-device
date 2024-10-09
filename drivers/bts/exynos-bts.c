@@ -1463,8 +1463,6 @@ static int bts_parse_data(struct device_node *np, struct bts_device *data)
 {
 	struct bts_scen *scen;
 	struct bts_info *info;
-	struct device_node *child_np = NULL;
-	struct device_node *snp = NULL;
 	struct resource res;
 	int i, j, map_cnt;
 	int of_data_int_array[OF_DATA_NUM_MAX];
@@ -1576,7 +1574,7 @@ static int bts_parse_data(struct device_node *np, struct bts_device *data)
 
 	i = 0;
 
-	for_each_child_of_node(np, child_np) {
+	for_each_child_of_node_scoped(np, child_np) {
 		/* Parsing scenario data */
 		info[i].stat = devm_kcalloc(data->dev, data->num_scen,
 					    sizeof(struct bts_stat),
@@ -1659,7 +1657,7 @@ static int bts_parse_data(struct device_node *np, struct bts_device *data)
 		for (j = 0; j < data->num_scen; j++)
 			info[i].stat[j].stat_on = 0;
 
-		for_each_child_of_node(child_np, snp) {
+		for_each_child_of_node_scoped(child_np, snp) {
 			for (j = 0; j < data->num_scen; j++) {
 				if (strcmp(snp->name, scen[j].name))
 					continue;

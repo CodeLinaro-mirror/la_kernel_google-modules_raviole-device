@@ -1240,7 +1240,6 @@ static void exynos_acme_of_node_put(void *node)
 
 static int exynos_cpufreq_probe(struct platform_device *pdev)
 {
-	struct device_node *dn;
 	struct exynos_cpufreq_domain *domain;
 	unsigned int domain_id = 0;
 	int ret = 0;
@@ -1250,7 +1249,7 @@ static int exynos_cpufreq_probe(struct platform_device *pdev)
 	 *
 	 * allocate and initialize cpufreq domain
 	 */
-	for_each_child_of_node(pdev->dev.of_node, dn) {
+	for_each_child_of_node_scoped(pdev->dev.of_node, dn) {
 		domain = kzalloc(sizeof(*domain), GFP_KERNEL);
 		if (!domain)
 			return -ENOMEM;

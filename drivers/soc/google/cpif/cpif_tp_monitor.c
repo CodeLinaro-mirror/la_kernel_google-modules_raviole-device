@@ -1533,8 +1533,6 @@ static int tpmon_set_target(struct tpmon_data *data)
 static int tpmon_parse_dt(struct device_node *np, struct cpif_tpmon *tpmon)
 {
 	struct device_node *tpmon_np = NULL;
-	struct device_node *child_np = NULL;
-	struct device_node *boost_np = NULL;
 	struct tpmon_data *data = NULL;
 	int ret = 0;
 	u32 count = 0;
@@ -1564,7 +1562,7 @@ static int tpmon_parse_dt(struct device_node *np, struct cpif_tpmon *tpmon)
 	mif_dt_read_u32(tpmon_np, "boost_hold_msec", tpmon->boost_hold_msec);
 	mif_info("boost hold:%dmsec\n", tpmon->boost_hold_msec);
 
-	for_each_child_of_node(tpmon_np, child_np) {
+	for_each_child_of_node_scoped(tpmon_np, child_np) {
 		struct tpmon_data child_data = {};
 
 		mif_dt_read_string(child_np, "boost_name", child_data.name);
@@ -1575,7 +1573,7 @@ static int tpmon_parse_dt(struct device_node *np, struct cpif_tpmon *tpmon)
 			child_data.level, child_data.num_level);
 
 		/* boost */
-		for_each_child_of_node(child_np, boost_np) {
+		for_each_child_of_node_scoped(child_np, boost_np) {
 			if (count >= MAX_TPMON_DATA) {
 				mif_err("count is full:%d\n", count);
 				return -EINVAL;

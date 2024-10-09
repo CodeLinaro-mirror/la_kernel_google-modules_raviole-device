@@ -3311,6 +3311,7 @@ err_early_init:
 	exynos_bcm_dbg_ipc_channel_release(data);
 err_ipc_channel:
 err_parse_dt:
+	of_node_put(data->ipc_node);
 	kfree(data);
 	data = NULL;
 	bcm_dbg_data = NULL;
@@ -3332,6 +3333,7 @@ static void exynos_bcm_dbg_remove(struct platform_device *pdev)
 	}
 
 	exynos_bcm_dbg_ipc_channel_release(data);
+	of_node_put(data->ipc_node);
 	kfree(data);
 	data = NULL;
 

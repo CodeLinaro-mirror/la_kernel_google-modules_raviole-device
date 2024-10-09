@@ -116,7 +116,6 @@ static struct cp_shared_mem _cp_shmem[MAX_CP_NUM][MAX_CP_SHMEM];
 static int cp_shmem_setup(struct device *dev)
 {
 	struct device_node *regions = NULL;
-	struct device_node *child = NULL;
 	u32 cp_num;
 	u32 shmem_index, rmem_index;
 	u32 offset;
@@ -130,7 +129,7 @@ static int cp_shmem_setup(struct device *dev)
 		return -EINVAL;
 	}
 
-	for_each_child_of_node(regions, child) {
+	for_each_child_of_node_scoped(regions, child) {
 		if (count >= MAX_CP_SHMEM) {
 			mif_err("_cp_shmem is full for %d\n", count);
 			return -ENOMEM;

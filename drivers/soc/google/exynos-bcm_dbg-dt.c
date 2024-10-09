@@ -115,15 +115,13 @@ static void print_bcm_dbg_data(struct exynos_bcm_dbg_data *data)
 static int exynos_bcm_ipc_node_parse_dt(struct device_node *np,
 				struct exynos_bcm_dbg_data *data)
 {
-	struct device_node *child_np;
-
-	for_each_child_of_node(np, child_np) {
+	for_each_child_of_node_scoped(np, child_np) {
 		const char *node_name;
 
 		node_name = child_np->name;
 		BCM_DBG("%s: child node name: %s\n", __func__, node_name);
 		if (!strcmp(node_name, "ipc_bcm_event")) {
-			data->ipc_node = child_np;
+			data->ipc_node = no_free_ptr(child_np);
 			return 0;
 		} else {
 			BCM_ERR("%s: No device node name: %s\n", __func__,
