@@ -9,6 +9,7 @@
  * published by the Free Software Foundation.
  */
 
+#include <linux/cleanup.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_address.h>
@@ -263,7 +264,7 @@ static const struct file_operations pmucal_dbg_profile_fops = {
 
 int __init pmucal_dbg_init(void)
 {
-	struct device_node *node = NULL;
+	struct device_node *node __free(device_node);
 	int ret;
 	u32 prop1, prop2, i;
 
