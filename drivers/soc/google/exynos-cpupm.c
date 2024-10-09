@@ -9,6 +9,7 @@
  *
  */
 
+#include <linux/cleanup.h>
 #include <linux/cpumask.h>
 #include <linux/slab.h>
 #include <linux/tick.h>
@@ -1160,7 +1161,9 @@ static int cpuhp_cpupm_offline(unsigned int cpu)
  ******************************************************************************/
 static void wakeup_mask_init(struct device_node *cpupm_dn)
 {
-	struct device_node *root_dn, *wm_dn, *dn;
+	struct device_node *root_dn __free(device_node);
+	struct device_node *wm_dn __free(device_node) = NULL;
+	struct device_node *dn;
 	int count, i;
 
 	/* balance of_node_put() in of_find_node_by_name() */
@@ -1200,6 +1203,7 @@ static void wakeup_mask_init(struct device_node *cpupm_dn)
 				     &wm_config->wakeup_masks[i].mask);
 		i++;
 	}
+	of_node_put(wm_dn);
 
 	/* initialize eint-wakeup-mask */
 	/* balance of_node_put() in of_find_node_by_name() */
