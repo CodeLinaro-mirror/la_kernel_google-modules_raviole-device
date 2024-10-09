@@ -1821,6 +1821,7 @@ static int odpm_probe(struct platform_device *pdev)
 	struct iio_dev *indio_dev;
 	int ret;
 	void *iodev;
+	struct device_node *np;
 
 	pr_info("odpm: %s: init\n", pdev->name);
 
@@ -1863,11 +1864,13 @@ static int odpm_probe(struct platform_device *pdev)
 
 	/* Read device tree data */
 	if (!pdev->dev.parent->parent ||
-	    (!of_get_next_child(pdev->dev.parent->parent->of_node, NULL))) {
+	    (np = of_get_next_child(pdev->dev.parent->parent->of_node, NULL)) == NULL) {
 		pr_err("odpm: DT does not exist!\n");
 		odpm_remove(pdev);
 		return -EINVAL;
 	}
+	of_node_put(np);
+
 	/* Note: This function will call devm_kzalloc() in order to
 	 * dynamically allocate memory for the rails
 	 */
