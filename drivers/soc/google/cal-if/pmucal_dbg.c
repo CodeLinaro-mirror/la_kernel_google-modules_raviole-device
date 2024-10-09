@@ -309,6 +309,9 @@ int __init pmucal_dbg_init(void)
 		return -EINVAL;
 	}
 
+	of_node_put(node);
+	node = NULL;
+
 	/* CPU */
 	pmucal_dbg_cpu_list = kzalloc(sizeof(struct pmucal_dbg_info) * pmucal_cpu_list_size, GFP_KERNEL);
 	if (!pmucal_dbg_cpu_list) {
