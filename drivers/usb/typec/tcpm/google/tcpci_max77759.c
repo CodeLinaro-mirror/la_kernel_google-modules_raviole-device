@@ -2401,7 +2401,7 @@ static int max77759_setup_data_notifier(struct max77759_plat *chip)
 				       EXTCON_PROP_USB_TYPEC_POLARITY);
 
 	of_property_read_u32(dev_of_node(chip->dev), "conn", &conn_handle);
-	desc.fwnode = &of_find_node_by_phandle(conn_handle)->fwnode;
+	desc.fwnode = of_fwnode_handle(of_find_node_by_phandle(conn_handle));
 	desc.driver_data = chip;
 	desc.name = fwnode_get_name(dev_fwnode(chip->dev));
 	desc.set = max77759_usb_set_role;
