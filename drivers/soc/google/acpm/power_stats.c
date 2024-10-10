@@ -7,6 +7,7 @@
  * Author: bsschwar@google.com
  */
 
+#include <linux/cleanup.h>
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
@@ -542,6 +543,7 @@ static int check_exynos_pd_initialized(struct device *dev)
 			if (!platform_get_drvdata(pdev)) {
 				dev_info(dev, "defer probe, %s not ready\n",
 					 dev_name(&pdev->dev));
+				of_node_put(np);
 				return -EPROBE_DEFER;
 			}
 		}
@@ -551,7 +553,7 @@ static int check_exynos_pd_initialized(struct device *dev)
 
 static int init_pd_stat_node(struct power_stats_device *ps_dev)
 {
-	struct device_node *np;
+	struct device_node *np __free(device_node);
 	struct platform_device *pdev;
 	struct exynos_pm_domain *pd;
 	struct pd_entry *new_pd_entry;
