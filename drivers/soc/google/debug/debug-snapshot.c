@@ -442,14 +442,17 @@ static int dbg_snapshot_rmem_setup(struct device *dev)
 		if (!en) {
 			dev_err(dev, "%s item is disabled, Skip alloc reserved memory\n",
 					rmem_np->name);
+			of_node_put(rmem_np);
 			continue;
 		}
 
 		rmem = of_reserved_mem_lookup(rmem_np);
 		if (!rmem) {
 			dev_err(dev, "no such reserved mem of node name %s\n", rmem_np->name);
+			of_node_put(rmem_np);
 			continue;
 		}
+		of_node_put(rmem_np);
 
 		dbg_snapshot_set_item_enable(rmem->name, en);
 		item = dbg_snapshot_get_item(rmem->name);

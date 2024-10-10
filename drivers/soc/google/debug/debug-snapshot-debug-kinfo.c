@@ -122,6 +122,7 @@ static int debug_snapshot_debug_kinfo_probe(struct platform_device *pdev)
 	}
 
 	rmem = of_reserved_mem_lookup(mem_region);
+	of_node_put(mem_region);
 	if (!rmem) {
 		dev_err(&pdev->dev, "no such reserved mem of node %pOF\n",
 				dev_of_node(&pdev->dev));

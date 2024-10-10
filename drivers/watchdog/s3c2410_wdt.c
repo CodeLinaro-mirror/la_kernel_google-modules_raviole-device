@@ -9,6 +9,7 @@
  *     (c) Copyright 1996 Alan Cox <alan@lxorguk.ukuu.org.uk>
  */
 
+#include <linux/cleanup.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/types.h>
@@ -1592,7 +1593,7 @@ static int s3c2410wdt_probe(struct platform_device *pdev)
 	}
 
 	if (wdt->drv_data->quirks & QUIRKS_HAVE_PMUREG) {
-		struct device_node *syscon_np;
+		struct device_node *syscon_np __free(device_node);
 		struct resource res;
 
 		syscon_np = of_parse_phandle(dev->of_node, "samsung,syscon-phandle", 0);

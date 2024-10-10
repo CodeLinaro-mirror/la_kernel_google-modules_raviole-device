@@ -519,6 +519,7 @@ static int exynos_pd_probe(struct platform_device *pdev)
 	parent = of_parse_phandle(np, "power-domains", 0);
 	if (parent) {
 		parent_pd_pdev = of_find_device_by_node(parent);
+		of_node_put(parent);
 		if (parent_pd_pdev) {
 			parent_pd = platform_get_drvdata(parent_pd_pdev);
 			if (parent_pd) {

@@ -1713,7 +1713,7 @@ static void exynos_pcie_rc_set_iocc(struct dw_pcie_rp *pp, int enable)
 static int exynos_pcie_rc_parse_dt(struct device *dev, struct exynos_pcie *exynos_pcie)
 {
 	struct device_node *np = dev->of_node;
-	struct device_node *syscon_np;
+	struct device_node *syscon_np __free(device_node) = NULL;
 	struct resource res;
 	const char *use_cache_coherency;
 	const char *use_msi;
@@ -5256,6 +5256,7 @@ static int exynos_pcie_rc_probe(struct platform_device *pdev)
 		fake_dma_dev.dma_ops = NULL;
 
 		exynos_pcie->s2mpu = s2mpu_fwnode_to_info(&s2mpu_dn->fwnode);
+		of_node_put(s2mpu_dn);
 		if (!exynos_pcie->s2mpu) {
 			dev_err(&pdev->dev, "Failed to get S2MPU\n");
 			return -EPROBE_DEFER;

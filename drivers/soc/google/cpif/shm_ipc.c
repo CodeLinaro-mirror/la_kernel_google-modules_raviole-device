@@ -36,7 +36,7 @@ static struct cp_reserved_mem _cp_rmem[MAX_CP_RMEM];
 #if defined(MODULE)
 static int cp_rmem_setup_latecall(struct platform_device *pdev)
 {
-	struct device_node *np;
+	struct device_node *np __free(device_node) = NULL;
 	struct reserved_mem *rmem;
 	u32 rmem_index = 0;
 	int i;
@@ -49,6 +49,8 @@ static int cp_rmem_setup_latecall(struct platform_device *pdev)
 		mif_dt_read_u32(np, "rmem_index", rmem_index);
 
 		rmem = of_reserved_mem_lookup(np);
+		of_node_put(np);
+		np = NULL;
 		if (!rmem) {
 			mif_err("of_reserved_mem_lookup() failed\n");
 			break;
