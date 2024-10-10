@@ -819,8 +819,10 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 
 		/* allocate DM constraint */
 		dm = kzalloc(sizeof(*dm), GFP_KERNEL);
-		if (!dm)
+		if (!dm) {
+			of_node_put(iter.node);
 			goto init_fail;
+		}
 
 		list_add_tail(&dm->list, &domain->dm_list);
 
@@ -833,8 +835,10 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 		dm->c.freq_table = kcalloc(domain->table_size,
 					   sizeof(*dm->c.freq_table),
 					   GFP_KERNEL);
-		if (!dm->c.freq_table)
+		if (!dm->c.freq_table) {
+			of_node_put(iter.node);
 			goto init_fail;
+		}
 
 		dm->c.table_length = domain->table_size;
 
@@ -858,8 +862,10 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 
 		/* register DM constraint */
 		ret = register_exynos_dm_constraint_table(domain->dm_type, &dm->c);
-		if (ret)
+		if (ret) {
+			of_node_put(iter.node);
 			goto init_fail;
+		}
 	}
 
 	return register_exynos_dm_freq_scaler(domain->dm_type, dm_scaler);
