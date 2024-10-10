@@ -1958,16 +1958,16 @@ static int exynos_pcie_rc_parse_dt(struct device *dev, struct exynos_pcie *exyno
 
 	dev_info(dev, "%s: pcie int_min_lock = %d\n", __func__, exynos_pcie->int_min_lock);
 #endif
-	exynos_pcie->pmureg = syscon_regmap_lookup_by_phandle(np, "samsung,syscon-phandle");
-	if (IS_ERR(exynos_pcie->pmureg)) {
-		dev_err(dev, "syscon regmap lookup failed.\n");
-		return PTR_ERR(exynos_pcie->pmureg);
-	}
-
 	syscon_np = of_parse_phandle(np, "samsung,syscon-phandle", 0);
 	if (!syscon_np) {
 		dev_err(dev, "syscon device node not found\n");
 		return -EINVAL;
+	}
+
+	exynos_pcie->pmureg = syscon_node_to_regmap(syscon_np);
+	if (IS_ERR(exynos_pcie->pmureg)) {
+		dev_err(dev, "syscon regmap lookup failed.\n");
+		return PTR_ERR(exynos_pcie->pmureg);
 	}
 
 	if (of_address_to_resource(syscon_np, 0, &res)) {

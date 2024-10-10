@@ -2217,17 +2217,16 @@ static int exynos_usbdrd_phy_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	reg_pmu = syscon_regmap_lookup_by_phandle(dev->of_node,
-						  "samsung,pmu-syscon");
-	if (IS_ERR(reg_pmu)) {
-		dev_err(dev, "Failed to lookup PMU regmap\n");
-		return ret;
-	}
-
 	syscon_np = of_parse_phandle(dev->of_node, "samsung,pmu-syscon", 0);
 	if (!syscon_np) {
 		dev_err(dev, "syscon device node not found\n");
 		return -EINVAL;
+	}
+
+	reg_pmu = syscon_node_to_regmap(syscon_np);
+	if (IS_ERR(reg_pmu)) {
+		dev_err(dev, "Failed to lookup PMU regmap\n");
+		return ret;
 	}
 
 	if (of_address_to_resource(syscon_np, 0, &pmu_res)) {

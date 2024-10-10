@@ -1595,17 +1595,16 @@ static int s3c2410wdt_probe(struct platform_device *pdev)
 		struct device_node *syscon_np;
 		struct resource res;
 
-		wdt->pmureg = syscon_regmap_lookup_by_phandle(dev->of_node,
-							      "samsung,syscon-phandle");
-		if (IS_ERR(wdt->pmureg)) {
-			dev_err(dev, "syscon regmap lookup failed.\n");
-			return PTR_ERR(wdt->pmureg);
-		}
-
 		syscon_np = of_parse_phandle(dev->of_node, "samsung,syscon-phandle", 0);
 		if (!syscon_np) {
 			dev_err(dev, "syscon device node not found\n");
 			return -EINVAL;
+		}
+
+		wdt->pmureg = syscon_node_to_regmap(syscon_np);
+		if (IS_ERR(wdt->pmureg)) {
+			dev_err(dev, "syscon regmap lookup failed.\n");
+			return PTR_ERR(wdt->pmureg);
 		}
 
 		if (of_address_to_resource(syscon_np, 0, &res)) {
