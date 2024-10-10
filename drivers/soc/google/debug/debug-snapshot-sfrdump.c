@@ -4,6 +4,7 @@
  *		http://www.samsung.com
  */
 
+#include <linux/cleanup.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/dma-mapping.h>
@@ -110,7 +111,7 @@ static struct notifier_block nb_sfrdump = {
 
 static int dbg_snapshot_sfrdump_probe(struct platform_device *pdev)
 {
-	struct device_node *parent_np;
+	struct device_node *parent_np __free(device_node);
 	struct dbg_snapshot_sfrdump *sfrdump;
 	u32 phy_regs[2];
 	int ret = 0;

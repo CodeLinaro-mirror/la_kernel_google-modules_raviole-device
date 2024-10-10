@@ -1253,6 +1253,7 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
 populate_err:
 	platform_device_unregister(exynos->usb2_phy);
 	platform_device_unregister(exynos->usb3_phy);
+	of_node_put(dwc3_np);
 vdd33_err:
 	dwc3_exynos_clk_disable_unprepare(exynos);
 	exynos_update_ip_idle_status(exynos->idle_ip_index, 1);

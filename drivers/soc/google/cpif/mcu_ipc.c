@@ -4,6 +4,7 @@
  *
  */
 
+#include <linux/cleanup.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
@@ -439,7 +440,7 @@ EXPORT_SYMBOL(cp_mbox_set_affinity);
 static int cp_mbox_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
-	struct device_node *irq_np = NULL;
+	struct device_node *irq_np __free(device_node) = NULL;
 	u32 count = 0;
 	int irq;
 	int err = 0;

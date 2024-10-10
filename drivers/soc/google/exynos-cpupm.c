@@ -1352,11 +1352,12 @@ static int exynos_cpuidle_state_init(void)
 #define EXTERN_IDLE_IP_MAX		(4)
 static int extern_idle_ip_init(struct device_node *dn)
 {
-	struct device_node *child = of_get_child_by_name(dn, "idle-ip");
+	struct device_node *child __free(device_node);
 	struct idle_ip *ip;
 	int i, count, new_index;
 	unsigned long flags;
 
+	child = of_get_child_by_name(dn, "idle-ip");
 	if (!child)
 		return 0;
 

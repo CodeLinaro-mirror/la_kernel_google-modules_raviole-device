@@ -3,6 +3,7 @@
  * Copyright (c) 2020 Samsung Electronics Co., Ltd.
  */
 
+#include <linux/cleanup.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -290,7 +291,7 @@ static int exynos_dm_index_validate(int index)
 #ifdef CONFIG_OF
 static int exynos_dm_parse_dt(struct device_node *np, struct exynos_dm_device *dm)
 {
-	struct device_node *domain_np = NULL;
+	struct device_node *domain_np __free(device_node) = NULL;
 	const char *name;
 	int ret = 0;
 

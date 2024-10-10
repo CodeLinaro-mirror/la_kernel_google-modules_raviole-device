@@ -1010,6 +1010,7 @@ static int __ufs_populate_dt_extern(struct device *dev,
 
 	ret = 0;
 out:
+	of_node_put(np);
 	return ret;
 }
 
@@ -1129,9 +1130,11 @@ static int exynos_ufs_populate_dt(struct device *dev,
 	ufs->pm_qos_int_value = 0;
 	if (!child_np)
 		dev_info(dev, "No ufs-pm-qos node, not guarantee pm qos\n");
-	else
+	else {
 		of_property_read_u32(child_np, "freq-int",
 				     &ufs->pm_qos_int_value);
+		of_node_put(child_np);
+	}
 
 	/* UIC specifics */
 	exynos_ufs_get_pwr_mode(np, ufs);

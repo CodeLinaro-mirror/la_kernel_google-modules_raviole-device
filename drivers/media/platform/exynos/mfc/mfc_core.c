@@ -304,11 +304,11 @@ static int __mfc_core_register_resource(struct platform_device *pdev,
 		struct mfc_core *core)
 {
 	struct device_node *np = core->device->of_node;
-	struct device_node *iommu;
+	struct device_node *iommu __free(device_node) = NULL;
 	struct device_node *hwfc;
 	struct device_node *votf;
 #if IS_ENABLED(CONFIG_SLC_PARTITION_MANAGER)
-	struct device_node *ssmt = NULL;
+	struct device_node *ssmt __free(device_node) = NULL;
 	struct device_node *sysreg = NULL;
 #endif
 	struct resource *res;
@@ -355,6 +355,7 @@ static int __mfc_core_register_resource(struct platform_device *pdev,
 	hwfc = of_get_child_by_name(np, "hwfc");
 	if (hwfc) {
 		core->hwfc_base = of_iomap(hwfc, 0);
+		of_node_put(hwfc);
 		if (core->hwfc_base == NULL) {
 			core->has_hwfc = 0;
 			dev_err(&pdev->dev, "failed to iomap hwfc address region\n");
@@ -367,6 +368,7 @@ static int __mfc_core_register_resource(struct platform_device *pdev,
 	votf = of_get_child_by_name(np, "votf");
 	if (votf) {
 		core->votf_base = of_iomap(votf, 0);
+		of_node_put(votf);
 		if (core->votf_base == NULL) {
 			core->has_mfc_votf = 0;
 			dev_err(&pdev->dev, "failed to iomap votf address region\n");
@@ -402,6 +404,7 @@ static int __mfc_core_register_resource(struct platform_device *pdev,
 	}
 
 	core->sysreg_base = of_iomap(sysreg, 0);
+	of_node_put(sysreg);
 	if (core->sysreg_base == NULL) {
 		dev_err(&pdev->dev, "failed to ioremap sysreg address region\n");
 		goto err_ioremap_sysreg;

@@ -4,6 +4,7 @@
  *
  */
 
+#include <linux/cleanup.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
 #include <linux/module.h>
@@ -115,7 +116,7 @@ static struct cp_shared_mem _cp_shmem[MAX_CP_NUM][MAX_CP_SHMEM];
 
 static int cp_shmem_setup(struct device *dev)
 {
-	struct device_node *regions = NULL;
+	struct device_node *regions __free(device_node) = NULL;
 	u32 cp_num;
 	u32 shmem_index, rmem_index;
 	u32 offset;

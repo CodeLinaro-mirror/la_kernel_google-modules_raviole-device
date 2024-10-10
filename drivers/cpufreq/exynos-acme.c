@@ -11,6 +11,7 @@
 
 #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
 
+#include <linux/cleanup.h>
 #include <linux/init.h>
 #include <linux/of.h>
 #include <linux/slab.h>
@@ -789,7 +790,7 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 		   struct device_node *dn)
 {
 	struct exynos_cpufreq_dm *dm;
-	struct device_node *root;
+	struct device_node *root __free(device_node) = NULL;
 	struct of_phandle_iterator iter;
 	int ret, err;
 
