@@ -885,14 +885,13 @@ struct pt_driver *pt_driver_register(struct device_node *node,
 {
 	unsigned long flags;
 	struct pt_driver *driver;
-	struct device_node *child;
 	char *tmp_dir_path;
 	size_t driver_name_len, tmp_dir_path_len;
 	size_t size;
 	int ret, bytes_written;
 	int cnt = 0;
 
-	for_each_child_of_node(node, child) {
+	for_each_child_of_node_scoped(node, child) {
 		int size;
 
 		if (!of_get_property(child, "id_size_priority", &size))
@@ -917,7 +916,7 @@ struct pt_driver *pt_driver_register(struct device_node *node,
 	driver->properties->cnt = cnt;
 
 	cnt = 0;
-	for_each_child_of_node(node, child) {
+	for_each_child_of_node_scoped(node, child) {
 		int size;
 
 		if (!of_get_property(child, "id_size_priority", &size))
