@@ -142,9 +142,10 @@ static int exynos_bcm_pd_info_parse_dt(struct device_node *np,
 	int size;
 
 	size = of_property_count_strings(np, "pd-name");
-	if (size < 0) {
-		BCM_ERR("%s: Failed get number of pd-name\n", __func__);
-		return size;
+	if (size < 0 || size >= ARRAY_SIZE(list)) {
+		BCM_ERR("%s: Failed get number of pd-name or too many\n",
+			__func__);
+		return size < 0 ? size : -E2BIG;
 	}
 	data->pd_size = size;
 
