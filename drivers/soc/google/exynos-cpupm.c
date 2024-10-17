@@ -1364,26 +1364,29 @@ static int extern_idle_ip_init(struct device_node *dn)
 	if (!ip)
 		return -ENOMEM;
 
-	spin_lock_irqsave(&idle_ip_lock, flags);
-
+	/*
+	 * TODO(b/374084861): this looks strange, seems it only really deals
+	 * with count == 1, as it keeps reusing 'ip' to attach to the global
+	 * ip_list multiple times.
+	 */
 	for (i = 0; i < count; i++) {
 		const char *name;
 
 		of_property_read_string_index(child, "extern-idle-ip", i, &name);
+		ip->name = name;
+		ip->type = EXTERN_IP;
+		ip->pmu_offset = PMU_IDLE_IP(i);
 
+		spin_lock_irqsave(&idle_ip_lock, flags);
 		if (list_empty(&ip_list))
 			new_index = 0;
 		else
 			new_index = list_last_entry(&ip_list, struct idle_ip, list)->index + 1;
-
-		ip->name = name;
 		ip->index = new_index;
-		ip->type = EXTERN_IP;
-		ip->pmu_offset = PMU_IDLE_IP(i);
-		list_add_tail(&ip->list, &ip_list);
-	}
 
-	spin_unlock_irqrestore(&idle_ip_lock, flags);
+		list_add_tail(&ip->list, &ip_list);
+		spin_unlock_irqrestore(&idle_ip_lock, flags);
+	}
 
 	return 0;
 }
