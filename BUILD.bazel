@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load(
     "//build/kernel/kleaf:kernel.bzl",
@@ -177,8 +176,6 @@ kernel_build(
     ],
     module_outs = _SLIDER_MODULE_OUTS,
     strip_modules = True,
-    # Keep in sync with build.config.common
-    toolchain_version = CLANG_VERSION,
 )
 
 extract_symbols(
