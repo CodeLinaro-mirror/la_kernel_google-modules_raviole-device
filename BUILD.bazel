@@ -102,6 +102,7 @@ kernel_module_group(
         "//private/google-modules/amplifiers/snd_soc_wm_adsp:snd-soc-wm-adsp",
         "//private/google-modules/amplifiers/drv2624",
         "//private/google-modules/amplifiers/cs40l25",
+        "//private/google-modules/amplifiers/cs40l26",
         "//private/google-modules/amplifiers/cs35l41",
         "//private/google-modules/amplifiers/audiometrics",
         "//private/google-modules/aoc",
@@ -115,10 +116,9 @@ kernel_module_group(
         "//private/google-modules/bluetooth/broadcom:bluetooth.broadcom",
         "//private/google-modules/nfc",
         "//private/google-modules/video/gchips:video.gchips",
+        "//private/google-modules/uwb/kernel:uwb.dw3000",
     ],
 )
-#    TODO(b/266414538) disable till properly fixed
-#    "//private/google-modules/uwb/kernel:uwb.dw3000",
 
 _SLIDER_MODULE_OUTS = [
     # keep sorted
