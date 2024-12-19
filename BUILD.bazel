@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
@@ -36,6 +37,17 @@ label_flag(
 label_flag(
     name = "gs_soc_module",
     build_setting_default = ":gs101_soc",
+)
+
+bool_flag(
+    name = "extract_symbol_list",
+    # TODO(b/385170658): disable by default once the CI is setup
+    build_setting_default = True,
+)
+
+config_setting(
+    name = "enable_extract_symbols",
+    flag_values = {":extract_symbol_list": "1"},
 )
 
 filegroup(
@@ -446,7 +458,6 @@ slider_dist_targets = [
     ":slider_merged_kernel_uapi_headers",
     ":slider_modules_install",
     ":slider_unstripped_modules_archive",
-    ":slider_abi_gki_aarch64_pixel",
     ":slider_insmod_cfgs",
     "vendor_dlkm.props",
     "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
@@ -455,7 +466,11 @@ slider_dist_targets = [
 
 pkg_files(
     name = "slider_dist_files",
-    srcs = slider_dist_targets,
+    srcs = slider_dist_targets +
+           select({
+               ":enable_extract_symbols": [":slider_abi_gki_aarch64_pixel"],
+               "//conditions:default": [],
+           }),
     strip_prefix = strip_prefix.files_only(),
     visibility = ["//visibility:private"],
 )
