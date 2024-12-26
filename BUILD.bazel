@@ -105,7 +105,7 @@ kernel_module_group(
         "//private/google-modules/soc/gs:gs101_soc",
         "//private/google-modules/display:samsung",
         "//private/google-modules/wlan/bcmdhd4389",
-        "//private/google-modules/gpu/mali_kbase",
+        "//private/google-modules/gpu/borr_mali_kbase:mali_kbase",
         "//private/google-modules/gpu/mali_pixel",
         "//private/google-modules/lwis",
         "//private/google-modules/edgetpu/abrolhos/drivers/edgetpu:edgetpu.abrolhos",
