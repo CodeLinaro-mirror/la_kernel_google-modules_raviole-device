@@ -41,8 +41,7 @@ label_flag(
 
 bool_flag(
     name = "extract_symbol_list",
-    # TODO(b/385170658): disable by default once the CI is setup
-    build_setting_default = True,
+    build_setting_default = False,
 )
 
 config_setting(
