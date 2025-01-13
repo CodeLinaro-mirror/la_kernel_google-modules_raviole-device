@@ -4,6 +4,7 @@ load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load(
     "//build/kernel/kleaf:kernel.bzl",
+    "dtb_image",
     "dtbo",
     "extract_symbols",
     "initramfs",
@@ -13,11 +14,10 @@ load(
     "kernel_modules_install",
     "kernel_unstripped_modules_archive",
     "merged_kernel_uapi_headers",
-    "vendor_boot_image",
     "vendor_dlkm_image",
 )
 load("//common:modules.bzl", "get_gki_modules_list")
-load(":slider.bzl", "SLIDER_DTBOS")
+load(":slider.bzl", "SLIDER_DTBOS", "SLIDER_DTBS")
 
 package(
     default_visibility = [
@@ -159,11 +159,7 @@ kernel_build(
         "//private/google-modules/trusty:trusty.kconfig",
         "//private/google-modules/video/gchips:video.gchips.kconfig",
     ],
-    outs = [
-        # Sync with build.config.slider
-        "gs101-a0.dtb",
-        "gs101-b0.dtb",
-    ],
+    outs = SLIDER_DTBS,
     base_kernel = "//common:kernel_aarch64_download_or_build",
     build_config = "build.config.slider",
     collect_unstripped_modules = True,
@@ -380,26 +376,16 @@ dtbo(
     kernel_build = ":slider",
 )
 
+dtb_image(
+    name = "slider_dtb",
+    srcs = [":slider/" + dtb for dtb in SLIDER_DTBS],
+    out = "dtb.img",
+)
+
 initramfs(
     name = "slider_initramfs",
     kernel_modules_install = ":slider_modules_install",
     modules_list = ":vendor_boot_modules.gs101",
-    vendor_boot_name = "vendor_boot",
-)
-
-vendor_boot_image(
-    name = "slider_vendor_boot_image",
-    outs = [
-        "dtb.img",
-        "ramdisk.lz4",
-        "vendor-bootconfig.img",
-        "vendor_boot.img",
-    ],
-    initramfs = ":slider_initramfs",
-    kernel_build = ":slider",
-    unpack_ramdisk = True,
-    vendor_boot_name = "vendor_boot",
-    vendor_ramdisk_binaries = ["//prebuilts/boot-artifacts/ramdisks:vendor_ramdisk-oriole.img"],
 )
 
 filegroup(
@@ -444,9 +430,9 @@ genrule(
 
 slider_dist_targets = [
     ":slider",
+    ":slider_dtb",
     ":slider_dtbo",
     ":slider_initramfs",
-    ":slider_vendor_boot_image",
     ":slider_vendor_dlkm_image",
     ":gki_aarch64_boot",
     # At the time of writing (2022-02-04), this intentionally diverges from

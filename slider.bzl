@@ -1,5 +1,13 @@
 # SPDX-License-Identifier: GPL-2.0
 
+"""A central location to put build constants for compiling the slider kernel.
+"""
+
+SLIDER_DTBS = [
+    "gs101-a0.dtb",
+    "gs101-b0.dtb",
+]
+
 SLIDER_DTBOS = [
     "gs101-oriole.dtbo",
     "gs101-oriole-evt1_1.dtbo",
