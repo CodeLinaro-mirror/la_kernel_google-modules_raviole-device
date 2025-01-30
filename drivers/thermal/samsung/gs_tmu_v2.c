@@ -744,14 +744,13 @@ static void allow_maximum_power(struct gs_tmu_data *data)
 {
 	struct thermal_instance *instance;
 	struct thermal_zone_device *tz = data->tzd;
-	const struct thermal_trip *control_temp_trip
-		= &tz->trips[data->pi_param->trip_control_temp].trip;
+	const struct thermal_trip_desc *td =
+		&tz->trips[data->pi_param->trip_control_temp];
 
 	lockdep_assert_held(&tz->lock);
 	mutex_unlock(&data->lock);
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-		if (instance->trip != control_temp_trip ||
-		    (!cdev_is_power_actor(instance->cdev)))
+	list_for_each_entry(instance, &td->thermal_instances, trip_node) {
+		if (!cdev_is_power_actor(instance->cdev))
 			continue;
 		if (data->hardlimit_enable && data->is_hardlimited)
 			instance->target = data->max_cdev;
@@ -842,8 +841,8 @@ static int gs_pi_controller(struct gs_tmu_data *data, int control_temp)
 {
 	struct thermal_zone_device *tz = data->tzd;
 	struct gs_pi_param *params = data->pi_param;
-	const struct thermal_trip *control_temp_trip
-		= &tz->trips[params->trip_control_temp].trip;
+	const struct thermal_trip_desc *td =
+		&tz->trips[params->trip_control_temp];
 	struct thermal_instance *instance;
 	struct thermal_cooling_device *cdev;
 	int ret = 0;
@@ -854,9 +853,8 @@ static int gs_pi_controller(struct gs_tmu_data *data, int control_temp)
 	// TODO: refactor locking
 	lockdep_assert_held(&tz->lock);
 	mutex_unlock(&data->lock);
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-		if (instance->trip == control_temp_trip &&
-		    cdev_is_power_actor(instance->cdev)) {
+	list_for_each_entry(instance, &td->thermal_instances, trip_node) {
+		if (cdev_is_power_actor(instance->cdev)) {
 			found_actor = true;
 			cdev = instance->cdev;
 			break;
@@ -1189,11 +1187,13 @@ static void gs_throttle_hard_limit(struct kthread_work *work)
 	struct thermal_instance *instance;
 	struct thermal_cooling_device *cdev = NULL;
 	unsigned long state, max_state, prev_max_state;
+	struct thermal_trip_desc *td =
+		&tz->trips[data->pi_param->trip_control_temp];
 
 	mutex_lock(&tz->lock);
-	// TODO(b/369062829): how to pick the right cdev if multiple instances
-	instance = list_first_entry_or_null(&tz->thermal_instances,
-					    typeof(*instance), tz_node);
+	// TODO(b/369062829, b/393276541): how to pick the right cdev if multiple instances
+	instance = list_first_entry_or_null(&td->thermal_instances,
+					    typeof(*instance), trip_node);
 	if (instance)
 		cdev = instance->cdev;
 	mutex_unlock(&tz->lock);
