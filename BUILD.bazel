@@ -122,7 +122,6 @@ kernel_module_group(
 
 _SLIDER_MODULE_OUTS = [
     # keep sorted
-    "drivers/block/zram/zram.ko",
     "drivers/i2c/i2c-dev.ko",
     "drivers/misc/eeprom/at24.ko",
     "drivers/perf/arm_dsu_pmu.ko",
@@ -130,7 +129,6 @@ _SLIDER_MODULE_OUTS = [
     "drivers/scsi/sg.ko",
     "drivers/spi/spidev.ko",
     "drivers/watchdog/softdog.ko",
-    "mm/zsmalloc.ko",
     "net/core/pktgen.ko",
     "net/mac80211/mac80211.ko",
     "net/wireless/cfg80211.ko",
@@ -350,11 +348,6 @@ merged_kernel_uapi_headers(
 _GKI_MODULES = [
     m
     for m in get_gki_modules_list("arm64")
-    # List of GKI modules to omit
-    if m not in [
-        "mm/zsmalloc.ko",
-        "drivers/block/zram/zram.ko",
-    ]
 ]
 
 write_file(
