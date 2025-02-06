@@ -370,7 +370,7 @@ int odpm_configure_start_measurement(struct odpm_info *info)
 	return ret;
 }
 
-static enum alarmtimer_restart odpm_alarm_handler(struct alarm *alarm, ktime_t time)
+static void odpm_alarm_handler(struct alarm *alarm, ktime_t time)
 {
 	struct odpm_info *info =
 		container_of(alarm, struct odpm_info, alarmtimer_refresh);
@@ -381,8 +381,6 @@ static enum alarmtimer_restart odpm_alarm_handler(struct alarm *alarm, ktime_t t
 	queue_work(info->work_queue, &info->work_refresh);
 	alarm_start_relative(&info->alarmtimer_refresh,
 			     ms_to_ktime(info->chip.max_refresh_time_ms));
-
-	return ALARMTIMER_NORESTART;
 }
 
 static void odpm_periodic_refresh_work(struct work_struct *work)

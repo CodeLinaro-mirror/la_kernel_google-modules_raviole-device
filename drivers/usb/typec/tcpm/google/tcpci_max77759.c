@@ -2541,8 +2541,8 @@ static void reenable_auto_ultra_low_power_mode_work_item(struct kthread_work *wo
 	disable_auto_ultra_low_power_mode(chip, false);
 }
 
-static enum alarmtimer_restart reenable_auto_ultra_low_power_mode_alarm_handler(struct alarm *alarm,
-										ktime_t time)
+static void reenable_auto_ultra_low_power_mode_alarm_handler(struct alarm *alarm,
+							     ktime_t time)
 {
 	struct max77759_plat *chip = container_of(alarm, struct max77759_plat,
 						  reenable_auto_ultra_low_power_mode_alarm);
@@ -2551,13 +2551,10 @@ static enum alarmtimer_restart reenable_auto_ultra_low_power_mode_alarm_handler(
 	if (is_contaminant_detected(chip)) {
 		logbuffer_log(chip->log,
 			      "Skipping enable_auto_ultra_low_power_mode. Dry detection in progress");
-		goto exit;
+		return;
 	}
 	kthread_queue_work(chip->wq, &chip->reenable_auto_ultra_low_power_mode_work);
 	pm_wakeup_event(chip->dev, PD_ACTIVITY_TIMEOUT_MS);
-
-exit:
-	return ALARMTIMER_NORESTART;
 }
 
 static void max_tcpci_check_contaminant(struct tcpci *tcpci, struct tcpci_data *tdata)
@@ -2640,15 +2637,13 @@ static void aicl_check_alarm_work_item(struct kthread_work *work)
 		update_compliance_warnings(chip, COMPLIANCE_WARNING_INPUT_POWER_LIMITED, true);
 }
 
-static enum alarmtimer_restart aicl_check_alarm_handler(struct alarm *alarm, ktime_t time)
+static void aicl_check_alarm_handler(struct alarm *alarm, ktime_t time)
 {
 	struct max77759_plat *chip = container_of(alarm, struct max77759_plat, aicl_check_alarm);
 
 	LOG(LOG_LVL_DEBUG, chip->log, "timer fired: %s", __func__);
 	kthread_queue_work(chip->wq, &chip->aicl_check_alarm_work);
 	pm_wakeup_event(chip->dev, AICL_CHECK_MS);
-
-	return ALARMTIMER_NORESTART;
 }
 
 static int max77759_aicl_active_cb(struct gvotable_election *el, const char *reason, void *value)

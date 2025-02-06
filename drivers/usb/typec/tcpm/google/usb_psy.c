@@ -741,14 +741,12 @@ static void sdp_timeout_work_item(struct kthread_work *work)
 		usb->non_compliant_bc12_callback(usb->chip, true);
 }
 
-static enum alarmtimer_restart sdp_timeout_alarm_cb(struct alarm *alarm, ktime_t now)
+static void sdp_timeout_alarm_cb(struct alarm *alarm, ktime_t now)
 {
 	struct usb_psy_data *usb = container_of(alarm, struct usb_psy_data, sdp_timeout_alarm);
 
 	pm_wakeup_event(&usb->tcpc_client->dev, DCP_UPDATE_MS);
 	kthread_queue_work(usb->usb_type_wq, &usb->sdp_timeout_work);
-
-	return ALARMTIMER_NORESTART;
 }
 
 void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
