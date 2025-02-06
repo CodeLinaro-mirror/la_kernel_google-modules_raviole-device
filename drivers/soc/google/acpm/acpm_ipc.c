@@ -592,13 +592,12 @@ EXPORT_SYMBOL_GPL(acpm_ipc_send_data_sync);
 #define arch_irq_stat() 0
 #endif
 
-extern int nr_irqs;
-
 static void acpm_alloc_irq_info(bool usage)
 {
 	kfree(irq_info);
 	if (usage)
-		irq_info = kcalloc(nr_irqs, sizeof(struct cpu_irq_info), GFP_KERNEL);
+		irq_info = kcalloc(irq_get_nr_irqs(),
+				   sizeof(struct cpu_irq_info), GFP_KERNEL);
 	else
 		irq_info = NULL;
 }
