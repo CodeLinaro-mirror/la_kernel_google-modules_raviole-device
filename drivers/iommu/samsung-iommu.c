@@ -5,6 +5,7 @@
 
 #define pr_fmt(fmt) "sysmmu: " fmt
 
+#include <linux/err.h>
 #include <linux/kmemleak.h>
 #include <linux/module.h>
 #include <linux/of_iommu.h>
@@ -918,8 +919,12 @@ static struct iommu_group *samsung_sysmmu_device_group(struct device *dev)
 
 	if (need_unmanaged_domain) {
 		int ret;
-		struct iommu_domain *domain =
-				iommu_domain_alloc(&platform_bus_type);
+		struct iommu_domain *domain = iommu_paging_domain_alloc(dev);
+
+		if (IS_ERR(domain)) {
+			dev_err(dev, "can't alloc iommu domain\n");
+			return ERR_CAST(domain);
+		}
 
 		ret = iommu_attach_group(domain, group);
 		if (ret) {
