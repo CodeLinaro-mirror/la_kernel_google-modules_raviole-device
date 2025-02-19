@@ -982,7 +982,7 @@ static int samsung_sysmmu_of_xlate(struct device *dev,
 }
 
 static int samsung_sysmmu_set_dev_pasid(struct iommu_domain *dom, struct device *dev,
-					ioasid_t pasid)
+					ioasid_t pasid, struct iommu_domain *old)
 {
 	struct sysmmu_clientdata *client;
 	struct samsung_sysmmu_domain *domain;
