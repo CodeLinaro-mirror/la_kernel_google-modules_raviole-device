@@ -71,8 +71,7 @@ static void ufshcd_get_exclusive_access(struct ufs_hba *hba)
 	ktime_t start;
 	unsigned long flags;
 
-	if (atomic_inc_return(&hba->scsi_block_reqs_cnt) == 1)
-		scsi_block_requests(hba->host);
+	blk_mq_quiesce_tagset(&hba->host->tag_set);
 
 	down_write(&hba->clk_scaling_lock);
 
@@ -104,8 +103,7 @@ static void ufshcd_get_exclusive_access(struct ufs_hba *hba)
 static void ufshcd_put_exclusive_access(struct ufs_hba *hba)
 {
 	up_write(&hba->clk_scaling_lock);
-	if (atomic_dec_and_test(&hba->scsi_block_reqs_cnt))
-		scsi_unblock_requests(hba->host);
+	blk_mq_unquiesce_tagset(&hba->host->tag_set);
 }
 
 static int pixel_ufs_keyslot_program(struct blk_crypto_profile *profile,
