@@ -1328,7 +1328,6 @@ static struct attribute *exynos_etm_sysfs_attrs[] = {
 
 static struct attribute_group exynos_etm_sysfs_group = {
 	.attrs = exynos_etm_sysfs_attrs,
-	NULL,
 };
 
 static struct attribute *bdu_sysfs_attrs[] = {
@@ -1346,7 +1345,6 @@ static struct attribute *bdu_sysfs_attrs[] = {
 
 static const struct attribute_group bdu_sysfs_group = {
 	.attrs = bdu_sysfs_attrs,
-	NULL,
 };
 
 static struct attribute *trex_sysfs_attrs[] = {
