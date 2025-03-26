@@ -3227,7 +3227,7 @@ MODULE_DEVICE_TABLE(of, exynos_uart_dt_match);
 
 static struct platform_driver exynos_serial_driver = {
 	.probe		= exynos_serial_probe,
-	.remove_new	= exynos_serial_remove,
+	.remove		= exynos_serial_remove,
 	.id_table	= exynos_serial_driver_ids,
 	.driver		= {
 		.name	= "exynos-uart",
