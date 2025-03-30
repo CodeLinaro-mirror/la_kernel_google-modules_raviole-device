@@ -533,7 +533,7 @@ static void tpmon_set_gro(struct tpmon_data *data)
 		for (i = 0; i < ppa->num_queue; i++) {
 			struct pktproc_queue *q = ppa->q[i];
 
-			q->netdev.gro_flush_timeout = timeout;
+			q->netdev->gro_flush_timeout = timeout;
 		}
 	} else {
 		mld->dummy_net->gro_flush_timeout = timeout;

@@ -211,7 +211,7 @@ struct pktproc_queue {
 #endif
 
 	/* NAPI */
-	struct net_device netdev;
+	struct net_device *netdev;
 	struct napi_struct napi;
 	struct napi_struct *napi_ptr;
 
