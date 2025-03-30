@@ -2471,7 +2471,7 @@ static void sync_net_dev(struct link_device *ld)
 	struct mem_link_device *mld = to_mem_link_device(ld);
 
 	napi_synchronize(&mld->mld_napi);
-	mif_info("%s\n", netdev_name(&mld->dummy_net));
+	mif_info("%s\n", netdev_name(mld->dummy_net));
 }
 
 static int link_start_normal_boot(struct link_device *ld, struct io_device *iod)
@@ -3206,7 +3206,7 @@ static ssize_t rx_napi_list_show(struct device *dev,
 	ssize_t count = 0;
 
 	modem = (struct modem_data *)dev->platform_data;
-	netdev = &modem->mld->dummy_net;
+	netdev = modem->mld->dummy_net;
 
 	count += scnprintf(&buf[count], PAGE_SIZE - count, "[%s's napi_list]\n",
 		netdev_name(netdev));
@@ -3263,7 +3263,7 @@ static ssize_t rx_poll_count_show(struct device *dev,
 	modem = (struct modem_data *)dev->platform_data;
 	mld = modem->mld;
 
-	return scnprintf(buf, PAGE_SIZE, "%s: %d\n", netdev_name(&mld->dummy_net),
+	return scnprintf(buf, PAGE_SIZE, "%s: %d\n", netdev_name(mld->dummy_net),
 		mld->rx_poll_count);
 }
 
@@ -4068,8 +4068,11 @@ struct link_device *create_link_device(struct platform_device *pdev, u32 link_ty
 	if (err)
 		goto error;
 
-	init_dummy_netdev(&mld->dummy_net);
-	netif_napi_add(&mld->dummy_net, &mld->mld_napi, mld_rx_int_poll);
+	mld->dummy_net = alloc_netdev_dummy(0);
+	if (!mld->dummy_net)
+		goto error;
+
+	netif_napi_add(mld->dummy_net, &mld->mld_napi, mld_rx_int_poll);
 	napi_enable(&mld->mld_napi);
 
 	INIT_LIST_HEAD(&ld->list);
@@ -4263,6 +4266,8 @@ struct link_device *create_link_device(struct platform_device *pdev, u32 link_ty
 	return ld;
 
 error:
+	if (mld->dummy_net)
+		free_netdev(mld->dummy_net);
 	kfree(mld);
 	mif_err("xxx\n");
 	return NULL;
