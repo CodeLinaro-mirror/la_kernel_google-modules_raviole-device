@@ -1199,7 +1199,23 @@ static void samsung_sysmmu_get_resv_regions(struct device *dev, struct list_head
 	}
 }
 
+static int blocked_domain_set_dev_pasid(struct iommu_domain *domain,
+					struct device *dev, ioasid_t pasid,
+					struct iommu_domain *old)
+{
+	samsung_sysmmu_remove_dev_pasid(dev, pasid, old);
+	return 0;
+}
+
+static struct iommu_domain samsung_sysmmu_blocked_domain = {
+	.type	= IOMMU_DOMAIN_BLOCKED,
+	.ops	= &(const struct iommu_domain_ops) {
+		.set_dev_pasid = blocked_domain_set_dev_pasid,
+	}
+};
+
 static struct iommu_ops samsung_sysmmu_ops = {
+	.blocked_domain		= &samsung_sysmmu_blocked_domain,
 	.capable		= samsung_sysmmu_capable,
 	.domain_alloc		= samsung_sysmmu_domain_alloc,
 	.probe_device		= samsung_sysmmu_probe_device,
@@ -1207,7 +1223,6 @@ static struct iommu_ops samsung_sysmmu_ops = {
 	.device_group		= samsung_sysmmu_device_group,
 	.of_xlate		= samsung_sysmmu_of_xlate,
 	.get_resv_regions	= samsung_sysmmu_get_resv_regions,
-	.remove_dev_pasid	= samsung_sysmmu_remove_dev_pasid,
 	.pgsize_bitmap		= SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE,
 	.owner						= THIS_MODULE,
 	.default_domain_ops	= &(const struct iommu_domain_ops) {
