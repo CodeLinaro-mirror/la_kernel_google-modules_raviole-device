@@ -263,7 +263,7 @@ int exynos_devfreq_parse_ect(struct exynos_devfreq_data *data,
 				    const char *dvfs_domain_name);
 #else
 static inline int exynos_devfreq_parse_ect(struct exynos_devfreq_data *data,
-				    const char *dvfs_domain_name);
+				    const char *dvfs_domain_name)
 {
 	return 0;
 }
