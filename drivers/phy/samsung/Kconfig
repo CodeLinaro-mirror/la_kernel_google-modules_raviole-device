@@ -30,3 +30,12 @@ config PHY_EXYNOS_MIPI_DSIM
 	help
 	  Support for MIPI DSI DPHY found on Samsung
 	  and EXYNOS SoCs.
+
+config PHY_EXYNOS_MIPI_DSIM_USE_PMU_REGMAP
+	bool "Use PMU regmap for PMU access, not Exynos PMU driver"
+	default n
+	help
+	  In some environments, PMU access is possible via regmap,
+	  and there are no specific Exynos PMU APIs in that case.
+	  Enabling this option will allow this driver to use regmap
+	  for PMU access.
