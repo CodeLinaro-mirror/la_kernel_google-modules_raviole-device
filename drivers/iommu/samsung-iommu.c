@@ -88,16 +88,6 @@ static inline u32 __sysmmu_get_hw_version(struct sysmmu_drvdata *data)
 	return MMU_RAW_VER(readl_relaxed(data->sfrbase + REG_MMU_VERSION));
 }
 
-static inline bool __sysmmu_has_capa1(struct sysmmu_drvdata *data)
-{
-	return MMU_CAPA1_EXIST(readl_relaxed(data->sfrbase + REG_MMU_CAPA0_V7));
-}
-
-static inline u32 __sysmmu_get_capa_type(struct sysmmu_drvdata *data)
-{
-	return MMU_CAPA1_TYPE(readl_relaxed(data->sfrbase + REG_MMU_CAPA1_V7));
-}
-
 static inline bool __sysmmu_get_capa_no_block_mode(struct sysmmu_drvdata *data)
 {
 	return MMU_CAPA1_NO_BLOCK_MODE(readl_relaxed(data->sfrbase +
