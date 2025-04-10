@@ -456,7 +456,6 @@ static struct cpufreq_driver exynos_driver = {
 	.offline	= exynos_cpufreq_offline,
 	.suspend	= exynos_cpufreq_suspend,
 	.resume		= exynos_cpufreq_resume,
-	.attr		= cpufreq_generic_attr,
 };
 
 /*********************************************************************
