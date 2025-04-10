@@ -76,8 +76,8 @@ static struct v4l2_queryctrl *__mfc_dec_get_ctrl(int id)
 	return NULL;
 }
 
-/* Check whether a ctrl value if correct */
-static int __mfc_dec_check_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
+/* TODO: b/409727213. Check whether a ctrl value if correct */
+static int __maybe_unused __mfc_dec_check_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
 {
 	struct v4l2_queryctrl *c;
 
@@ -1351,23 +1351,9 @@ static int __mfc_dec_get_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl
 	return 0;
 }
 
-/* Get a ctrl */
-static int mfc_dec_g_ctrl(struct file *file, void *priv,
-			struct v4l2_control *ctrl)
-{
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
-	int ret = 0;
-
-	mfc_debug_enter();
-	ret = __mfc_dec_get_ctrl_val(ctx, ctrl);
-	mfc_debug_leave();
-
-	return ret;
-}
-
-/* Set a ctrl */
-static int mfc_dec_s_ctrl(struct file *file, void *priv,
-			 struct v4l2_control *ctrl)
+/* TODO: b/409727213. Set a ctrl */
+static int __maybe_unused mfc_dec_s_ctrl(struct file *file, void *priv,
+					 struct v4l2_control *ctrl)
 {
 	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
 	struct mfc_dec *dec = ctx->dec_priv;
@@ -1624,8 +1610,8 @@ static const struct v4l2_ioctl_ops mfc_dec_ioctl_ops = {
 	.vidioc_streamon		= mfc_dec_streamon,
 	.vidioc_streamoff		= mfc_dec_streamoff,
 	.vidioc_queryctrl		= mfc_dec_queryctrl,
-	.vidioc_g_ctrl			= mfc_dec_g_ctrl,
-	.vidioc_s_ctrl			= mfc_dec_s_ctrl,
+	//TODO: b/409727213
+	//.vidioc_s_ctrl		= mfc_dec_s_ctrl,
 	.vidioc_g_selection		= mfc_dec_g_selection,
 	.vidioc_g_ext_ctrls		= mfc_dec_g_ext_ctrls,
 };
