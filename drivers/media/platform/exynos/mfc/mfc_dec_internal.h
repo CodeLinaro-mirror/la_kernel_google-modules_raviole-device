@@ -364,7 +364,7 @@ struct mfc_fmt dec_formats[] = {
 
 #define NUM_FORMATS ARRAY_SIZE(dec_formats)
 
-static struct v4l2_queryctrl controls[] = {
+static struct v4l2_query_ext_ctrl controls[] = {
 	{
 		.id = V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY,
 		.type = V4L2_CTRL_TYPE_INTEGER,

@@ -65,7 +65,7 @@ static struct mfc_fmt *__mfc_dec_find_format(struct mfc_ctx *ctx,
 	return fmt;
 }
 
-static struct v4l2_queryctrl *__mfc_dec_get_ctrl(int id)
+static struct v4l2_query_ext_ctrl *__mfc_dec_get_ctrl(int id)
 {
 	unsigned long i;
 
@@ -79,7 +79,7 @@ static struct v4l2_queryctrl *__mfc_dec_get_ctrl(int id)
 /* TODO: b/409727213. Check whether a ctrl value if correct */
 static int __maybe_unused __mfc_dec_check_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
 {
-	struct v4l2_queryctrl *c;
+	struct v4l2_query_ext_ctrl *c;
 
 	c = __mfc_dec_get_ctrl(ctrl->id);
 	if (!c) {
@@ -1154,11 +1154,11 @@ static int mfc_dec_streamoff(struct file *file, void *priv,
 }
 
 /* Query a ctrl */
-static int mfc_dec_queryctrl(struct file *file, void *priv,
-			    struct v4l2_queryctrl *qc)
+static int mfc_dec_query_ext_ctrl(struct file *file, void *priv,
+				  struct v4l2_query_ext_ctrl *qc)
 {
 	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
-	struct v4l2_queryctrl *c;
+	struct v4l2_query_ext_ctrl *c;
 
 	c = __mfc_dec_get_ctrl(qc->id);
 	if (!c) {
@@ -1167,6 +1167,8 @@ static int mfc_dec_queryctrl(struct file *file, void *priv,
 	}
 
 	*qc = *c;
+	qc->elems = 1;
+	qc->elem_size = 4;
 	return 0;
 }
 
@@ -1609,9 +1611,9 @@ static const struct v4l2_ioctl_ops mfc_dec_ioctl_ops = {
 	.vidioc_dqbuf			= mfc_dec_dqbuf,
 	.vidioc_streamon		= mfc_dec_streamon,
 	.vidioc_streamoff		= mfc_dec_streamoff,
-	.vidioc_queryctrl		= mfc_dec_queryctrl,
 	//TODO: b/409727213
 	//.vidioc_s_ctrl		= mfc_dec_s_ctrl,
+	.vidioc_query_ext_ctrl		= mfc_dec_query_ext_ctrl,
 	.vidioc_g_selection		= mfc_dec_g_selection,
 	.vidioc_g_ext_ctrls		= mfc_dec_g_ext_ctrls,
 };

@@ -349,7 +349,7 @@ struct mfc_fmt enc_formats[] = {
 
 #define NUM_FORMATS ARRAY_SIZE(enc_formats)
 
-static struct v4l2_queryctrl controls[] = {
+static struct v4l2_query_ext_ctrl controls[] = {
 	{
 		.id = V4L2_CID_CACHEABLE,
 		.type = V4L2_CTRL_TYPE_INTEGER,
