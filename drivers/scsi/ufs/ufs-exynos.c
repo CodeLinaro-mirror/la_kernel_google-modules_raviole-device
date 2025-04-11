@@ -295,7 +295,7 @@ static void exynos_ufs_fit_aggr_timeout(struct exynos_ufs *ufs)
 }
 
 static void exynos_ufs_init_pmc_req(struct ufs_hba *hba,
-				    struct ufs_pa_layer_attr *pwr_max,
+				    const struct ufs_pa_layer_attr *pwr_max,
 				    struct ufs_pa_layer_attr *pwr_req)
 {
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
@@ -719,7 +719,7 @@ static int exynos_ufs_link_startup_notify(struct ufs_hba *hba,
 
 static int exynos_ufs_pwr_change_notify(struct ufs_hba *hba,
 					enum ufs_notify_change_status notify,
-					struct ufs_pa_layer_attr *pwr_max,
+					const struct ufs_pa_layer_attr *pwr_max,
 					struct ufs_pa_layer_attr *pwr_req)
 {
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
