@@ -1020,8 +1020,8 @@ void pixel_init_manual_gc(struct ufs_hba *hba)
 	mgc->hagc_support = true;
 	mgc->delay_ms = UFSHCD_MANUAL_GC_HOLD_HIBERN8;
 
-	hrtimer_init(&mgc->hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	mgc->hrtimer.function = pixel_mgc_hrtimer_handler;
+	hrtimer_setup(&mgc->hrtimer, pixel_mgc_hrtimer_handler,
+		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 
 	INIT_WORK(&mgc->hibern8_work, pixel_mgc_hibern8_work);
 	snprintf(wq_name, ARRAY_SIZE(wq_name), "ufs_mgc_hibern8_work_%d",

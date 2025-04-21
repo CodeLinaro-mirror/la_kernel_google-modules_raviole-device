@@ -1064,8 +1064,8 @@ int direct_dm_create(struct platform_device *pdev)
 	tasklet_init(&dc->rx_task, direct_dm_rx_func, (unsigned long)dc);
 
 	spin_lock_init(&dc->rx_timer_lock);
-	hrtimer_init(&dc->rx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	dc->rx_timer.function = direct_dm_rx_timer;
+	hrtimer_setup(&dc->rx_timer, direct_dm_rx_timer, CLOCK_MONOTONIC,
+		      HRTIMER_MODE_REL);
 
 	dev_set_drvdata(dev, dc);
 

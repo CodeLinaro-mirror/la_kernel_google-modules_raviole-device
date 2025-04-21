@@ -3771,13 +3771,11 @@ static int init_shmem_maps(u32 link_type, struct modem_data *modem,
 	create_legacy_link_device(mld);
 
 	if (ld->sbd_ipc) {
-		hrtimer_init(&mld->sbd_tx_timer,
+		hrtimer_setup(&mld->sbd_tx_timer, sbd_tx_timer_func,
 				CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		mld->sbd_tx_timer.function = sbd_tx_timer_func;
 
-		hrtimer_init(&mld->sbd_print_timer,
+		hrtimer_setup(&mld->sbd_print_timer, sbd_print,
 				CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		mld->sbd_print_timer.function = sbd_print;
 
 		err = create_sbd_link_device(ld,
 				&mld->sbd_link_dev, mld->base, mld->size);
@@ -4106,8 +4104,8 @@ struct link_device *create_link_device(struct platform_device *pdev, u32 link_ty
 	msb_queue_head_init(&mld->msb_rxq);
 	msb_queue_head_init(&mld->msb_log);
 
-	hrtimer_init(&mld->tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	mld->tx_timer.function = tx_timer_func;
+	hrtimer_setup(&mld->tx_timer, tx_timer_func, CLOCK_MONOTONIC,
+		      HRTIMER_MODE_REL);
 
 	INIT_WORK(&mld->page_reclaim_work, bootdump_oom_handler_work);
 
@@ -4233,8 +4231,8 @@ struct link_device *create_link_device(struct platform_device *pdev, u32 link_ty
 		mif_err("pktproc_create_ul() error %d\n", err);
 		goto error;
 	}
-	hrtimer_init(&mld->pktproc_tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	mld->pktproc_tx_timer.function = pktproc_tx_timer_func;
+	hrtimer_setup(&mld->pktproc_tx_timer, pktproc_tx_timer_func,
+		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 #endif
 
 #if IS_ENABLED(CONFIG_CPIF_TP_MONITOR)

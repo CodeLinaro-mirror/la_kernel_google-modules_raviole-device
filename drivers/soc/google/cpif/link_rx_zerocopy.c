@@ -313,9 +313,8 @@ int setup_zerocopy_adaptor(struct sbd_ipc_device *ipc_dev)
 		return -ENOMEM;
 	}
 
-	hrtimer_init(&zdptr->datalloc_timer,
+	hrtimer_setup(&zdptr->datalloc_timer, datalloc_timer_func,
 			CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	zdptr->datalloc_timer.function = datalloc_timer_func;
 
 	allocate_data_in_advance(zdptr);
 
