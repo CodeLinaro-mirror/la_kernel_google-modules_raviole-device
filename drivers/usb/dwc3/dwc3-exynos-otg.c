@@ -580,7 +580,7 @@ static int dwc3_otg_start_gadget(struct otg_fsm *fsm, int on)
 		exynos->vbus_state = true;
 	} else {
 		exynos->vbus_state = false;
-		del_timer_sync(&exynos->usb_connect_timer);
+		timer_delete_sync(&exynos->usb_connect_timer);
 
 		/* disconnect gadget */
 		usb_udc_vbus_handler(dwc->gadget, false);
@@ -954,7 +954,7 @@ static int dwc3_otg_reboot_notify(struct notifier_block *nb, unsigned long event
 		exynos->dwc->current_dr_role = DWC3_EXYNOS_IGNORE_CORE_OPS;
 		dotg->in_shutdown = true;
 		if (exynos->vbus_state)
-			del_timer_sync(&exynos->usb_connect_timer);
+			timer_delete_sync(&exynos->usb_connect_timer);
 		break;
 	}
 
@@ -1107,7 +1107,7 @@ static int psy_changed(struct notifier_block *nb, unsigned long evt, void *ptr)
 
 	if (dotg->dwc->gadget->state == USB_STATE_CONFIGURED && !dotg->skip_retry) {
 		dotg->skip_retry = true;
-		del_timer_sync(&dotg->exynos->usb_connect_timer);
+		timer_delete_sync(&dotg->exynos->usb_connect_timer);
 	}
 
 	return NOTIFY_OK;
