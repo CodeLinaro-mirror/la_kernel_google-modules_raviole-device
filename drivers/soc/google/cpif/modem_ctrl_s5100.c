@@ -327,7 +327,7 @@ static irqreturn_t cp_active_handler(int irq, void *data)
 	}
 
 	if (timer_pending(&mld->crash_ack_timer))
-		del_timer(&mld->crash_ack_timer);
+		timer_delete(&mld->crash_ack_timer);
 
 	mif_stop_logging();
 
@@ -1085,7 +1085,7 @@ static int start_normal_boot(struct modem_ctl *mc)
 
 	/* 2cp dump WA */
 	if (timer_pending(&mld->crash_ack_timer))
-		del_timer(&mld->crash_ack_timer);
+		timer_delete(&mld->crash_ack_timer);
 	atomic_set(&mld->forced_cp_crash, 0);
 
 	mif_info("Set link mode to LINK_MODE_BOOT.\n");

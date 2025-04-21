@@ -676,7 +676,7 @@ static void cmd_crash_exit_handler(struct mem_link_device *mld)
 	spin_unlock_irqrestore(&mld->state_lock, flags);
 
 	if (timer_pending(&mld->crash_ack_timer))
-		del_timer(&mld->crash_ack_timer);
+		timer_delete(&mld->crash_ack_timer);
 
 	if (atomic_read(&mld->forced_cp_crash))
 		mif_err("%s<-%s: CP_CRASH_ACK\n", ld->name, mc->name);
@@ -2550,7 +2550,7 @@ static void shmem_close_tx(struct link_device *ld)
 	spin_unlock_irqrestore(&mld->state_lock, flags);
 
 	if (timer_pending(&mld->crash_ack_timer))
-		del_timer(&mld->crash_ack_timer);
+		timer_delete(&mld->crash_ack_timer);
 
 	stop_net_ifaces(ld, 0);
 	purge_txq(mld);

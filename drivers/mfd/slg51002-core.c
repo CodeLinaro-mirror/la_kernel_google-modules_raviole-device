@@ -757,7 +757,7 @@ static int slg51002_i2c_probe(struct i2c_client *client)
 
 out:
 	mutex_destroy(&slg51002->pwr_lock);
-	del_timer_sync(&slg51002->timer);
+	timer_delete_sync(&slg51002->timer);
 	return ret;
 }
 
@@ -769,7 +769,7 @@ static void slg51002_i2c_remove(struct i2c_client *client)
 
 	mfd_remove_devices(slg51002->dev);
 	mutex_destroy(&slg51002->pwr_lock);
-	del_timer_sync(&slg51002->timer);
+	timer_delete_sync(&slg51002->timer);
 
 	if (gpio_is_valid(slg51002->chip_pu_pin)) {
 		desc = gpio_to_desc(slg51002->chip_pu_pin);

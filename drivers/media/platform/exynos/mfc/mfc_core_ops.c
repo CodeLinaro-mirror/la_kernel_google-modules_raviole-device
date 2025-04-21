@@ -281,8 +281,8 @@ static int __mfc_core_deinit(struct mfc_core *core, struct mfc_ctx *ctx)
 		if (perf_boost_mode)
 			mfc_core_perf_boost_disable(core);
 
-		del_timer(&core->meerkat_timer);
-		del_timer(&core->mfc_idle_timer);
+		timer_delete(&core->meerkat_timer);
+		timer_delete(&core->mfc_idle_timer);
 
 		flush_workqueue(core->butler_wq);
 

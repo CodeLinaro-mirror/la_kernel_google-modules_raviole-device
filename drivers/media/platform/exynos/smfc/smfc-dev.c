@@ -86,7 +86,7 @@ static irqreturn_t exynos_smfc_irq_handler(int irq, void *priv)
 
 	suspending = !!(smfc->flags & SMFC_DEV_SUSPENDING);
 	if (!!(smfc->flags & SMFC_DEV_OTF_EMUMODE))
-		del_timer(&smfc->timer);
+		timer_delete(&smfc->timer);
 	smfc->flags &= ~(SMFC_DEV_RUNNING | SMFC_DEV_OTF_EMUMODE);
 
 	spin_unlock(&smfc->flag_lock);
