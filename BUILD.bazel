@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("@rules_pkg//pkg:install.bzl", "pkg_install")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "dtb_image",
@@ -452,12 +453,17 @@ slider_dist_targets = [
     "//common:kernel_aarch64_download_or_build",
 ] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
 
-copy_to_dist_dir(
+pkg_files(
+    name = "slider_dist_files",
+    srcs = slider_dist_targets,
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+)
+
+pkg_install(
     name = "slider_dist",
-    data = slider_dist_targets,
-    dist_dir = "out/slider/dist",
-    flat = True,
-    log = "info",
+    srcs = [":slider_dist_files"],
+    destdir = "out/slider/dist",
 )
 
 test_suite(
