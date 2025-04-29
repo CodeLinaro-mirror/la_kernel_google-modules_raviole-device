@@ -1159,6 +1159,19 @@ static int __mfc_enc_get_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl
 	return ret;
 }
 
+static int mfc_enc_g_ctrl(struct file *file, void *priv,
+			 struct v4l2_control *ctrl)
+{
+	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	int ret = 0;
+
+	mfc_debug_enter();
+	ret = __mfc_enc_get_ctrl_val(ctx, ctrl);
+	mfc_debug_leave();
+
+	return ret;
+}
+
 static inline int __mfc_enc_h264_level(enum v4l2_mpeg_video_h264_level lvl)
 {
 	static unsigned int t[V4L2_MPEG_VIDEO_H264_LEVEL_5_2 + 1] = {
@@ -1222,6 +1235,36 @@ static inline int __mfc_enc_vui_sar_idc(enum v4l2_mpeg_video_h264_vui_sar_idc sa
 		/* V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED        */ 255,
 	};
 	return t[sar];
+}
+
+static int __mfc_enc_get_roi(struct mfc_ctx *ctx, int value)
+{
+	struct mfc_enc *enc = ctx->enc_priv;
+	int index = 0;
+
+	if (enc->sh_handle_roi.fd == -1) {
+		enc->sh_handle_roi.fd = value;
+		if (mfc_mem_get_user_shared_handle(ctx, &enc->sh_handle_roi, "ROI"))
+			return -EINVAL;
+	}
+	index = enc->roi_index;
+
+	/* Copy the ROI info from shared buf */
+	memcpy(&enc->roi_info[index], enc->sh_handle_roi.vaddr,
+			sizeof(struct mfc_enc_roi_info));
+	if (enc->roi_info[index].size > enc->roi_buf[index].size) {
+		mfc_ctx_err("[MEMINFO][ROI] roi info size %d is over\n",
+				enc->roi_info[index].size);
+		return -EINVAL;
+	}
+
+	/* Copy the ROI map buffer from user's map buf */
+	if (copy_from_user(enc->roi_buf[index].vaddr,
+				enc->roi_info[index].addr,
+				enc->roi_info[index].size))
+		return -EFAULT;
+
+	return 0;
 }
 
 static int __mfc_enc_set_param(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
@@ -2010,6 +2053,160 @@ static int __mfc_enc_set_param(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
 	return ret;
 }
 
+static int __mfc_enc_set_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
+{
+	struct mfc_enc *enc = ctx->enc_priv;
+	struct mfc_enc_params *p = &enc->params;
+	struct mfc_ctx_ctrl *ctx_ctrl;
+	int ret = 0;
+	int found = 0;
+
+	mfc_debug(5, "[CTRLS] id: %#x, value: %d (%#x)\n",
+			ctrl->id, ctrl->value, ctrl->value);
+
+	/* update parameter value */
+	ret = __mfc_enc_set_param(ctx, ctrl);
+	if (ret)
+		return ret;
+
+	switch (ctrl->id) {
+	case V4L2_CID_CACHEABLE:
+	case V4L2_CID_MPEG_VIDEO_QOS_RATIO:
+		break;
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_VP8_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_VP9_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_VP8_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_VP9_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_VP8_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_VP9_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP_P:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_VP8_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_VP9_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP_P:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP_B:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP_B:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP_B:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP_B:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP_B:
+	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP_B:
+	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_TAG:
+	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
+	case V4L2_CID_MPEG_MFC51_VIDEO_I_PERIOD_CH:
+	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_RATE_CH:
+	case V4L2_CID_MPEG_MFC51_VIDEO_BIT_RATE_CH:
+	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_CH:
+	case V4L2_CID_MPEG_VIDEO_VP8_HIERARCHICAL_CODING_LAYER_CH:
+	case V4L2_CID_MPEG_VIDEO_VP9_HIERARCHICAL_CODING_LAYER_CH:
+	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH:
+	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+	case V4L2_CID_MPEG_MFC_H264_MARK_LTR:
+	case V4L2_CID_MPEG_MFC_H264_USE_LTR:
+	case V4L2_CID_MPEG_MFC_H264_BASE_PRIORITY:
+	case V4L2_CID_MPEG_MFC_CONFIG_QP:
+	case V4L2_CID_MPEG_VIDEO_ROI_CONTROL:
+	case V4L2_CID_MPEG_VIDEO_YSUM:
+	case V4L2_CID_MPEG_VIDEO_RATIO_OF_INTRA:
+	case V4L2_CID_MPEG_VIDEO_DROP_CONTROL:
+	case V4L2_CID_MPEG_VIDEO_MV_HOR_POSITION_L0:
+	case V4L2_CID_MPEG_VIDEO_MV_HOR_POSITION_L1:
+	case V4L2_CID_MPEG_VIDEO_MV_VER_POSITION_L0:
+	case V4L2_CID_MPEG_VIDEO_MV_VER_POSITION_L1:
+	case V4L2_CID_MPEG_VIDEO_SRC_BUF_FLAG:
+	case V4L2_CID_MPEG_VIDEO_DST_BUF_FLAG:
+		list_for_each_entry(ctx_ctrl, &ctx->ctrls, list) {
+			if (!(ctx_ctrl->type & MFC_CTRL_TYPE_SET))
+				continue;
+
+			if (ctx_ctrl->id == ctrl->id) {
+				ctx_ctrl->set.has_new = 1;
+				ctx_ctrl->set.val = ctrl->value;
+				if ((ctx_ctrl->id == \
+					V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_CH) ||
+					(ctx_ctrl->id == \
+					V4L2_CID_MPEG_VIDEO_VP8_HIERARCHICAL_CODING_LAYER_CH) ||
+					(ctx_ctrl->id == \
+					V4L2_CID_MPEG_VIDEO_VP9_HIERARCHICAL_CODING_LAYER_CH) ||
+					(ctx_ctrl->id == \
+					V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH)) {
+					if (enc->sh_handle_svc.fd == -1) {
+						enc->sh_handle_svc.fd = ctrl->value;
+						if (mfc_mem_get_user_shared_handle(ctx,
+									&enc->sh_handle_svc, "SVC"))
+							return -EINVAL;
+					}
+				}
+				if (ctx_ctrl->id == V4L2_CID_MPEG_MFC51_VIDEO_I_PERIOD_CH &&
+						p->i_frm_ctrl_mode) {
+					if (!p->gop_ctrl)
+						ctx_ctrl->set.val = ctx_ctrl->set.val *
+							(p->num_b_frame + 1);
+					if (ctx_ctrl->set.val >= 0x3FFFFFFF) {
+						mfc_ctx_info("I frame interval is bigger than max: %d\n",
+								ctx_ctrl->set.val);
+						ctx_ctrl->set.val = 0x3FFFFFFF;
+					}
+				}
+				if (ctx_ctrl->id == V4L2_CID_MPEG_VIDEO_H264_LEVEL)
+					ctx_ctrl->set.val = __mfc_enc_h264_level((enum v4l2_mpeg_video_h264_level)(ctrl->value));
+				if (ctx_ctrl->id == V4L2_CID_MPEG_VIDEO_H264_PROFILE)
+					ctx_ctrl->set.val = __mfc_enc_h264_profile(ctx, (enum v4l2_mpeg_video_h264_profile)(ctrl->value));
+				if (ctx_ctrl->id == V4L2_CID_MPEG_VIDEO_ROI_CONTROL) {
+					ret = __mfc_enc_get_roi(ctx, ctrl->value);
+					if (ret)
+						return ret;
+				}
+
+				found = 1;
+				break;
+			}
+		}
+
+		if (!found) {
+			mfc_ctx_err("Invalid control: 0x%08x\n", ctrl->id);
+			return -EINVAL;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+static int mfc_enc_s_ctrl(struct file *file, void *priv,
+			 struct v4l2_control *ctrl)
+{
+	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	int ret = 0;
+
+	mfc_debug_enter();
+
+	ret = __mfc_enc_check_ctrl_val(ctx, ctrl);
+	if (ret != 0)
+		return ret;
+
+	ret = __mfc_enc_set_ctrl_val(ctx, ctrl);
+
+	mfc_debug_leave();
+
+	return ret;
+}
+
 static int mfc_enc_g_ext_ctrls(struct file *file, void *priv,
 			      struct v4l2_ext_controls *f)
 {
@@ -2128,6 +2325,8 @@ static const struct v4l2_ioctl_ops mfc_enc_ioctl_ops = {
 	.vidioc_streamon		= mfc_enc_streamon,
 	.vidioc_streamoff		= mfc_enc_streamoff,
 	.vidioc_query_ext_ctrl		= mfc_enc_query_ext_ctrl,
+	.vidioc_g_ctrl			= mfc_enc_g_ctrl,
+	.vidioc_s_ctrl			= mfc_enc_s_ctrl,
 	.vidioc_g_ext_ctrls		= mfc_enc_g_ext_ctrls,
 	.vidioc_s_ext_ctrls		= mfc_enc_s_ext_ctrls,
 	.vidioc_try_ext_ctrls		= mfc_enc_try_ext_ctrls,
