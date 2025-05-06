@@ -141,7 +141,6 @@ kernel_build(
     srcs = glob([
         "build.config.*",
         "**/Kconfig",
-        "arch/arm64/boot/dts/**",
         "include/dt-bindings/**",
         "include/dtc/**",
     ]) + [
