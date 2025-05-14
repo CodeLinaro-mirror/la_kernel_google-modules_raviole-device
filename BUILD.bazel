@@ -408,6 +408,18 @@ initramfs(
     ],
 )
 
+hermetic_genrule(
+    name = "slider_dev_nodes_fragment",
+    srcs = [
+        "//private/google-modules/soc/gs:vendor_dev_nodes.slider",
+    ],
+    outs = ["vendor_dev_nodes_fragment.img"],
+    cmd = (
+        "mkbootfs -n $< | " +
+        "lz4 - -zcl >$@; "
+    ),
+)
+
 filegroup(
     name = "slider_insmod_cfgs",
     srcs = [
@@ -463,6 +475,7 @@ slider_dist_targets = [
     ":slider_dtb",
     ":slider_dtbo",
     ":slider_initramfs",
+    ":slider_dev_nodes_fragment",
     ":slider_vendor_dlkm_image",
     ":slider_vendor_bootconfig",
     ":gki_aarch64_boot",
