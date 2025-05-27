@@ -161,7 +161,7 @@ kernel_build(
         "//private/google-modules/video/gchips:video.gchips.kconfig",
     ],
     outs = SLIDER_DTBS,
-    base_kernel = "//common:kernel_aarch64_download_or_build",
+    base_kernel = "//common:kernel_aarch64",
     build_config = "build.config.slider",
     collect_unstripped_modules = True,
     dtstree = "//private/google-modules/soc/gs/arch/arm64/boot/dts:dt",
@@ -450,7 +450,7 @@ slider_dist_targets = [
     ":slider_insmod_cfgs",
     "vendor_dlkm.props",
     "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
-    "//common:kernel_aarch64_download_or_build",
+    "//common:kernel_aarch64",
 ] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
 
 pkg_files(
