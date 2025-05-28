@@ -74,7 +74,6 @@ filegroup(
     srcs = glob([
         # Standard pixel headers
         "include/**/*.h",
-        "include/**/uapi/*.h",
     ] + [
         # List of headers needed by external modules
         "drivers/dma-buf/heaps/deferred-free-helper.h",
