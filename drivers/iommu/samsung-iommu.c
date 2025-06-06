@@ -672,9 +672,10 @@ next_section:
 	}
 }
 
-size_t samsung_sysmmu_unmap_pages(struct iommu_domain *dom, unsigned long iova_org,
-				  size_t pgsize, size_t pgcount,
-				  struct iommu_iotlb_gather *gather)
+static size_t samsung_sysmmu_unmap_pages(struct iommu_domain *dom,
+					 unsigned long iova_org,
+					 size_t pgsize, size_t pgcount,
+					 struct iommu_iotlb_gather *gather)
 {
 	struct samsung_sysmmu_domain *domain = to_sysmmu_domain(dom);
 	unsigned long iova = iova_org;
