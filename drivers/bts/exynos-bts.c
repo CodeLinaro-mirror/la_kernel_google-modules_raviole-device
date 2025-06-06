@@ -54,6 +54,28 @@ static struct pm_qos_request exynos_int_qos;
 
 static struct bts_device *btsdev;
 
+/**
+ * @BTS_HIST_BIN: Number of bins of the histogram.
+ * @bw_trip:      The trip points for each histogram bin.
+ *
+ * The trip points are based on log-scale and in the unit
+ * of KB/s.
+ */
+static const unsigned int bw_trip[BTS_HIST_BIN - 1] = {
+	10000,
+	17800,
+	31600,
+	56200,
+	100000,
+	178000,
+	316000,
+	562000,
+	1000000,
+	1780000,
+	3160000,
+	5620000,
+};
+
 static unsigned int bus1_to_int_freq(unsigned int freq)
 {
 	unsigned int i;
