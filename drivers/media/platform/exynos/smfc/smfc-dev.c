@@ -847,7 +847,7 @@ err_clk:
 	return ret;
 }
 
-#if IS_ENABLED(CONFIG_EXYNOS_PM_QOS) || IS_ENABLED(CONFIG_EXYNOS_PM_QOS_MODULE)
+#if IS_ENABLED(CONFIG_EXYNOS_PM_QOS)
 static void g2d_pm_qos_remove_request(struct smfc_dev *smfc)
 {
 	if (smfc->qosreq_int_level > 0)

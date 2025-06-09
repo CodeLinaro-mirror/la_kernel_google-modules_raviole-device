@@ -128,7 +128,7 @@ enum exynos_pm_qos_req_action {
 	EXYNOS_PM_QOS_REMOVE_REQ	/* Remove an existing request */
 };
 
-#if IS_ENABLED(CONFIG_EXYNOS_PM_QOS) || IS_ENABLED(CONFIG_EXYNOS_PM_QOS_MODULE)
+#if IS_ENABLED(CONFIG_EXYNOS_PM_QOS)
 #define exynos_pm_qos_add_request(arg...)					\
 	exynos_pm_qos_add_request_trace(__func__, __LINE__, ##arg)
 
