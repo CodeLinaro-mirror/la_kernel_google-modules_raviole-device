@@ -474,7 +474,6 @@ static const struct of_device_id of_gs_chipid_ids[] = {
 
 /**
  *  gs_chipid_early_init: Early chipid initialization
- *  @dev: pointer to chipid device
  */
 void gs_chipid_early_init(void)
 {
