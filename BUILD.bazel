@@ -3,6 +3,7 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
+load("//build/kernel/kleaf:constants.bzl", "COMMON_KCFLAGS")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "dtb_image",
@@ -164,6 +165,7 @@ kernel_build(
     collect_unstripped_modules = True,
     dtstree = "//private/google-modules/soc/gs/arch/arm64/boot/dts:dt",
     implicit_outs = SLIDER_DTBOS,
+    kcflags = COMMON_KCFLAGS,
     kconfig_ext = "Kconfig.ext",
     make_goals = [
         "modules",

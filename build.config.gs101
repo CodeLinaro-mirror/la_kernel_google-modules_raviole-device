@@ -1,5 +1,4 @@
-. ${ROOT_DIR}/${KERNEL_DIR}/build.config.common
-. ${ROOT_DIR}/${KERNEL_DIR}/build.config.aarch64
+. ${ROOT_DIR}/${KERNEL_DIR}/build.config.constants
 
 DEFCONFIG=slider_gki_defconfig
 GKI_FRAGMENT_DEFCONFIG=${GKI_FRAGMENT_DEFCONFIG:-${SOC_DIR}/arch/arm64/configs/slider_gki.fragment}
