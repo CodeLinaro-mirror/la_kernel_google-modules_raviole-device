@@ -1646,7 +1646,7 @@ int tpmon_create(struct platform_device *pdev, struct link_device *ld)
 	struct mem_link_device *mld = ld_to_mem_link_device(ld);
 	int ret = 0;
 #if IS_ENABLED(CONFIG_CPU_FREQ)
-	struct cpufreq_policy pol;
+	struct cpufreq_policy *policy;
 #endif
 
 	if (!np) {
@@ -1674,10 +1674,12 @@ int tpmon_create(struct platform_device *pdev, struct link_device *ld)
 	INIT_LIST_HEAD(&tpmon->net_node_list);
 
 #if IS_ENABLED(CONFIG_CPU_FREQ)
-	if (cpufreq_get_policy(&pol, 0) != 0) {
+	policy = cpufreq_cpu_get(0);
+	if (policy) {
 		mif_info("register cpufreq notifier\n");
 		tpmon->cpufreq_nb.notifier_call = tpmon_cpufreq_nb;
 		cpufreq_register_notifier(&tpmon->cpufreq_nb, CPUFREQ_POLICY_NOTIFIER);
+		cpufreq_cpu_put(policy);
 	}
 #endif
 
