@@ -126,18 +126,12 @@ static void g2d_fence_release(struct dma_fence *fence)
 	kfree(fence);
 }
 
-static void g2d_fence_value_str(struct dma_fence *fence, char *str, int size)
-{
-	snprintf(str, size, "%llu", fence->seqno);
-}
-
 static struct dma_fence_ops g2d_fence_ops = {
 	.get_driver_name =	g2d_fence_get_driver_name,
 	.get_timeline_name =	g2d_fence_get_driver_name,
 	.enable_signaling =	g2d_fence_enable_signaling,
 	.wait =			dma_fence_default_wait,
 	.release =		g2d_fence_release,
-	.fence_value_str =	g2d_fence_value_str,
 };
 
 struct sync_file *g2d_create_release_fence(struct g2d_device *g2d_dev,
