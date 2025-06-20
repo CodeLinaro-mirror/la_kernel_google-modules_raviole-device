@@ -4,7 +4,6 @@ ccflags-y := -DDYNAMIC_DEBUG_MODULE
 CFLAGS_exynos-bcm_dbg.o += -Wno-missing-prototypes
 CFLAGS_exynos-pm.o += -Wno-missing-prototypes
 CFLAGS_exynos_pm_qos.o += -Wno-missing-prototypes
-CFLAGS_gs-chipid.o += -Wno-missing-prototypes
 
 obj-$(CONFIG_GS_CHIPID)			+= gs-chipid.o
 obj-$(CONFIG_CAL_IF)            	+= cal-if/

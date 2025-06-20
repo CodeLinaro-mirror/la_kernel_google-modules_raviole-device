@@ -15,6 +15,7 @@
 #include <linux/slab.h>
 #include <linux/sys_soc.h>
 #include <linux/module.h>
+#include <soc/google/gs-chipid.h>
 
 struct gs_chipid_variant {
 	int product_ver;
