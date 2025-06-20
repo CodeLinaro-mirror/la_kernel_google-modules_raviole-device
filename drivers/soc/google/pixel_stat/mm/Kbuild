@@ -2,6 +2,13 @@
 
 ccflags-y += -I$(KERNEL_SRC)/../private/google-modules/trusty/include
 
+CFLAGS_cma.o := -Wno-missing-prototypes
+CFLAGS_filemap.o := -Wno-missing-prototypes
+CFLAGS_meminfo.o := -Wno-missing-prototypes
+CFLAGS_page_alloc.o := -Wno-missing-prototypes
+CFLAGS_sysfs_node.o := -Wno-missing-prototypes
+CFLAGS_vmscan.o := -Wno-missing-prototypes
+
 # vendor hook for mm
 obj-$(CONFIG_PIXEL_STAT) += pixel_stat_mm.o
 pixel_stat_mm-y += init.o page_alloc.o sysfs_node.o filemap.o cma.o meminfo.o vmscan.o compaction.o
