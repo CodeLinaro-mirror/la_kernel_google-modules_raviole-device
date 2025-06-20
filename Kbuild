@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
 subdir-ccflags-y += \
-		-Wno-missing-prototypes \
 		-I$(src)/include \
 		-I$(src)/include/uapi \
 		-I$(srctree)/../private/google-modules/bms
