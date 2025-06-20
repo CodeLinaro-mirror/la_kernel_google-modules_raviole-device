@@ -18,6 +18,7 @@
 #if IS_ENABLED(CONFIG_CPU_IDLE)
 #include <soc/google/exynos-cpupm.h>
 #endif
+#include <soc/google/gs-chipid.h>
 
 #include "modem_utils.h"
 #include "dit.h"

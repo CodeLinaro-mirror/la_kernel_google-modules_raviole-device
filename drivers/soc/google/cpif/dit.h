@@ -39,7 +39,6 @@ int dit_set_buf_size(enum dit_direction dir, u32 size);
 int dit_set_pktproc_base(enum dit_direction dir, phys_addr_t base);
 int dit_set_desc_ring_len(enum dit_direction dir, u32 len);
 int dit_get_src_usage(enum dit_direction dir, u32 *usage);
-extern u32 gs_chipid_get_type(void);
 
 #if IS_ENABLED(CONFIG_EXYNOS_DIT)
 int dit_enqueue_src_desc_ring(

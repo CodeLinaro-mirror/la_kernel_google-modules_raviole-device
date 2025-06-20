@@ -21,6 +21,7 @@
 #include <scsi/scsi_cmnd.h>
 #include <soc/google/exynos-pmu-if.h>
 #include <soc/google/exynos-cpupm.h>
+#include <soc/google/gs-chipid.h>
 #include <ufs/ufshcd.h>
 #include <ufs/ufshci.h>
 #include <ufs/unipro.h>

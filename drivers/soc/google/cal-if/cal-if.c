@@ -14,6 +14,8 @@
 #include <soc/google/exynos-bcm_dbg.h>
 #endif
 
+#include <soc/google/gs-chipid.h>
+
 #include <trace/events/power.h>
 #include <soc/google/pwrcal-env.h>
 
@@ -33,8 +35,6 @@
 #include "pmucal_powermode.h"
 
 #include "../acpm/acpm.h"
-
-extern s32 gs_chipid_get_dvfs_version(void);
 
 int (*exynos_cal_pd_bcm_sync)(unsigned int id, bool on);
 EXPORT_SYMBOL(exynos_cal_pd_bcm_sync);

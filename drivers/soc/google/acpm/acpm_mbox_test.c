@@ -42,6 +42,7 @@
 #include <dt-bindings/soc/google/gs201-devfreq.h>
 #endif
 #include <soc/google/acpm_mfd.h>
+#include <soc/google/gs-chipid.h>
 #include <soc/google/pt.h>
 #include <linux/list.h>
 

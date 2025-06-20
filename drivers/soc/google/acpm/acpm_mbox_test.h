@@ -470,8 +470,6 @@ union tmu_ipc_message {
 	struct tmu_ipc_response resp;
 };
 
-extern u32 gs_chipid_get_type(void);
-extern u32 gs_chipid_get_revision(void);
 static int acpm_dvfs_set_cpufreq(unsigned int dm_id, unsigned int rate,
 				 int cycle);
 static int acpm_dvfs_set_devfreq(unsigned int dm_id, unsigned int rate,
