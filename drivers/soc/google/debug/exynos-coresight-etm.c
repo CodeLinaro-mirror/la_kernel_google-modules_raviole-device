@@ -869,7 +869,7 @@ static DEVICE_ATTR_RO(port_status);
 #ifdef CONFIG_EXYNOS_CORESIGHT_ETR
 static ssize_t etr_dump_read(struct file *filp,
 			     struct kobject *kobj,
-			     struct bin_attribute *attr,
+			     const struct bin_attribute *attr,
 			     char *buffer,
 			     loff_t pos,
 			     size_t size)
@@ -885,9 +885,9 @@ static ssize_t etr_dump_read(struct file *filp,
 	return size;
 }
 
-static BIN_ATTR_RO(etr_dump, 0);
+static const BIN_ATTR_RO(etr_dump, 0);
 
-static struct bin_attribute *exynos_etr_sysfs_attrs[] = {
+static const struct bin_attribute *exynos_etr_sysfs_attrs[] = {
 	&bin_attr_etr_dump,
 	NULL,
 };
