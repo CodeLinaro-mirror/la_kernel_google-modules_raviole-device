@@ -17,6 +17,7 @@
 #include <linux/keycombo.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <linux/pm_wakeup.h>
 #include <linux/reboot.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
@@ -213,10 +214,9 @@ static int keycombo_probe(struct platform_device *pdev)
 		state->key_up_fn = pdata->key_up_fn;
 	INIT_WORK(&state->key_up_work, do_key_up);
 
-	state->combo_held_wake_source = wakeup_source_create("key combo");
-	state->combo_up_wake_source = wakeup_source_create("key combo up");
-	wakeup_source_add(state->combo_held_wake_source);
-	wakeup_source_add(state->combo_up_wake_source);
+	state->combo_held_wake_source = wakeup_source_register(&pdev->dev, "key combo");
+	state->combo_up_wake_source = wakeup_source_register(&pdev->dev, "key combo up");
+
 	state->delay = msecs_to_jiffies(pdata->key_down_delay);
 
 	state->input_handler.event = keycombo_event;
@@ -237,8 +237,8 @@ static void keycombo_remove(struct platform_device *pdev)
 {
 	struct keycombo_state *state = platform_get_drvdata(pdev);
 	input_unregister_handler(&state->input_handler);
-	wakeup_source_destroy(state->combo_held_wake_source);
-	wakeup_source_destroy(state->combo_up_wake_source);
+	wakeup_source_unregister(state->combo_held_wake_source);
+	wakeup_source_unregister(state->combo_up_wake_source);
 	destroy_workqueue(state->wq);
 	kfree(state);
 }
