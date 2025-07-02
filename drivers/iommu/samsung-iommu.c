@@ -252,6 +252,7 @@ static struct iommu_domain *samsung_sysmmu_domain_alloc_paging(struct device *de
 	pgtable_flush(domain->page_table, domain->page_table + NUM_LV1ENTRIES);
 
 	spin_lock_init(&domain->pgtablelock);
+	domain->domain.pgsize_bitmap = SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE;
 
 	return &domain->domain;
 
@@ -1205,7 +1206,6 @@ static struct iommu_ops samsung_sysmmu_ops = {
 	.device_group		= samsung_sysmmu_device_group,
 	.of_xlate		= samsung_sysmmu_of_xlate,
 	.get_resv_regions	= samsung_sysmmu_get_resv_regions,
-	.pgsize_bitmap		= SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE,
 	.owner						= THIS_MODULE,
 	.default_domain_ops	= &(const struct iommu_domain_ops) {
 		.attach_dev		= samsung_sysmmu_attach_dev,
