@@ -230,16 +230,9 @@ static bool samsung_sysmmu_capable(struct device *dev, enum iommu_cap cap)
 	return cap == IOMMU_CAP_CACHE_COHERENCY;
 }
 
-static struct iommu_domain *samsung_sysmmu_domain_alloc(unsigned int type)
+static struct iommu_domain *samsung_sysmmu_domain_alloc_paging(struct device *dev)
 {
 	struct samsung_sysmmu_domain *domain;
-
-	if (type != IOMMU_DOMAIN_UNMANAGED &&
-	    type != IOMMU_DOMAIN_DMA &&
-	    type != IOMMU_DOMAIN_IDENTITY) {
-		pr_err("invalid domain type %u\n", type);
-		return NULL;
-	}
 
 	domain = kzalloc(sizeof(*domain), GFP_KERNEL);
 	if (!domain)
@@ -1206,7 +1199,7 @@ static struct iommu_domain samsung_sysmmu_blocked_domain = {
 static struct iommu_ops samsung_sysmmu_ops = {
 	.blocked_domain		= &samsung_sysmmu_blocked_domain,
 	.capable		= samsung_sysmmu_capable,
-	.domain_alloc		= samsung_sysmmu_domain_alloc,
+	.domain_alloc_paging	= samsung_sysmmu_domain_alloc_paging,
 	.probe_device		= samsung_sysmmu_probe_device,
 	.release_device		= samsung_sysmmu_release_device,
 	.device_group		= samsung_sysmmu_device_group,
