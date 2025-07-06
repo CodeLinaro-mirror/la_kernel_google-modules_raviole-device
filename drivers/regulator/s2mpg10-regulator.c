@@ -19,7 +19,7 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 #include <linux/regulator/of_regulator.h>
-#include <linux/mfd/samsung/s2mpg10.h>
+#include <linux/mfd/samsung/s2mpg10-local.h>
 #include <linux/mfd/samsung/s2mpg10-register.h>
 #include <linux/io.h>
 #include <linux/mutex.h>

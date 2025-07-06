@@ -15,7 +15,7 @@
 #include <linux/interrupt.h>
 #include <linux/mutex.h>
 #include <linux/mfd/core.h>
-#include <linux/mfd/samsung/s2mpg10.h>
+#include <linux/mfd/samsung/s2mpg10-local.h>
 #include <linux/mfd/samsung/s2mpg10-register.h>
 #include <linux/regulator/machine.h>
 #include <linux/rtc.h>

@@ -24,7 +24,7 @@
 #include <linux/pinctrl/pinconf.h>
 #include <linux/pinctrl/pinctrl.h>
 #include <linux/pinctrl/pinmux.h>
-#include <linux/mfd/samsung/s2mpg10.h>
+#include <linux/mfd/samsung/s2mpg10-local.h>
 #include <linux/mfd/samsung/s2mpg11.h>
 #include <linux/mfd/samsung/s2mpg12.h>
 #include <linux/mfd/samsung/s2mpg13.h>
