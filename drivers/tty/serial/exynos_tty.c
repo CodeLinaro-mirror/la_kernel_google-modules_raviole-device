@@ -222,6 +222,8 @@ static void wr_reg(struct uart_port *port, int reg, int val)
 	case UPIO_MEM32:
 		writel_relaxed(val, portaddr(port, reg));
 		break;
+	default:
+		break;
 	}
 }
 
