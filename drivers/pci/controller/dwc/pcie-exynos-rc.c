@@ -1625,19 +1625,16 @@ void exynos_pcie_rc_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg, 
 	exynos_pcie_rc_wr_own_conf(pp, reg, size, val);
 }
 
-static int exynos_pcie_rc_link_up(struct dw_pcie *pci)
+static bool exynos_pcie_rc_link_up(struct dw_pcie *pci)
 {
 	struct exynos_pcie *exynos_pcie = to_exynos_pcie(pci);
 	u32 val;
 
 	if (exynos_pcie->state != STATE_LINK_UP)
-		return 0;
+		return false;
 
 	val = exynos_elbi_read(exynos_pcie, PCIE_ELBI_RDLH_LINKUP) & PCIE_ELBI_LTSSM_STATE_MASK;
-	if (val >= S_RCVRY_LOCK && val <= S_L1_IDLE)
-		return 1;
-
-	return 0;
+	return val >= S_RCVRY_LOCK && val <= S_L1_IDLE;
 }
 
 static const struct dw_pcie_ops dw_pcie_ops = {
