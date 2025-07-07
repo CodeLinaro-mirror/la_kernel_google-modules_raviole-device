@@ -363,7 +363,8 @@ static void alt_dvfs_nop_timer(struct timer_list *timer)
 /*timer callback function send a signal */
 static void simple_interactive_timer(struct timer_list *timer)
 {
-	struct devfreq_simple_interactive_data *gov_data = from_timer(gov_data, timer, freq_timer);
+	struct devfreq_simple_interactive_data *gov_data = timer_container_of(gov_data, timer,
+									      freq_timer);
 
 	wake_up_process(gov_data->change_freq_task);
 }

@@ -149,7 +149,7 @@ static irqreturn_t exynos_smfc_irq_handler(int irq, void *priv)
 
 static void smfc_timedout_handler(struct timer_list *arg)
 {
-	struct smfc_dev *smfc = from_timer(smfc, arg, timer);
+	struct smfc_dev *smfc = timer_container_of(smfc, arg, timer);
 	struct smfc_ctx *ctx;
 	unsigned long flags;
 	bool suspending;

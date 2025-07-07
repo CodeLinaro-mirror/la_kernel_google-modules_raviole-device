@@ -490,7 +490,7 @@ err1:
 
 static void dwc3_otg_retry_configuration(struct timer_list *t)
 {
-	struct dwc3_exynos *exynos = from_timer(exynos, t, usb_connect_timer);
+	struct dwc3_exynos *exynos = timer_container_of(exynos, t, usb_connect_timer);
 	struct dwc3_otg *dotg = exynos->dotg;
 	struct usb_gadget *gadget = exynos->dwc->gadget;
 	struct usb_composite_dev *cdev = get_gadget_data(gadget);

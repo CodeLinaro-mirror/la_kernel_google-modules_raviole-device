@@ -150,7 +150,7 @@ static void shmem_handle_cp_crash(struct mem_link_device *mld,
 
 static void handle_no_cp_crash_ack(struct timer_list *t)
 {
-	struct mem_link_device *mld = from_timer(mld, t, crash_ack_timer);
+	struct mem_link_device *mld = timer_container_of(mld, t, crash_ack_timer);
 	struct link_device *ld = &mld->link_dev;
 	struct modem_ctl *mc = ld->mc;
 

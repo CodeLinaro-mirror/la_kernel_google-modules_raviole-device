@@ -423,7 +423,7 @@ static void slg51000_timeout_work(struct work_struct *work)
 
 static void slg51000_timer_trigger(struct timer_list *t)
 {
-	struct slg51000_dev *slg51000 = from_timer(slg51000, t, timer);
+	struct slg51000_dev *slg51000 = timer_container_of(slg51000, t, timer);
 	schedule_work(&slg51000->timeout_work);
 }
 
