@@ -13,7 +13,7 @@
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
 #include <kernel/sched/sched.h>
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 
 #include "sched_priv.h"
 

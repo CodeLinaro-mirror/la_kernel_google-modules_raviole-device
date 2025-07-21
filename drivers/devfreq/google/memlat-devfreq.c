@@ -19,7 +19,7 @@
 #include <soc/google/exynos-devfreq.h>
 #include <soc/google/ect_parser.h>
 #include <dt-bindings/soc/google/gs101-devfreq.h>
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 #include "governor.h"
 #include "governor_memlat.h"
 

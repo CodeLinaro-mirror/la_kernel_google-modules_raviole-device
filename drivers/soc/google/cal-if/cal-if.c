@@ -16,7 +16,7 @@
 
 #include <soc/google/gs-chipid.h>
 
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 #include <soc/google/pwrcal-env.h>
 
 #include "pwrcal-rae.h"

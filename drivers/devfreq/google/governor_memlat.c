@@ -23,7 +23,7 @@
 #include <linux/devfreq.h>
 #include <soc/google/exynos_pm_qos.h>
 #include <dt-bindings/soc/google/gs101-devfreq.h>
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 
 // Note: this header comes from $KERNEL_SRC/drivers/devfreq
 #include <governor.h>

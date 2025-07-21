@@ -23,6 +23,7 @@
 #include <linux/suspend.h>
 #include <linux/sched/task.h>
 #include <trace/hooks/cpuidle.h>
+#include <trace/events/clock.h>
 #include <trace/events/power.h>
 
 #include <asm/debug-monitors.h>

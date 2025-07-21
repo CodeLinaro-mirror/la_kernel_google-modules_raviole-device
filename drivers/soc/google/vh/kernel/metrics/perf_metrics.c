@@ -18,7 +18,7 @@
 #include <linux/sysfs.h>
 #include <linux/kobject.h>
 #include <linux/device.h>
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 #include <trace/events/irq.h>
 #include <trace/hooks/suspend.h>
 #include "perf_metrics.h"

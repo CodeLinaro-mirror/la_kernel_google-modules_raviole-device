@@ -11,7 +11,7 @@
 #include <kernel/sched/sched.h>
 
 #include <linux/sched/cpufreq.h>
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 #include <linux/perf_event.h>
 #include <linux/jiffies.h>
 #include <linux/pm_qos.h>

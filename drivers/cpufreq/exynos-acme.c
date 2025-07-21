@@ -30,7 +30,7 @@
 #include <soc/google/debug-snapshot.h>
 #include <trace/hooks/systrace.h>
 
-#include <trace/events/power.h>
+#include <trace/events/clock.h>
 
 #include "exynos-acme.h"
 
