@@ -10,6 +10,14 @@ config VH_SCHED_MAX_CPU_NR
         int "CPU number on this platform"
         default 8
 
+config VH_CLOCKTRACE
+	tristate "Vendor Clock trace support"
+	depends on VH_KERNEL
+	depends on TRACING
+	default m
+	help
+	  Support clock trace events for clock enable/disable and rate change.
+
 config VH_SYSTRACE
         tristate "Vendor SYSTRACE support"
         depends on VH_KERNEL
