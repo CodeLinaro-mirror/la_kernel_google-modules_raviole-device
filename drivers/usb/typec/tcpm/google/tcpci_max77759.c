@@ -2876,7 +2876,7 @@ static int max77759_probe(struct i2c_client *client)
 		chip->frs = true;
 	}
 
-	chip->wq = kthread_create_worker(0, "wq-tcpm-tcpc");
+	chip->wq = kthread_run_worker(0, "wq-tcpm-tcpc");
 	if (IS_ERR_OR_NULL(chip->wq)) {
 		ret = PTR_ERR(chip->wq);
 		goto teardown_data;
