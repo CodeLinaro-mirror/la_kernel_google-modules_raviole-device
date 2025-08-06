@@ -211,12 +211,6 @@ config BOARD_GS201_HYBRID
 	help
 	GS201 Hybrid Zebu Emulator System, it is support for Android Platform
 
-config PIXEL_STAT
-	tristate "Enable Pixel statistics"
-	default n
-	help
-	Support Pixel statistics.
-
 config EXYNOS_SECURE_LOG
 	tristate "Exynos Secure Log"
 	default n
@@ -242,6 +236,8 @@ source "$(KCONFIG_EXT_PREFIX)drivers/soc/google/s2mpu/Kconfig"
 source "$(KCONFIG_EXT_PREFIX)drivers/soc/google/vh/kernel/Kconfig"
 
 source "$(KCONFIG_EXT_PREFIX)drivers/soc/google/boot_control/Kconfig"
+
+source "$(KCONFIG_EXT_PREFIX)drivers/soc/google/pixel_stat/Kconfig"
 
 config HARDLOCKUP_DEBUG
 	tristate "Hardlockup Debugging"
@@ -269,6 +265,12 @@ config SYSRQ_HOOK
 
 config PKVM_S2MPU
 	tristate "S2MPU driver compatible with pKVM"
+	default n
+	help
+	This module is a driver for the stage-2 IOMMU controlled by hypervisor.
+
+config PKVM_S2MPU_V9
+	tristate "S2MPU V9 driver compatible with pKVM"
 	default n
 	help
 	This module is a driver for the stage-2 IOMMU controlled by hypervisor.

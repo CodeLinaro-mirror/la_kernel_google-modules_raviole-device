@@ -67,6 +67,10 @@
 				#cooling-cells = <2>;
 				google,dc-irdrop;
 				google,fv-dc-ratio = <35>;
+
+				google,bhi-status-marginal = <79>;
+				google,bhi-status-need-rep = <79>;
+				google,bhi-cycle-grace = <200>;
 			};
 
 			google_bms {
@@ -132,7 +136,7 @@
 	clock-frequency = <400000>;
 
 	/* also as max77759 pmic  */
-	max77729_pmic:max77729pmic@0x66 {
+	max77729_pmic:max77729pmic@66 {
 		status = "okay";
 		compatible = "maxim,max77729pmic";
 		reg = <0x66>;
@@ -156,7 +160,7 @@
 		};
 	};
 
-	max77759_fg:max77759fg@0x36 {
+	max77759_fg:max77759fg@36 {
 		status = "okay";
 		compatible = "maxim,max77759";
 		reg = <0x36>;
@@ -177,7 +181,7 @@
 		};
 	};
 
-	max77759_chg:max77759chrg@0x69 {
+	max77759_chg:max77759chrg@69 {
 		status = "okay";
 		compatible = "maxim,max77759chrg";
 		reg = <0x69>;

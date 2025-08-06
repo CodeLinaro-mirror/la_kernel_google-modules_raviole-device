@@ -2,11 +2,13 @@
 
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@kleaf//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load("//build/kernel/kleaf:constants.bzl", "COMMON_KCFLAGS")
 load(
     "//build/kernel/kleaf:kernel.bzl",
+    "checkpatch",
     "dtb_image",
     "dtbo",
     "extract_symbols",
@@ -27,6 +29,11 @@ package(
         "//private/devices/google:__subpackages__",
         "//private/google-modules:__subpackages__",
     ],
+)
+
+checkpatch(
+    name = "checkpatch",
+    checkpatch_pl = "//common:scripts/checkpatch.pl",
 )
 
 label_flag(
@@ -90,14 +97,14 @@ filegroup(
         # List of headers needed by external modules
         "drivers/dma-buf/heaps/deferred-free-helper.h",
         "drivers/dma-buf/heaps/samsung/samsung-dma-heap.h",
+        "drivers/usb/typec/tcpm/google/tcpci_max77759.h",
+        "drivers/usb/typec/tcpm/google/usb_psy.h",
 
         # Needed for external modules to include in their makefiles
         "Makefile.include",
     ]),
 )
 
-# The list ordering matches EXT_MODULES in build.config.slider in order to
-# retain the very fragile module load ordering.
 kernel_module_group(
     name = "slider_ext_modules",
     srcs = [
@@ -134,7 +141,11 @@ kernel_module_group(
 
 _SLIDER_MODULE_OUTS = [
     # keep sorted
-    "drivers/block/zram/zram.ko",
+    "drivers/hwtracing/coresight/coresight.ko",
+    "drivers/hwtracing/coresight/coresight-etm4x.ko",
+    "drivers/hwtracing/coresight/coresight-funnel.ko",
+    "drivers/hwtracing/coresight/coresight-replicator.ko",
+    "drivers/hwtracing/coresight/coresight-tmc.ko",
     "drivers/i2c/i2c-dev.ko",
     "drivers/misc/eeprom/at24.ko",
     "drivers/perf/arm_dsu_pmu.ko",
@@ -142,7 +153,6 @@ _SLIDER_MODULE_OUTS = [
     "drivers/scsi/sg.ko",
     "drivers/spi/spidev.ko",
     "drivers/watchdog/softdog.ko",
-    "mm/zsmalloc.ko",
     "net/core/pktgen.ko",
     "net/mac80211/mac80211.ko",
     "net/wireless/cfg80211.ko",
@@ -174,6 +184,7 @@ kernel_build(
     base_kernel = "//common:kernel_aarch64",
     build_config = "build.config.slider",
     collect_unstripped_modules = True,
+    defconfig_fragments = ["arch/arm64/configs/slider_gki.fragment"],
     dtstree = "//private/google-modules/soc/gs/arch/arm64/boot/dts:dt",
     implicit_outs = SLIDER_DTBOS,
     kcflags = COMMON_KCFLAGS,
@@ -182,8 +193,10 @@ kernel_build(
         "modules",
         "dtbs",
     ],
+    makefile = "//common:Makefile",
     module_outs = _SLIDER_MODULE_OUTS,
     strip_modules = True,
+    trim_nonlisted_kmi = False,
 )
 
 extract_symbols(
@@ -305,7 +318,6 @@ kernel_module(
         "drivers/soc/google/hardlockup-debug.ko",
         "drivers/soc/google/hardlockup-watchdog.ko",
         "drivers/soc/google/kernel-top.ko",
-        "drivers/soc/google/pixel_stat/mm/pixel_stat_mm.ko",
         "drivers/soc/google/pixel_stat/pixel_stat_sysfs.ko",
         "drivers/soc/google/pt/slc_acpm.ko",
         "drivers/soc/google/pt/slc_dummy.ko",
@@ -314,6 +326,7 @@ kernel_module(
         "drivers/soc/google/s2mpu/s2mpu.ko",
         "drivers/soc/google/sysrq-hook.ko",
         "drivers/soc/google/vh/kernel/clocktrace.ko",
+        "drivers/soc/google/vh/kernel/mm/vh_mm.ko",
         "drivers/soc/google/vh/kernel/pixel_em/pixel_em.ko",
         "drivers/soc/google/vh/kernel/systrace.ko",
         "drivers/spi/spi-s3c64xx.ko",
@@ -326,8 +339,11 @@ kernel_module(
         "drivers/usb/gadget/function/usb_f_dm1.ko",
         "drivers/usb/host/xhci-exynos.ko",
         "drivers/usb/typec/tcpm/google/bc_max77759.ko",
+        "drivers/usb/typec/tcpm/google/google_tcpci_shim.ko",
         "drivers/usb/typec/tcpm/google/max77759_contaminant.ko",
         "drivers/usb/typec/tcpm/google/max77759_helper.ko",
+        "drivers/usb/typec/tcpm/google/max77779_contaminant.ko",
+        "drivers/usb/typec/tcpm/google/max777x9_contaminant.ko",
         "drivers/usb/typec/tcpm/google/slg46826.ko",
         "drivers/usb/typec/tcpm/google/tcpci_fusb307.ko",
         "drivers/usb/typec/tcpm/google/tcpci_max77759.ko",
@@ -360,13 +376,24 @@ merged_kernel_uapi_headers(
     kernel_modules = [":slider_ext_modules"],
 )
 
+write_file(
+    name = "slider_vendor_bootconfig",
+    out = "vendor-bootconfig.img",
+    content = [
+        "androidboot.boot_devices=14700000.ufs",
+        "androidboot.vh_sched_available=0",
+        "",  # newline at the end of the file
+    ],
+)
+
 _GKI_MODULES = [
     m
     for m in get_gki_modules_list("arm64")
     # List of GKI modules to omit
     if m not in [
-        "mm/zsmalloc.ko",
-        "drivers/block/zram/zram.ko",
+        # keep sorted
+        "arch/arm64/geniezone/gzvm.ko",
+        "drivers/ptp/ptp_kvm.ko",
     ]
 ]
 
@@ -399,6 +426,9 @@ initramfs(
     name = "slider_initramfs",
     kernel_modules_install = ":slider_modules_install",
     modules_list = ":vendor_boot_modules.gs101",
+    ramdisk_compression = "lz4",
+    trim_unused_modules = True,
+    vendor_boot_name = "vendor_boot",
 )
 
 filegroup(
@@ -418,7 +448,7 @@ vendor_dlkm_image(
     modules_list = ":slider_vendor_dlkm_modules_list",
     props = "vendor_dlkm.props",
     vendor_boot_modules_load = ":slider_initramfs",
-    deps = ["//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts"],
+    deps = ["vendor_dlkm_file_contexts"],
 )
 
 filegroup(
@@ -427,14 +457,14 @@ filegroup(
     output_group = "boot_lz4",
 )
 
-genrule(
+hermetic_genrule(
     name = "gki_aarch64_boot",
     srcs = [":gki_aarch64_boot_lz4"],
     outs = ["boot.img"],
     cmd = "cp -L $< $@",
 )
 
-genrule(
+hermetic_genrule(
     name = "slider_abi_gki_aarch64_pixel",
     srcs = [":slider_extract_symbols"],
     outs = ["abi_gki_aarch64_pixel"],
@@ -447,6 +477,7 @@ slider_dist_targets = [
     ":slider_dtbo",
     ":slider_initramfs",
     ":slider_vendor_dlkm_image",
+    ":slider_vendor_bootconfig",
     ":gki_aarch64_boot",
     # At the time of writing (2022-02-04), this intentionally diverges from
     # the behavior of build.sh-style mixed builds by also incorporating
@@ -460,8 +491,11 @@ slider_dist_targets = [
     ":slider_unstripped_modules_archive",
     ":slider_insmod_cfgs",
     "vendor_dlkm.props",
-    "//prebuilts/boot-artifacts/selinux:vendor_dlkm_file_contexts",
+    "vendor_dlkm_file_contexts",
     "//common:kernel_aarch64",
+    "//common:kernel_aarch64_headers",
+    "//common:test_mappings_zip",
+    "//common:tests_zip_arm64",
 ] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
 
 pkg_files(
@@ -491,11 +525,3 @@ test_suite(
     # TODO(b/236871190): re-add this with the kernel_module_group
     #+ [m + "_test" for m in _slider_modules],
 )
-
-exports_files([
-    # keep sorted
-    "build.config.cloudripper",
-    "vendor_dlkm.blocklist.cloudripper",
-    "vendor_dlkm.props",
-    "vendor_kernel_boot_modules.gs201",
-])

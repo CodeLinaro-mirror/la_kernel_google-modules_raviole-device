@@ -473,14 +473,6 @@ int mfc_core_set_enc_stream_buffer(struct mfc_core *core, struct mfc_ctx *ctx,
 		offset = mfc_buf->vb.vb2_buf.planes[0].data_offset;
 		size = (unsigned int)vb2_plane_size(&mfc_buf->vb.vb2_buf, 0);
 		size = ALIGN(size, STREAM_BUF_ALIGN);
-	} else {
-		/*
-		 * When LAST_SEQ of B frame encoding
-		 * if there is no output buffer, set addr and size with 0xffffffff
-		 * and then FW returns COMPLETE_SEQ.
-		 */
-		addr = 0xffffffff;
-		size = 0xffffffff;
 	}
 
 	MFC_CORE_WRITEL(addr, MFC_REG_E_STREAM_BUFFER_ADDR); /* 16B align */
@@ -582,6 +574,7 @@ int mfc_core_set_dynamic_dpb(struct mfc_core *core, struct mfc_ctx *ctx,
 void mfc_core_get_img_size(struct mfc_core *core, struct mfc_ctx *ctx,
 		enum mfc_get_img_size img_size)
 {
+	struct mfc_dec *dec = ctx->dec_priv;
 	unsigned int w, h;
 	int i;
 
@@ -601,7 +594,14 @@ void mfc_core_get_img_size(struct mfc_core *core, struct mfc_ctx *ctx,
 	mfc_debug(2, "[FRAME][DRC] resolution changed, %dx%d => %dx%d (stride: %d)\n", w, h,
 			ctx->img_width, ctx->img_height, ctx->raw_buf.stride[0]);
 
-	if (img_size == MFC_GET_RESOL_DPB_SIZE) {
+	if (img_size == MFC_GET_RESOL_SIZE) {
+		dec->disp_drc.width[dec->disp_drc.push_idx] = ctx->img_width;
+		dec->disp_drc.height[dec->disp_drc.push_idx] = ctx->img_height;
+		dec->disp_drc.disp_res_change = ++dec->disp_drc.disp_res_change % MFC_MAX_DRC_FRAME;
+		mfc_debug(3, "[DRC] disp_res_change[%d] count %d\n",
+				dec->disp_drc.push_idx, dec->disp_drc.disp_res_change);
+		dec->disp_drc.push_idx = ++dec->disp_drc.push_idx % MFC_MAX_DRC_FRAME;
+	} else if (img_size == MFC_GET_RESOL_DPB_SIZE) {
 		ctx->scratch_buf_size = mfc_core_get_scratch_size();
 		for (i = 0; i < ctx->dst_fmt->num_planes; i++) {
 			ctx->min_dpb_size[i] = mfc_core_get_min_dpb_size(i);
@@ -669,6 +669,7 @@ void mfc_core_set_pixel_format(struct mfc_core *core, struct mfc_ctx *ctx,
 		pix_val = 1;
 		break;
 	case V4L2_PIX_FMT_YVU420M:
+	case V4L2_PIX_FMT_YVU420N:
 		pix_val = 2;
 		break;
 	case V4L2_PIX_FMT_YUV420M:

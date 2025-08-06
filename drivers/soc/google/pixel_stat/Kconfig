@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config PIXEL_STAT
+	tristate "Enable Pixel statistics"
+	default n
+	help
+	Support Pixel statistics.
+
+config PIXEL_STAT_MM
+	tristate "Enable Pixel statistics for memory management"
+	depends on PIXEL_STAT
+	default n
+	help
+	Support Pixel statistics.

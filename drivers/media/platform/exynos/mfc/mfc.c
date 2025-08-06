@@ -184,7 +184,9 @@ static int __mfc_init_dec_ctx(struct mfc_ctx *ctx)
 	dec->immediate_display = 0;
 	dec->is_dts_mode = 0;
 	dec->inter_res_change = 0;
-	dec->disp_res_change = 0;
+	dec->disp_drc.disp_res_change = 0;
+	dec->disp_drc.push_idx = 0;
+	dec->disp_drc.pop_idx = 0;
 
 	dec->is_dynamic_dpb = 1;
 	dec->dynamic_used = 0;
@@ -1359,7 +1361,6 @@ static struct platform_driver mfc_driver = {
 };
 
 module_platform_driver(mfc_driver);
-MODULE_SOFTDEP("pre: samsung_dma_heap");
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Kamil Debski <k.debski@samsung.com>");

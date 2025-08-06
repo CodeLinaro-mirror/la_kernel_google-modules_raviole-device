@@ -23,33 +23,28 @@
 
 #include <trace/events/clock.h>
 #include <trace/events/power.h>
-#include <trace/events/sched.h>
-#include <trace/events/workqueue.h>
-#include <trace/events/irq.h>
-#include <trace/events/timer.h>
 
 struct dbg_snapshot_log_item dss_log_items[] = {
 	[DSS_LOG_TASK_ID]	= {DSS_LOG_TASK,	{0, 0, 0, false}, },
 	[DSS_LOG_WORK_ID]	= {DSS_LOG_WORK,	{0, 0, 0, false}, },
-	[DSS_LOG_CPUIDLE_ID]	= {DSS_LOG_CPUIDLE,	{0, 0, 0, true}, },
-	[DSS_LOG_SUSPEND_ID]	= {DSS_LOG_SUSPEND,	{0, 0, 0, true}, },
+	[DSS_LOG_CPUIDLE_ID]	= {DSS_LOG_CPUIDLE,	{0, 0, 0, false}, },
+	[DSS_LOG_SUSPEND_ID]	= {DSS_LOG_SUSPEND,	{0, 0, 0, false}, },
 	[DSS_LOG_IRQ_ID]	= {DSS_LOG_IRQ,		{0, 0, 0, false}, },
 	[DSS_LOG_HRTIMER_ID]	= {DSS_LOG_HRTIMER,	{0, 0, 0, false}, },
-	[DSS_LOG_CLK_ID]	= {DSS_LOG_CLK,		{0, 0, 0, true}, },
-	[DSS_LOG_PMU_ID]	= {DSS_LOG_PMU,		{0, 0, 0, true}, },
-	[DSS_LOG_FREQ_ID]	= {DSS_LOG_FREQ,	{0, 0, 0, true}, },
-	[DSS_LOG_DM_ID]		= {DSS_LOG_DM,		{0, 0, 0, true}, },
-	[DSS_LOG_REGULATOR_ID]	= {DSS_LOG_REGULATOR,	{0, 0, 0, true}, },
-	[DSS_LOG_THERMAL_ID]	= {DSS_LOG_THERMAL,	{0, 0, 0, true}, },
-	[DSS_LOG_ACPM_ID]	= {DSS_LOG_ACPM,	{0, 0, 0, true}, },
-	[DSS_LOG_PRINTK_ID]	= {DSS_LOG_PRINTK,	{0, 0, 0, true}, },
+	[DSS_LOG_CLK_ID]	= {DSS_LOG_CLK,		{0, 0, 0, false}, },
+	[DSS_LOG_PMU_ID]	= {DSS_LOG_PMU,		{0, 0, 0, false}, },
+	[DSS_LOG_FREQ_ID]	= {DSS_LOG_FREQ,	{0, 0, 0, false}, },
+	[DSS_LOG_DM_ID]		= {DSS_LOG_DM,		{0, 0, 0, false}, },
+	[DSS_LOG_REGULATOR_ID]	= {DSS_LOG_REGULATOR,	{0, 0, 0, false}, },
+	[DSS_LOG_THERMAL_ID]	= {DSS_LOG_THERMAL,	{0, 0, 0, false}, },
+	[DSS_LOG_ACPM_ID]	= {DSS_LOG_ACPM,	{0, 0, 0, false}, },
+	[DSS_LOG_PRINTK_ID]	= {DSS_LOG_PRINTK,	{0, 0, 0, false}, },
 };
 
 /*  Internal interface variable */
 struct dbg_snapshot_log_misc dss_log_misc;
 static char dss_freq_name[SZ_32][SZ_8];
 static unsigned int dss_freq_size;
-static bool dss_last_info_enabled;
 
 #define dss_get_log(item)						\
 long dss_get_len_##item##_log(void) {					\
@@ -254,8 +249,8 @@ void dbg_snapshot_set_enable_log_item(const char *name, int en)
 static unsigned long dbg_snapshot_suspend(const char *log, struct device *dev,
 					  int event, int en)
 {
-	unsigned long i = atomic_fetch_inc(&dss_log_misc.suspend_log_idx) %
-		ARRAY_SIZE(dss_log->suspend);
+	unsigned long i = atomic_fetch_inc(&dss_log_misc.suspend_log_idx) &
+		(ARRAY_SIZE(dss_log->suspend) - 1);
 
 	dss_log->suspend[i].time = local_clock();
 	if (log && dev && dev->driver && dev->driver->name && strlen(dev->driver->name)) {
@@ -278,13 +273,15 @@ static unsigned long dbg_snapshot_suspend(const char *log, struct device *dev,
 static void dbg_snapshot_suspend_resume(void *ignore, const char *action,
 					int event, bool start)
 {
-	unsigned long curr_index;
+#if IS_ENABLED(CONFIG_PIXEL_SUSPEND_DIAG)
+	unsigned long curr_index =
+#endif
+	dbg_snapshot_suspend(action, NULL, event,
+			     start ? DSS_FLAG_IN : DSS_FLAG_OUT);
 
-	curr_index = dbg_snapshot_suspend(action, NULL, event,
-					  start ? DSS_FLAG_IN : DSS_FLAG_OUT);
-
-	if (IS_ENABLED(CONFIG_PIXEL_SUSPEND_DIAG))
-		pixel_suspend_diag_suspend_resume(dss_log, action, start, curr_index);
+#if IS_ENABLED(CONFIG_PIXEL_SUSPEND_DIAG)
+	pixel_suspend_diag_suspend_resume(dss_log, action, start, curr_index);
+#endif
 }
 
 void dbg_snapshot_dev_pm_cb_start(void *ignore, struct device *dev,
@@ -295,67 +292,12 @@ void dbg_snapshot_dev_pm_cb_start(void *ignore, struct device *dev,
 
 void dbg_snapshot_dev_pm_cb_end(void *ignore, struct device *dev, int error)
 {
-	int ret = 0;
-
-	if (IS_ENABLED(CONFIG_PIXEL_SUSPEND_DIAG))
-		ret = pixel_suspend_diag_dev_pm_cb_end(dss_log, dss_get_first_suspend_log_idx(),
-						       dss_get_last_suspend_log_idx(), dev);
-
-	if (!ret)
+#if IS_ENABLED(CONFIG_PIXEL_SUSPEND_DIAG)
+	if (!pixel_suspend_diag_dev_pm_cb_end(dss_log, dss_get_first_suspend_log_idx(),
+					      dss_get_last_suspend_log_idx(), dev))
+#endif
 		dbg_snapshot_suspend(NULL, dev, error, DSS_FLAG_OUT);
 }
-
-static void dbg_snapshot_task(int cpu, struct task_struct *v_task)
-{
-	unsigned long i;
-
-	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_TASK_ID))
-		return;
-
-	i = atomic_fetch_inc(&dss_log_misc.task_log_idx[cpu]) %
-			     ARRAY_SIZE(dss_log->task[0]);
-	dss_log->task[cpu][i].time = cpu_clock(cpu);
-	dss_log->task[cpu][i].task = v_task;
-	dss_log->task[cpu][i].pid = v_task->pid;
-	dss_log->task[cpu][i].se_exec_start = v_task->se.exec_start;
-	strncpy(dss_log->task[cpu][i].task_comm, v_task->comm, TASK_COMM_LEN - 1);
-}
-
-static void dbg_snapshot_sched_switch(void *ignore, bool preempt,
-				      struct task_struct *prev,
-				      struct task_struct *next,
-				      unsigned int prev_state)
-{
-	dbg_snapshot_task(raw_smp_processor_id(), next);
-}
-
-#ifdef DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS
-void dbg_snapshot_work(work_func_t fn, int en)
-{
-	int cpu = raw_smp_processor_id();
-	unsigned long i;
-
-	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_WORK_ID))
-		return;
-
-	i = atomic_fetch_inc(&dss_log_misc.work_log_idx[cpu]) %
-			     ARRAY_SIZE(dss_log->work[0]);
-	dss_log->work[cpu][i].time = cpu_clock(cpu);
-	dss_log->work[cpu][i].fn = fn;
-	dss_log->work[cpu][i].en = en;
-}
-
-static void dbg_snapshot_wq_start(void *ignore, struct work_struct *work)
-{
-	dbg_snapshot_work(work->func, DSS_FLAG_IN);
-}
-
-static void dbg_snapshot_wq_end(void *ignore, struct work_struct *work,
-				work_func_t func)
-{
-	dbg_snapshot_work(func, DSS_FLAG_OUT);
-}
-#endif /* DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS */
 
 void dbg_snapshot_cpuidle_mod(char *modes, unsigned int state, s64 diff, int en)
 {
@@ -365,8 +307,8 @@ void dbg_snapshot_cpuidle_mod(char *modes, unsigned int state, s64 diff, int en)
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_CPUIDLE_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.cpuidle_log_idx[cpu]) %
-		ARRAY_SIZE(dss_log->cpuidle[0]);
+	i = atomic_fetch_inc(&dss_log_misc.cpuidle_log_idx[cpu]) &
+		(ARRAY_SIZE(dss_log->cpuidle[0]) - 1);
 	dss_log->cpuidle[cpu][i].time = local_clock();
 	dss_log->cpuidle[cpu][i].modes = modes;
 	dss_log->cpuidle[cpu][i].state = state;
@@ -376,87 +318,23 @@ void dbg_snapshot_cpuidle_mod(char *modes, unsigned int state, s64 diff, int en)
 }
 EXPORT_SYMBOL_GPL(dbg_snapshot_cpuidle_mod);
 
-#ifdef DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS
-void dbg_snapshot_irq(int irq, void *fn, int en)
-{
-	unsigned long flags, i;
-	int cpu = raw_smp_processor_id();
-
-	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_IRQ_ID))
-		return;
-
-	i = atomic_fetch_inc(&dss_log_misc.irq_log_idx[cpu]) %
-		ARRAY_SIZE(dss_log->irq[0]);
-
-	flags = arch_local_irq_save();
-	dss_log->irq[cpu][i].time = cpu_clock(cpu);
-	dss_log->irq[cpu][i].irq = irq;
-	dss_log->irq[cpu][i].fn = fn;
-	dss_log->irq[cpu][i].desc = irq_to_desc(irq);
-	dss_log->irq[cpu][i].en = en;
-	arch_local_irq_restore(flags);
-}
-
-static void dbg_snapshot_irq_entry(void *ignore, int irq,
-				   struct irqaction *action)
-{
-	dbg_snapshot_irq(irq, action->handler, DSS_FLAG_IN);
-}
-
-static void dbg_snapshot_irq_exit(void *ignore, int irq,
-				  struct irqaction *action, int ret)
-{
-	dbg_snapshot_irq(irq, action->handler, DSS_FLAG_OUT);
-}
-
-void dbg_snapshot_hrtimer(void *timer, s64 now, void *fn, int en)
-{
-	int cpu = raw_smp_processor_id();
-	unsigned long i;
-
-	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_HRTIMER_ID))
-		return;
-
-	i = atomic_fetch_inc(&dss_log_misc.hrtimer_log_idx[cpu]) %
-		ARRAY_SIZE(dss_log->hrtimer[0]);
-	dss_log->hrtimer[cpu][i].time = cpu_clock(cpu);
-	dss_log->hrtimer[cpu][i].now = now;
-	dss_log->hrtimer[cpu][i].timer = (struct hrtimer *)timer;
-	dss_log->hrtimer[cpu][i].fn = fn;
-	dss_log->hrtimer[cpu][i].en = en;
-}
-
-static void dbg_snapshot_hrtimer_entry(void *ignore, struct hrtimer *timer,
-				       ktime_t *now)
-{
-	dbg_snapshot_hrtimer(timer, *now, timer->function, DSS_FLAG_IN);
-}
-
-static void dbg_snapshot_hrtimer_exit(void *ignore, struct hrtimer *timer)
-{
-	dbg_snapshot_hrtimer(timer, 0, timer->function, DSS_FLAG_OUT);
-}
-#endif /* DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS */
-
 void dbg_snapshot_regulator(unsigned long long timestamp, char *f_name,
 			unsigned int addr, unsigned int volt,
 			unsigned int rvolt, int en)
 {
 	unsigned long i;
-	int ret = 0;
 
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_REGULATOR_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.regulator_log_idx) %
-		ARRAY_SIZE(dss_log->regulator);
+	i = atomic_fetch_inc(&dss_log_misc.regulator_log_idx) &
+		(ARRAY_SIZE(dss_log->regulator) - 1);
 
 	dss_log->regulator[i].time = local_clock();
 	dss_log->regulator[i].cpu = raw_smp_processor_id();
 	dss_log->regulator[i].acpm_time = timestamp;
-	ret = strscpy(dss_log->regulator[i].name, f_name, sizeof(dss_log->regulator[i].name));
-	if (ret)
-		dss_log->regulator[i].name[sizeof(dss_log->regulator[i].name) - 1] = '\0';
+	strncpy(dss_log->regulator[i].name, f_name,
+			min_t(int, strlen(f_name), SZ_16 - 1));
 	dss_log->regulator[i].reg = addr;
 	dss_log->regulator[i].en = en;
 	dss_log->regulator[i].voltage = volt;
@@ -472,8 +350,8 @@ void dbg_snapshot_thermal(struct exynos_tmu_data *data, unsigned int temp,
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_THERMAL_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.thermal_log_idx) %
-		ARRAY_SIZE(dss_log->thermal);
+	i = atomic_fetch_inc(&dss_log_misc.thermal_log_idx) &
+		(ARRAY_SIZE(dss_log->thermal) - 1);
 
 	dss_log->thermal[i].time = local_clock();
 	dss_log->thermal[i].cpu = raw_smp_processor_id();
@@ -493,8 +371,8 @@ void dbg_snapshot_clk(struct clk_hw *clock, const char *func_name,
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_CLK_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.clk_log_idx) %
-		ARRAY_SIZE(dss_log->clk);
+	i = atomic_fetch_inc(&dss_log_misc.clk_log_idx) &
+		(ARRAY_SIZE(dss_log->clk) - 1);
 
 	dss_log->clk[i].time = local_clock();
 	dss_log->clk[i].mode = mode;
@@ -511,8 +389,8 @@ void dbg_snapshot_pmu(int id, const char *func_name, int mode)
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_PMU_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.pmu_log_idx) %
-		ARRAY_SIZE(dss_log->pmu);
+	i = atomic_fetch_inc(&dss_log_misc.pmu_log_idx) &
+		(ARRAY_SIZE(dss_log->pmu) - 1);
 
 	dss_log->pmu[i].time = local_clock();
 	dss_log->pmu[i].mode = mode;
@@ -532,8 +410,8 @@ void dbg_snapshot_freq(int type, unsigned long old_freq,
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_FREQ_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.freq_log_idx[type]) %
-		ARRAY_SIZE(dss_log->freq[0]);
+	i = atomic_fetch_inc(&dss_log_misc.freq_log_idx[type]) &
+		(ARRAY_SIZE(dss_log->freq[0]) - 1);
 
 	dss_log->freq[type][i].time = local_clock();
 	dss_log->freq[type][i].cpu = raw_smp_processor_id();
@@ -552,8 +430,8 @@ void dbg_snapshot_dm(int type, unsigned long min, unsigned long max,
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_DM_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.dm_log_idx) %
-		ARRAY_SIZE(dss_log->dm);
+	i = atomic_fetch_inc(&dss_log_misc.dm_log_idx) &
+		(ARRAY_SIZE(dss_log->dm) - 1);
 
 	dss_log->dm[i].time = local_clock();
 	dss_log->dm[i].cpu = raw_smp_processor_id();
@@ -574,8 +452,8 @@ void dbg_snapshot_acpm(unsigned long long timestamp, const char *log,
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_ACPM_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.acpm_log_idx) %
-		ARRAY_SIZE(dss_log->acpm);
+	i = atomic_fetch_inc(&dss_log_misc.acpm_log_idx) &
+		(ARRAY_SIZE(dss_log->acpm) - 1);
 
 	dss_log->acpm[i].time = local_clock();
 	dss_log->acpm[i].acpm_time = timestamp;
@@ -594,8 +472,8 @@ void dbg_snapshot_printk(const char *fmt, ...)
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_PRINTK_ID))
 		return;
 
-	i = atomic_fetch_inc(&dss_log_misc.print_log_idx) %
-		ARRAY_SIZE(dss_log->print);
+	i = atomic_fetch_inc(&dss_log_misc.print_log_idx) &
+		(ARRAY_SIZE(dss_log->print) - 1);
 
 	va_start(args, fmt);
 	vsnprintf(dss_log->print[i].log, sizeof(dss_log->print[i].log),
@@ -734,8 +612,6 @@ static void dbg_snapshot_print_lastinfo(void)
 {
 	int cpu;
 
-	if (!dss_last_info_enabled)
-		return;
 	pr_info("<last info>\n");
 	for (cpu = 0; cpu < DSS_NR_CPUS; cpu++) {
 		pr_info("CPU ID: %d ----------------------------------\n", cpu);
@@ -778,16 +654,10 @@ static void dbg_snapshot_print_freqinfo(void)
 #define arch_irq_stat() 0
 #endif
 
-#define IRQ_THRESHOLD 50
-
 static void dbg_snapshot_print_irq(void)
 {
 	int i, cpu;
 	u64 sum = 0;
-	struct timespec64 tp;
-	unsigned long long irq_filter = 0;
-	ktime_get_boottime_ts64(&tp);
-	irq_filter = tp.tv_sec * IRQ_THRESHOLD;
 
 	for_each_possible_cpu(cpu)
 		sum += kstat_cpu_irqs_sum(cpu);
@@ -814,7 +684,7 @@ static void dbg_snapshot_print_irq(void)
 		for_each_possible_cpu(cpu)
 			irq_cnt += per_cpu(desc->kstat_irqs->cnt, cpu);
 
-		if (!irq_cnt || irq_cnt < irq_filter)
+		if (!irq_cnt)
 			continue;
 
 		if (desc->action && desc->action->name)
@@ -852,7 +722,6 @@ void dbg_snapshot_init_log(void)
 		return;
 	}
 
-	dss_last_info_enabled = true;
 	log_item_set_filed(TASK, task);
 	log_item_set_filed(WORK, work);
 	log_item_set_filed(CPUIDLE, cpuidle);
@@ -867,38 +736,6 @@ void dbg_snapshot_init_log(void)
 	log_item_set_filed(THERMAL, thermal);
 	log_item_set_filed(ACPM, acpm);
 	log_item_set_filed(PRINTK, print);
-}
-
-void dbg_snapshot_register_vh_log(void)
-{
-	if (dss_log_items[DSS_LOG_TASK_ID].entry.enabled) {
-		if (register_trace_sched_switch(dbg_snapshot_sched_switch, NULL))
-			pr_err("dss task log VH register failed\n");
-	}
-
-#ifdef DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS
-	if (dss_log_items[DSS_LOG_WORK_ID].entry.enabled) {
-		if (register_trace_workqueue_execute_start(dbg_snapshot_wq_start, NULL))
-			pr_err("dss wq start log VH register failed\n");
-
-		if (register_trace_workqueue_execute_end(dbg_snapshot_wq_end, NULL))
-			pr_err("dss wq end log VH register failed\n");
-	}
-
-	if (dss_log_items[DSS_LOG_IRQ_ID].entry.enabled) {
-		if (register_trace_irq_handler_entry(dbg_snapshot_irq_entry, NULL))
-			pr_err("dss irq handler start log VH register failed\n");
-		if (register_trace_irq_handler_exit(dbg_snapshot_irq_exit, NULL))
-			pr_err("dss irq handler end log VH register failed\n");
-	}
-
-	if (dss_log_items[DSS_LOG_HRTIMER_ID].entry.enabled) {
-		if (register_trace_hrtimer_expire_entry(dbg_snapshot_hrtimer_entry, NULL))
-			pr_err("dss hrtimer entry log VH register failed\n");
-		if (register_trace_hrtimer_expire_exit(dbg_snapshot_hrtimer_exit, NULL))
-			pr_err("dss hrtimer exit log VH register failed\n");
-	}
-#endif /* DEBUG_SNAPSHOT_LOGGING_USING_EXTRA_TRACEPOINTS */
 }
 
 void dbg_snapshot_start_log(void)

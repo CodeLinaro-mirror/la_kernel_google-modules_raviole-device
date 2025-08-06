@@ -9,7 +9,6 @@ aoc_channel_dev.ko
 aoc_char_dev.ko
 aoc_control_dev.ko
 aoc_core.ko
-aoc_tbn_service_dev.ko
 aoc_uwb_platform_drv.ko
 aoc_uwb_service_dev.ko
 arm-memlat-mon.ko
@@ -17,7 +16,9 @@ arm_dsu_pmu.ko
 at24.ko
 audiometrics.ko
 bc_max77759.ko
+bcm47765.ko
 bcm_dbg.ko
+bigwave.ko
 boot_control_sysfs.ko
 boot_device_spi.ko
 bts.ko
@@ -84,6 +85,7 @@ gsc-spi.ko
 gvotable.ko
 hardlockup-debug.ko
 hardlockup-watchdog.ko
+heatmap.ko
 i2c-acpm.ko
 i2c-dev.ko
 i2c-exynos5.ko
@@ -101,7 +103,9 @@ max77729-pmic.ko
 max77729_charger.ko
 max77729_uic.ko
 max77759-charger.ko
+max777x9_contaminant.ko
 max77759_contaminant.ko
+max77779_contaminant.ko
 max77759_helper.ko
 max77779-charger.ko
 max77779-fg.ko
@@ -172,10 +176,15 @@ softdog.ko
 spi-s3c64xx.ko
 spidev.ko
 sscoredump.ko
+st33spi.ko
+st54spi.ko
 sysrq-hook.ko
 systrace.ko
 tcpci_fusb307.ko
 tcpci_max77759.ko
+google_tcpci_shim.ko
+touch_bus_negotiator.ko
+touch_offload.ko
 trusty-core.ko
 trusty-ipc.ko
 trusty-log.ko
@@ -188,6 +197,7 @@ usb_psy.ko
 usbc_cooling_dev.ko
 vh_cgroup.ko
 vh_fs.ko
+vh_mm.ko
 vh_preemptirq_long.ko
 vh_sched.ko
 vh_thermal.ko

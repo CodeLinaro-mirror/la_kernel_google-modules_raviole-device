@@ -19,6 +19,7 @@
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
+#include <linux/kvm_host.h>
 #include <linux/module.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of.h>
@@ -45,11 +46,23 @@
 
 //#include <soc/samsung/exynos-cpupm.h>
 #include <soc/google/exynos-el3_mon.h>
-#include <soc/google/pkvm-s2mpu.h>
 
 static void __iomem *usbdp_combo_phy_reg;
 void __iomem *phycon_base_addr;
 EXPORT_SYMBOL_GPL(phycon_base_addr);
+
+static int (*s2mpu_notify)(struct device *dev, bool on);
+
+int exynos_usbdrd_set_s2mpu_pm_ops(int (*cb)(struct device *dev, bool on))
+{
+	/*
+	 * Paired with smp_load_acquire(&s2mpu_notify),
+	 * Ensure memory stores hapenning during module init
+	 * are observed before executing the callback.
+	 */
+	return cmpxchg_release(&s2mpu_notify, NULL, cb) ? -EBUSY : 0;
+}
+EXPORT_SYMBOL_GPL(exynos_usbdrd_set_s2mpu_pm_ops);
 
 /*u32 get_speed_and_disu1u2(void);*/
 
@@ -1991,9 +2004,7 @@ static int exynos_usbdrd_phy_power_off(struct phy *phy)
 int exynos_usbdrd_s2mpu_manual_control(bool on)
 {
 	struct exynos_usbdrd_phy *phy_drd;
-
-	if (!IS_ENABLED(CONFIG_PKVM_S2MPU))
-		return 0;
+	int (*__s2mpu_notify)(struct device *dev, bool on);
 
 	pr_debug("%s s2mpu = %d\n", __func__, on);
 
@@ -2003,11 +2014,14 @@ int exynos_usbdrd_s2mpu_manual_control(bool on)
 		return -ENODEV;
 	}
 
-	if (!phy_drd->s2mpu)
+	/* Paired with cmpxchg_release in exynos_usbdrd_set_s2mpu_pm_ops. */
+	__s2mpu_notify = smp_load_acquire(&s2mpu_notify);
+	if (!phy_drd->s2mpu || !__s2mpu_notify)
 		return 0;
 
-	return on ? pkvm_s2mpu_resume(phy_drd->s2mpu)
-		  : pkvm_s2mpu_suspend(phy_drd->s2mpu);
+	__s2mpu_notify(phy_drd->s2mpu, on);
+
+	return 0;
 }
 EXPORT_SYMBOL_GPL(exynos_usbdrd_s2mpu_manual_control);
 
@@ -2034,6 +2048,12 @@ int exynos_usbdrd_pipe3_disable(struct phy *phy)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(exynos_usbdrd_pipe3_disable);
+
+void exynos_usbdrd_usbdp_tca_set(struct phy *phy, int mux, int low_power_en)
+{
+	return;
+}
+EXPORT_SYMBOL_GPL(exynos_usbdrd_usbdp_tca_set);
 
 static struct phy *exynos_usbdrd_phy_xlate(struct device *dev,
 					   const struct of_phandle_args *args)
@@ -2133,32 +2153,34 @@ static int exynos_usbdrd_phy_probe(struct platform_device *pdev)
 	struct regmap *reg_pmu;
 	struct device_node *syscon_np __free(device_node) = NULL;
 	struct resource pmu_res;
-	struct device *s2mpu = NULL;
+	struct platform_device *s2mpu_pdev;
+	struct device_node *s2mpu_np;
 	u32 pmu_offset, pmu_offset_dp, pmu_offset_tcxo;
 	u32 pmu_mask, pmu_mask_tcxo, pmu_mask_pll;
 	int i, ret;
 
-	if (IS_ENABLED(CONFIG_PKVM_S2MPU)) {
-		s2mpu = pkvm_s2mpu_of_parse(dev);
-		if (IS_ERR(s2mpu))
-			return PTR_ERR(s2mpu);
-		if (s2mpu && !pkvm_s2mpu_ready(s2mpu))
-			return -EPROBE_DEFER;
-	}
-
+#if IS_ENABLED(CONFIG_EXYNOS_PD_HSI0)
 	if (!exynos_pd_hsi0_get_ldo_status()) {
 		dev_err(dev, "pd-hsi0 is not powered, deferred probe!");
 		return -EPROBE_DEFER;
 	}
+#endif
 
 	pr_info("%s: +++ %s %s\n", __func__, dev->init_name, pdev->name);
 	phy_drd = devm_kzalloc(dev, sizeof(*phy_drd), GFP_KERNEL);
 	if (!phy_drd)
 		return -ENOMEM;
 
+	s2mpu_np = of_parse_phandle(dev->of_node, "s2mpu", 0);
+	if (s2mpu_np) {
+		s2mpu_pdev = of_find_device_by_node(s2mpu_np);
+		of_node_put(s2mpu_np);
+		if (s2mpu_pdev)
+			phy_drd->s2mpu = &s2mpu_pdev->dev;
+	}
+
 	dev_set_drvdata(dev, phy_drd);
 	phy_drd->dev = dev;
-	phy_drd->s2mpu = s2mpu;
 
 	match = of_match_node(exynos_usbdrd_phy_of_match, pdev->dev.of_node);
 

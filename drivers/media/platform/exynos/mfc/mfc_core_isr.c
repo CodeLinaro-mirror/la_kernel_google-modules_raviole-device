@@ -194,8 +194,7 @@ static void __mfc_handle_frame_unused_output(struct mfc_core *core, struct mfc_c
 				UNUSED_TAG);
 
 		dec->ref_buf[dec->refcnt].fd[0] = mfc_buf->vb.vb2_buf.planes[0].m.fd;
-		if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-			dec->refcnt++;
+		dec->refcnt++;
 
 		vb2_buffer_done(&mfc_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
 		mfc_debug(2, "[DPB] dst index [%d][%d] fd: %d is buffer done (not used)\n",
@@ -408,8 +407,6 @@ static struct mfc_buf *__mfc_handle_frame_output_del(struct mfc_core *core,
 			mutex_lock(&ctx->drc_wait_mutex);
 			ctx->wait_state = WAIT_G_FMT;
 			mfc_core_get_img_size(core, ctx, MFC_GET_RESOL_SIZE);
-			dec->disp_res_change++;
-			mfc_debug(2, "[DRC] disp_res_change %d\n", dec->disp_res_change);
 			mfc_set_mb_flag(dst_mb, MFC_FLAG_DISP_RES_CHANGE);
 			mutex_unlock(&ctx->drc_wait_mutex);
 		}
@@ -595,8 +592,7 @@ static void __mfc_handle_released_buf(struct mfc_core *core, struct mfc_ctx *ctx
 			dec->dpb[i].ref = 0;
 			if (dec->dpb[i].queued && (dec->dpb[i].new_fd != -1)) {
 				dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-				if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-					dec->refcnt++;
+				dec->refcnt++;
 				mfc_debug(3, "[REFINFO] Queued DPB[%d] released fd: %d\n",
 						i, dec->dpb[i].fd[0]);
 				dec->dpb[i].fd[0] = dec->dpb[i].new_fd;
@@ -605,8 +601,7 @@ static void __mfc_handle_released_buf(struct mfc_core *core, struct mfc_ctx *ctx
 						i, dec->dpb[i].fd[0]);
 			} else if (!dec->dpb[i].queued) {
 				dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-				if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-					dec->refcnt++;
+				dec->refcnt++;
 				mfc_debug(3, "[REFINFO] Dqueued DPB[%d] released fd: %d\n",
 						i, dec->dpb[i].fd[0]);
 				/*
@@ -632,8 +627,7 @@ static void __mfc_handle_released_buf(struct mfc_core *core, struct mfc_ctx *ctx
 		if (!(dec->dynamic_used & (1UL << i)) && dec->dpb[i].mapcnt
 				&& !dec->dpb[i].queued) {
 			dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-			if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-				dec->refcnt++;
+			dec->refcnt++;
 			mfc_debug(3, "[REFINFO] display DPB[%d] released fd: %d\n",
 					i, dec->dpb[i].fd[0]);
 			dec->dpb_table_used &= ~(1UL << i);

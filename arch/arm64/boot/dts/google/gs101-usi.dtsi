@@ -8,6 +8,7 @@
 
 / {
 	aliases {
+		/* i2c0 and i2c1 are assigned to the acpm_mfd_busses. */
 		i2c0 = &hsi2c_0;
 		i2c1 = &hsi2c_1;
 		i2c2 = &hsi2c_2;

@@ -243,6 +243,7 @@ static void __mfc_dec_change_format_8bit(struct mfc_ctx *ctx)
 	case V4L2_PIX_FMT_YUV420M:
 	case V4L2_PIX_FMT_YUV420N:
 	case V4L2_PIX_FMT_YVU420M:
+	case V4L2_PIX_FMT_YVU420N:
 		/* It is right format */
 		break;
 	case V4L2_PIX_FMT_NV12N_P010:
@@ -285,6 +286,7 @@ static void __mfc_dec_change_format_8bit_422(struct mfc_ctx *ctx)
 	case V4L2_PIX_FMT_NV21M_SBWC_8B:
 	case V4L2_PIX_FMT_NV21M_SBWC_10B:
 	case V4L2_PIX_FMT_YVU420M:
+	case V4L2_PIX_FMT_YVU420N:
 		/* change to CrCb order format */
 		ctx->dst_fmt = __mfc_dec_find_format(ctx, V4L2_PIX_FMT_NV61M);
 		break;
@@ -309,6 +311,7 @@ static void __mfc_dec_change_format_10bit(struct mfc_ctx *ctx)
 		case V4L2_PIX_FMT_NV12N_10B:
 		case V4L2_PIX_FMT_NV12N_SBWC_8B:
 		case V4L2_PIX_FMT_NV12N_SBWC_10B:
+		case V4L2_PIX_FMT_YVU420N:
 			/* change to single plane format */
 			ctx->dst_fmt = __mfc_dec_find_format(ctx, V4L2_PIX_FMT_NV12N_P010);
 			break;
@@ -338,6 +341,7 @@ static void __mfc_dec_change_format_10bit(struct mfc_ctx *ctx)
 		case V4L2_PIX_FMT_NV12N_P010:
 		case V4L2_PIX_FMT_NV12N_SBWC_8B:
 		case V4L2_PIX_FMT_NV12N_SBWC_10B:
+		case V4L2_PIX_FMT_YVU420N:
 			/* change to single plane format */
 			ctx->dst_fmt = __mfc_dec_find_format(ctx, V4L2_PIX_FMT_NV12N_10B);
 			break;
@@ -377,6 +381,7 @@ static void __mfc_dec_change_format_10bit_422(struct mfc_ctx *ctx)
 		case V4L2_PIX_FMT_NV21M_SBWC_8B:
 		case V4L2_PIX_FMT_NV21M_SBWC_10B:
 		case V4L2_PIX_FMT_YVU420M:
+		case V4L2_PIX_FMT_YVU420N:
 			/* change to CrCb order format */
 			ctx->dst_fmt = __mfc_dec_find_format(ctx, V4L2_PIX_FMT_NV61M_P210);
 			break;
@@ -398,6 +403,7 @@ static void __mfc_dec_change_format_10bit_422(struct mfc_ctx *ctx)
 		case V4L2_PIX_FMT_NV21M_SBWC_8B:
 		case V4L2_PIX_FMT_NV21M_SBWC_10B:
 		case V4L2_PIX_FMT_YVU420M:
+		case V4L2_PIX_FMT_YVU420N:
 			/* change to CrCb order format */
 			ctx->dst_fmt = __mfc_dec_find_format(ctx, V4L2_PIX_FMT_NV61M_S10B);
 			break;
@@ -455,65 +461,37 @@ static void __mfc_dec_uncomp_format(struct mfc_ctx *ctx)
 	}
 }
 
-static int __mfc_dec_update_disp_res(struct mfc_ctx *ctx, struct v4l2_format *f)
+static void __mfc_dec_update_pix_format(struct mfc_ctx *ctx, struct v4l2_format *f)
 {
-	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 	struct mfc_dec *dec = ctx->dec_priv;
+	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 	struct mfc_raw_info *raw;
 	int i;
 
-	dec->disp_res_change--;
-	mfc_debug(2, "[DRC] disp_res_change %d\n", dec->disp_res_change);
+	raw = &ctx->raw_buf;
 
-	if (mfc_rm_query_state(ctx, EQUAL_BIGGER, MFCINST_RUNNING)) {
-		mfc_debug(2, "dec update disp_res\n");
-		MFC_TRACE_CTX("** DEC update disp_res\n");
-		raw = &ctx->raw_buf;
+	pix_fmt_mp->width = ctx->img_width;
+	pix_fmt_mp->height = ctx->img_height;
+	pix_fmt_mp->num_planes = ctx->dst_fmt->mem_planes;
 
-		pix_fmt_mp->width = ctx->img_width;
-		pix_fmt_mp->height = ctx->img_height;
-		pix_fmt_mp->num_planes = ctx->dst_fmt->mem_planes;
+	if (dec->is_interlaced)
+		pix_fmt_mp->field = V4L2_FIELD_INTERLACED;
+	else
+		pix_fmt_mp->field = V4L2_FIELD_NONE;
 
-		if (dec->is_interlaced)
-			pix_fmt_mp->field = V4L2_FIELD_INTERLACED;
-		else
-			pix_fmt_mp->field = V4L2_FIELD_NONE;
-
-		pix_fmt_mp->pixelformat = ctx->dst_fmt->fourcc;
-		for (i = 0; i < ctx->dst_fmt->mem_planes; i++) {
-			pix_fmt_mp->plane_fmt[i].bytesperline = raw->stride[i];
-			if (ctx->dst_fmt->mem_planes == 1) {
-				pix_fmt_mp->plane_fmt[i].sizeimage = raw->total_plane_size;
-			} else {
-				if (IS_2BIT_NEED(ctx))
-					pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i]
-						+ raw->plane_size_2bits[i];
-				else
-					pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i];
-			}
+	pix_fmt_mp->pixelformat = ctx->dst_fmt->fourcc;
+	for (i = 0; i < ctx->dst_fmt->mem_planes; i++) {
+		pix_fmt_mp->plane_fmt[i].bytesperline = raw->stride[i];
+		if (ctx->dst_fmt->mem_planes == 1) {
+			pix_fmt_mp->plane_fmt[i].sizeimage = raw->total_plane_size;
+		} else {
+			if (IS_2BIT_NEED(ctx))
+				pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i]
+					+ raw->plane_size_2bits[i];
+			else
+				pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i];
 		}
-
-		/*
-		 * Do not clear WAIT_G_FMT except RUNNING state
-		 * because the resolution change (DRC) case uses WAIT_G_FMT
-		 */
-		if (mfc_rm_query_state(ctx, EQUAL, MFCINST_RUNNING)
-				&& (ctx->wait_state & WAIT_G_FMT) != 0) {
-			ctx->wait_state &= ~(WAIT_G_FMT);
-			mfc_debug(2, "clear WAIT_G_FMT %d\n", ctx->wait_state);
-			MFC_TRACE_CTX("** DEC clear WAIT_G_FMT(wait_state %d)\n", ctx->wait_state);
-		}
-	} else {
-		/*
-		 * In case of HEAD_PARSED state,
-		 * the resolution would be changed and it is not display resolution
-		 * so cannot update display resolution
-		 */
-		mfc_ctx_err("dec update disp_res, wrong state\n");
-		return -EINVAL;
 	}
-
-	return 0;
 }
 
 /* Get format */
@@ -525,9 +503,7 @@ static int mfc_dec_g_fmt_vid_cap_mplane(struct file *file, void *priv,
 	struct mfc_core *core;
 	struct mfc_core_ctx *core_ctx;
 	struct mfc_dec *dec = ctx->dec_priv;
-	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 	struct mfc_raw_info *raw;
-	int i;
 
 	mfc_debug_enter();
 
@@ -541,11 +517,10 @@ static int mfc_dec_g_fmt_vid_cap_mplane(struct file *file, void *priv,
 			core_ctx->state, ctx->wait_state);
 
 	mutex_lock(&ctx->drc_wait_mutex);
-	if (dec->disp_res_change) {
-		if (__mfc_dec_update_disp_res(ctx, f) == 0) {
-			mutex_unlock(&ctx->drc_wait_mutex);
-			return 0;
-		}
+	if (dec->disp_drc.disp_res_change) {
+		__mfc_dec_update_pix_format(ctx, f);
+		mutex_unlock(&ctx->drc_wait_mutex);
+		return 0;
 	}
 	mutex_unlock(&ctx->drc_wait_mutex);
 
@@ -633,30 +608,7 @@ static int mfc_dec_g_fmt_vid_cap_mplane(struct file *file, void *priv,
 			}
 		}
 
-		pix_fmt_mp->width = ctx->img_width;
-		pix_fmt_mp->height = ctx->img_height;
-		pix_fmt_mp->num_planes = ctx->dst_fmt->mem_planes;
-
-		if (dec->is_interlaced)
-			pix_fmt_mp->field = V4L2_FIELD_INTERLACED;
-		else
-			pix_fmt_mp->field = V4L2_FIELD_NONE;
-
-		/* Set pixelformat to the format in which MFC
-		   outputs the decoded frame */
-		pix_fmt_mp->pixelformat = ctx->dst_fmt->fourcc;
-		for (i = 0; i < ctx->dst_fmt->mem_planes; i++) {
-			pix_fmt_mp->plane_fmt[i].bytesperline = raw->stride[i];
-			if (ctx->dst_fmt->mem_planes == 1) {
-				pix_fmt_mp->plane_fmt[i].sizeimage = raw->total_plane_size;
-			} else {
-				if (IS_2BIT_NEED(ctx))
-					pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i]
-						+ raw->plane_size_2bits[i];
-				else
-					pix_fmt_mp->plane_fmt[i].sizeimage = raw->plane_size[i];
-			}
-		}
+		__mfc_dec_update_pix_format(ctx, f);
 	}
 
 	mutex_lock(&ctx->drc_wait_mutex);
@@ -1487,6 +1439,38 @@ static int __mfc_dec_set_param(struct mfc_ctx *ctx, struct v4l2_control *ctrl)
 	return 0;
 }
 
+static void __mfc_dec_update_disp_res(struct mfc_ctx *ctx, struct v4l2_selection *s)
+{
+	struct mfc_dec *dec = ctx->dec_priv;
+
+	s->r.left = 0;
+	s->r.top = 0;
+	s->r.width = dec->disp_drc.width[dec->disp_drc.pop_idx];
+	s->r.height = dec->disp_drc.height[dec->disp_drc.pop_idx];
+	mfc_debug(2, "[FRAME] Composing info: w=%d h=%d\n", s->r.width, s->r.height);
+
+	dec->disp_drc.disp_res_change--;
+	mfc_debug(3, "[DRC] disp_res_change[%d] count %d\n",
+			dec->disp_drc.pop_idx, dec->disp_drc.disp_res_change);
+	dec->disp_drc.pop_idx = ++dec->disp_drc.pop_idx % MFC_MAX_DRC_FRAME;
+
+	if (!dec->disp_drc.disp_res_change) {
+		dec->disp_drc.push_idx = 0;
+		dec->disp_drc.pop_idx = 0;
+	}
+
+	/*
+	 * Do not clear WAIT_G_FMT except RUNNING state
+	 * because the resolution change (DRC) case uses WAIT_G_FMT
+	 */
+	if (mfc_rm_query_state(ctx, EQUAL, MFCINST_RUNNING)
+			&& (ctx->wait_state & WAIT_G_FMT) != 0) {
+		ctx->wait_state &= ~(WAIT_G_FMT);
+		mfc_debug(2, "clear WAIT_G_FMT %d\n", ctx->wait_state);
+		MFC_TRACE_CTX("** DEC clear WAIT_G_FMT(wait_state %d)\n", ctx->wait_state);
+	}
+}
+
 /* Get cropping information */
 static int mfc_dec_g_selection(struct file *file, void *priv,
 		struct v4l2_selection *s)
@@ -1504,6 +1488,14 @@ static int mfc_dec_g_selection(struct file *file, void *priv,
 
 	core = mfc_get_main_core_wait(dev, ctx);
 	core_ctx = core->core_ctx[ctx->num];
+
+	mutex_lock(&ctx->drc_wait_mutex);
+	if (dec->disp_drc.disp_res_change) {
+		__mfc_dec_update_disp_res(ctx, s);
+		mutex_unlock(&ctx->drc_wait_mutex);
+		return 0;
+	}
+	mutex_unlock(&ctx->drc_wait_mutex);
 
 	if (!ready_to_get_crop(core_ctx)) {
 		mfc_ctx_err("ready to get compose failed\n");

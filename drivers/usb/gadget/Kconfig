@@ -39,5 +39,4 @@ config USB_CONFIGFS_F_ETR_MIU
 	  via ETR_MIU. The function has an interface with two alternate settings.
 	  Alt0 setting is idle mode. Alt1 setting is data transfer mode. USB host
 	  must set Alt1 before attempting to download trace data.
-
 endif # USB_GADGET

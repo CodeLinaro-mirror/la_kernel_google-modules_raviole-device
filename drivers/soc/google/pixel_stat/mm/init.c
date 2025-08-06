@@ -17,9 +17,9 @@ extern void vh_rmqueue_mod(void *data, struct zone *preferred_zone,
 		struct zone *zone, unsigned int order, gfp_t gfp_flags,
 		unsigned int alloc_flags, int migratetype);
 extern int pixel_mm_sysfs(void);
-extern void vh_pagecache_get_page_mod(void *data,
+extern void vh_filemap_get_folio_mod(void *data,
 		struct address_space *mapping, pgoff_t index,
-		int fgp_flags, gfp_t gfp_mask, struct page *page);
+		int fgp_flags, gfp_t gfp_mask, struct folio *folio);
 
 static int pixel_stat_mm_init(void)
 {
@@ -29,16 +29,16 @@ static int pixel_stat_mm_init(void)
 	if (ret)
 		return ret;
 
-	/* TODO: these were removed. Do you need them still?
 	ret = register_trace_android_vh_rmqueue(vh_rmqueue_mod, NULL);
 	if (ret)
 		return ret;
 
-	ret = register_trace_android_vh_pagecache_get_page(
-				vh_pagecache_get_page_mod, NULL);
+	ret = register_trace_android_vh_filemap_get_folio(
+				vh_filemap_get_folio_mod, NULL);
 	if (ret)
 		return ret;
 
+        /* TODO: Should enable once the cma_alloc vendor hooks are merged in AOSP
 	ret = register_trace_android_vh_cma_alloc_start(vh_cma_alloc_start, NULL);
 	if (ret)
 		return ret;
@@ -46,6 +46,7 @@ static int pixel_stat_mm_init(void)
 	ret = register_trace_android_vh_cma_alloc_finish(vh_cma_alloc_finish, NULL);
 	if (ret)
 		return ret;
+        */
 
 	ret = register_trace_android_vh_meminfo_proc_show(vh_meminfo_proc_show, NULL);
 
@@ -63,7 +64,6 @@ static int pixel_stat_mm_init(void)
 		return ret;
 
 	ret = register_trace_android_vh_mm_compaction_end(vh_compaction_end, NULL);
-	*/
 
 	return 0;
 }

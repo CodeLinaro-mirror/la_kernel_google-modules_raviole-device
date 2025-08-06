@@ -240,7 +240,7 @@ static void slc_acpm_check(struct slc_acpm_driver_data *driver_data)
 			 */
 			break;
 		}
-		dev_dbg(&driver_data->pdev->dev,
+		dev_info(&driver_data->pdev->dev,
 			 "ptid %d size %dK\n",
 			 ptid, 4 * size4kB);
 		if (!driver_data->ptids[ptid].resize) {
@@ -366,7 +366,7 @@ static ptid_t slc_acpm_alloc(void *data, int property_index, void *resize_data,
 
 	slc_acpm_check(driver_data);
 
-	dev_dbg(&driver_data->pdev->dev, "allocated ptid %d\n", ptid);
+	dev_info(&driver_data->pdev->dev, "allocated ptid %d\n", ptid);
 	return (int)ptid;
 }
 
@@ -441,7 +441,7 @@ static void slc_acpm_enable(void *data, ptid_t ptid)
 		return;
 	slc_acpm_apply(driver_data, ptid, false);
 	slc_acpm_check(driver_data);
-	dev_dbg(&driver_data->pdev->dev, "enabled ptid %d\n", ptid);
+	dev_info(&driver_data->pdev->dev, "enabled ptid %d\n", ptid);
 }
 
 static void slc_acpm_disable(void *data, ptid_t ptid)

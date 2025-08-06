@@ -12,13 +12,13 @@
 #include <linux/bio.h>
 #include <linux/swap.h>
 
+#include "zram_drv.h"
+
 #define CREATE_TRACE_POINTS
 #include <trace/events/zram.h>
 
-#include "zram_drv.h"
 #include "zcomp.h"
 
-#define ZCOMP_ALGO_NAME_MAX 64
 /* The 32 is align with SWAP_CLUSTER_MAX and BLK_MAX_REQUEST_COUNT */
 #define ZRAM_BLK_MAX_REQUEST_COUNT 32
 
@@ -500,8 +500,8 @@ int zcomp_copy_buffer(int err, void *buffer, int comp_len,
 			__GFP_HIGHMEM |
 			__GFP_MOVABLE |
 			__GFP_CMA);
-	if (!handle) {
-		err = -ENOMEM;
+	if (IS_ERR((void *)handle)) {
+		err = PTR_ERR((void *)handle);
 		goto out;
 	}
 

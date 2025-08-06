@@ -58,7 +58,7 @@ static int chunk_heap_buffer_allocate(struct cma *cma, unsigned int need_count,
 			nr_chunks_per_alloc >>= 1;
 		}
 
-		page = cma_alloc(cma, 1 << alloc_order, alloc_order, gfp_flags);
+		page = __cma_alloc(cma, 1 << alloc_order, alloc_order, gfp_flags);
 		if (!page) {
 			/* Try without GFP_NORETRY first */
 			if (gfp_flags & __GFP_NORETRY) {
@@ -191,6 +191,7 @@ static struct dma_buf *chunk_heap_allocate(struct dma_heap *heap, unsigned long 
 		buffer->priv = chunk_heap_protect(buffer, chunk_size, pages, nr_chunks);
 		if (IS_ERR(buffer->priv)) {
 			ret = PTR_ERR(buffer->priv);
+			buffer->priv = NULL;
 			goto err_prot;
 		}
 	}

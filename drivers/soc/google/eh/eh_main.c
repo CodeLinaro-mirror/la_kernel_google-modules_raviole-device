@@ -694,7 +694,6 @@ static int eh_comp_thread(void *data)
 		bool slept = false;
 
 		wait_event_freezable(eh_dev->comp_wq, ready_to_run(eh_dev, &slept));
-
 		/*
 		 * The condition check above is racy so the schedule
 		 * couldn't schedule out the process but it should be
@@ -943,7 +942,7 @@ static int eh_hw_init(struct eh_device *eh_dev, unsigned short fifo_size,
 	 * couldn't support if the number of CPUs is greater than the number
 	 * of decompression command register.
 	 */
-	if (eh_dev->decompr_cmd_count > num_possible_cpus()) {
+	if (eh_dev->decompr_cmd_count < num_possible_cpus()) {
 		pr_err("Too many cpus to support EH decompresion: cpus %d decopmrcmd %d\n",
 		       num_possible_cpus(), eh_dev->decompr_cmd_count);
 		ret = -EINVAL;

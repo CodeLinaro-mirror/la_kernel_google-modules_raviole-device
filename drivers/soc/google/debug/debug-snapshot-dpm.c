@@ -197,6 +197,8 @@ static void dbg_snapshot_dt_scan_dpm_feature(struct device_node *node)
 {
 	struct device_node *item __free(device_node);
 	unsigned int val;
+	struct property *prop;
+	const char *method;
 
 	dss_dpm.enabled_debug = false;
 	dss_dpm.dump_mode = NONE_DUMP;
@@ -239,6 +241,14 @@ static void dbg_snapshot_dt_scan_dpm_feature(struct device_node *node)
 		goto exit_dss;
 	}
 
+	of_property_for_each_string(item, "method", prop, method) {
+		if (!method) {
+			pr_warn("dpm: No such methods of kevents\n");
+			goto exit_dss;
+		}
+
+		dbg_snapshot_set_enable_log_item(method, true);
+	}
 	of_node_put(item);
 
 	/* balance of_node_put() in of_find_node_by_name() */

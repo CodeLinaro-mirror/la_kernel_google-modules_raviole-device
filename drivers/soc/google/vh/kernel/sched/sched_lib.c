@@ -5,109 +5,57 @@
  *
  * Copyright 2021 Google LLC
  */
+
 #include <linux/sched.h>
+#include <linux/sched/cputime.h>
 #include <kernel/sched/sched.h>
+#include <../../../vh/include/sched.h>
 
 #define LIB_PATH_LENGTH 512
 static char sched_lib_name[LIB_PATH_LENGTH];
-unsigned int sched_lib_cpu_freq_cached_val;
-unsigned int sched_lib_freq_cpumask;
-unsigned int sched_lib_affinity_val;
+unsigned long sched_lib_mask_out_val;
+unsigned long sched_lib_mask_in_val;
 
-static DEFINE_SPINLOCK(__sched_lib_name_lock);
+static DEFINE_MUTEX(__sched_lib_name_mutex);
 
 ssize_t sched_lib_name_store(struct file *filp,
-				const char __user *ubuffer, size_t count,
-				loff_t *ppos)
+			     const char __user *ubuffer, size_t count,
+			     loff_t *ppos)
 {
-	size_t null_idx = count > 0 ? count - 1 : 0;
-	if (null_idx >= sizeof(sched_lib_name))
+	if (count >= sizeof(sched_lib_name))
 		return -EINVAL;
 
-	spin_lock(&__sched_lib_name_lock);
+	mutex_lock(&__sched_lib_name_mutex);
 
 	if (copy_from_user(sched_lib_name, ubuffer, count)) {
-		spin_unlock(&__sched_lib_name_lock);
+		sched_lib_name[0] = '\0';
+		mutex_unlock(&__sched_lib_name_mutex);
 		return -EFAULT;
 	}
 
-	sched_lib_name[null_idx] = '\0';
-	spin_unlock(&__sched_lib_name_lock);
+	sched_lib_name[count] = '\0';
+	mutex_unlock(&__sched_lib_name_mutex);
 	return count;
 }
 
-sched_lib_name_show(struct seq_file *m, void *v)
+int sched_lib_name_show(struct seq_file *m, void *v)
 {
-	spin_lock(&__sched_lib_name_lock);
+	mutex_lock(&__sched_lib_name_mutex);
 	seq_printf(m, "%s\n", sched_lib_name);
-	spin_unlock(&__sched_lib_name_lock);
+	mutex_unlock(&__sched_lib_name_mutex);
 	return 0;
-}
-
-static bool is_sched_lib_based_task_name(char const *sched_lib_name_list, char const *name)
-{
-	int length_name;
-	int length_sched_lib_name_list;
-
-	length_name = strnlen(name, LIB_PATH_LENGTH);
-	if (!length_name)
-		return false;
-
-	length_sched_lib_name_list = strnlen(sched_lib_name_list, LIB_PATH_LENGTH);
-	if (!length_sched_lib_name_list)
-		return false;
-
-	if (!strnstr(sched_lib_name_list, name, length_sched_lib_name_list))
-		return false;
-	return true;
-}
-
-
-static inline bool is_sched_lib_based_task(struct task_struct *task)
-{
-	bool found = false;
-	char *tmp_lib_name;
-	struct task_struct *list_entry_task;
-
-	/* Copy lib name list into place */
-	spin_lock(&__sched_lib_name_lock);
-	if (strnlen(sched_lib_name, LIB_PATH_LENGTH) == 0) {
-		spin_unlock(&__sched_lib_name_lock);
-		return false;
-	}
-
-	tmp_lib_name = kstrdup(sched_lib_name, GFP_KERNEL);
-	spin_unlock(&__sched_lib_name_lock);
-	if (!tmp_lib_name) {
-		return false;
-	}
-
-	/* Check task name equal to any of the sched_lib_name list. */
-	found = is_sched_lib_based_task_name(tmp_lib_name, task->comm);
-	if (found)
-		goto free_up_tmp_lib_name;
-
-	/* Check task name of every thread in group */
-	rcu_read_lock();
-	for_each_thread(task, list_entry_task) {
-		if (is_sched_lib_based_task_name(tmp_lib_name, list_entry_task->comm)) {
-			found = true;
-			break;
-		}
-	}
-	rcu_read_unlock();
-free_up_tmp_lib_name:
-	kfree(tmp_lib_name);
-	return found;
 }
 
 static bool is_sched_lib_based_app(pid_t pid)
 {
-	bool found;
+	const char *name = NULL;
+	struct vm_area_struct *vma;
+	char path_buf[LIB_PATH_LENGTH];
+	char tmp_lib_name[LIB_PATH_LENGTH];
+	bool found = false;
 	struct task_struct *p;
-
-	if (strnlen(sched_lib_name, LIB_PATH_LENGTH) == 0)
-		return false;
+	struct mm_struct *mm;
+	struct vendor_task_struct *vp;
 
 	rcu_read_lock();
 	p = pid ? get_pid_task(find_vpid(pid), PIDTYPE_PID) : get_task_struct(current);
@@ -115,44 +63,64 @@ static bool is_sched_lib_based_app(pid_t pid)
 	if (!p)
 		return false;
 
-	found = is_sched_lib_based_task(p);
+	// top app
+	vp = get_vendor_task_struct(p);
+	if (!vp || ((vp->group != VG_TOPAPP) && (vp->group != VG_FOREGROUND)))
+		goto put_task_struct;
 
+	// Copy lib name for thread safe access
+	mutex_lock(&__sched_lib_name_mutex);
+	if (strnlen(sched_lib_name, LIB_PATH_LENGTH) == 0)
+		goto put_task_struct;
+	strscpy(tmp_lib_name, sched_lib_name, sizeof(tmp_lib_name));
+	mutex_unlock(&__sched_lib_name_mutex);
+
+	mm = get_task_mm(p);
+	if (!mm)
+		goto put_task_struct;
+
+	down_read(&mm->mmap_lock);
+	for (vma = mm->mmap; vma ; vma = vma->vm_next) {
+		if (vma->vm_file && vma->vm_flags & VM_EXEC) {
+			name = d_path(&vma->vm_file->f_path,
+					path_buf, LIB_PATH_LENGTH);
+			if (IS_ERR(name))
+				goto release_sem;
+
+			if (strnstr(name, tmp_lib_name, strnlen(name, LIB_PATH_LENGTH))) {
+				found = true;
+				goto release_sem;
+			}
+		}
+	}
+
+release_sem:
+	up_read(&mm->mmap_lock);
+	mmput(mm);
+put_task_struct:
 	put_task_struct(p);
 	return found;
 }
 
-void android_vh_show_max_freq(void *unused, struct cpufreq_policy *policy,
-				     unsigned int *max_freq)
+void rvh_sched_setaffinity_mod(void *data, struct task_struct *task,
+				struct cpumask *in_mask, int *res)
 {
-	bool is_app;
-	unsigned int the_bit;
-	if ((!sched_lib_freq_cpumask) || (!sched_lib_cpu_freq_cached_val))
-		return;
-	the_bit = BIT(policy->cpu);
-	if (!(the_bit & sched_lib_freq_cpumask))
+	if (*res != 0)
 		return;
 
-	is_app = is_sched_lib_based_app(current->pid);
-	if (is_app)
-		*max_freq = sched_lib_cpu_freq_cached_val << 1;
-
-	pr_debug("sched_lib show_max_freq returning %u, pid %d, is_app %s, cpu %d, bit %d\n",
-		(*max_freq), current->pid, is_app ? "true" : "false", policy->cpu, the_bit);
-}
-
-void vh_sched_setaffinity_mod(void *data, struct task_struct *task,
-				const struct cpumask *in_mask, int *skip)
-{
-	bool is_sched;
-	if (!sched_lib_affinity_val)
+	if (!(sched_lib_mask_in_val && sched_lib_mask_out_val))
 		return;
 
-	is_sched = is_sched_lib_based_task(task);
-	if (is_sched)
-		*skip = 1;
+	if (in_mask->bits[0] != sched_lib_mask_in_val)
+		return;
 
-	pr_debug("sched_lib setaffinity task %5d, cpumask %*pb, skip %s, is_sched %s\n",
-		task_pid_nr(task), cpumask_pr_args(in_mask), (*skip)?"True":"False",
-		is_sched?"True":"False");
+	if (!is_sched_lib_based_app(current->pid))
+		return;
+
+	in_mask->bits[0] = sched_lib_mask_out_val;
+	set_cpus_allowed_ptr(task, in_mask);
+
+	pr_debug("schedlib setaff tid: %d, mask out: %*pb\n",
+		 task_pid_nr(task), cpumask_pr_args(in_mask));
 }
 

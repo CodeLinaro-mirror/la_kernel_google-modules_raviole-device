@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 
 subdir-ccflags-y += \
+		-Wno-missing-prototypes \
 		-I$(src)/include \
 		-I$(src)/include/uapi \
+		-I$(srctree)/../private/google-modules/trusty/include \
 		-I$(srctree)/../private/google-modules/bms
 
 obj-y += drivers/phy/
@@ -62,3 +64,5 @@ obj-y += drivers/devfreq/google/
 obj-y += drivers/iio/
 
 obj-y += drivers/bts/
+
+obj-y += drivers/block/zram/

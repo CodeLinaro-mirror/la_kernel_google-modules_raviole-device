@@ -53,7 +53,7 @@ void heap_cache_flush(struct samsung_dma_buffer *buffer)
 	 * to the protected area.
 	 */
 	dma_map_sgtable(dev, &buffer->sg_table, DMA_TO_DEVICE, 0);
-	dma_unmap_sgtable(dev, &buffer->sg_table, DMA_FROM_DEVICE, 0);
+	dma_unmap_sgtable(dev, &buffer->sg_table, DMA_TO_DEVICE, 0);
 }
 
 void heap_sgtable_pages_clean(struct sg_table *sgt)
@@ -370,6 +370,18 @@ void trusty_register_dma_buf_callbacks(void)
 #endif
 }
 
+unsigned long dma_heap_inuse_pages(void)
+{
+	return dma_heap_system_inuse_pages() + dma_heap_gcma_inuse_pages();
+}
+EXPORT_SYMBOL_GPL(dma_heap_inuse_pages);
+
+unsigned long dma_heap_pool_pages(void)
+{
+	return dma_heap_system_pool_pages();
+}
+EXPORT_SYMBOL_GPL(dma_heap_pool_pages);
+
 static int __init samsung_dma_heap_init(void)
 {
 	int ret;
@@ -388,12 +400,18 @@ static int __init samsung_dma_heap_init(void)
 	if (ret)
 		goto err_carveout;
 
+	ret = gcma_dma_heap_init();
+	if (ret)
+		goto err_gcma;
+
 	ret = system_dma_heap_init();
 	if (ret)
 		goto err_system;
 
 	return 0;
 err_system:
+	gcma_dma_heap_exit();
+err_gcma:
 	carveout_dma_heap_exit();
 err_carveout:
 	cma_dma_heap_exit();

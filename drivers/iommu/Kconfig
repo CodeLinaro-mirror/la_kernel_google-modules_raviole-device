@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0-only
 if IOMMU_SUPPORT
 
+config KVM_DUMMY_IOMMU
+	tristate "KVM Dummy IOMMU Support"
+	help
+	  Support for KVM Dummy IOMMU.
+
 config SAMSUNG_IOMMU
 	tristate "Samsung IOMMU Support"
 	select ARM_DMA_USE_IOMMU

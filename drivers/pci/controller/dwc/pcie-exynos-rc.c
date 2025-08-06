@@ -84,7 +84,6 @@ static struct exynos_pm_qos_request exynos_pcie_int_qos[MAX_RC_NUM];
 #define pcie_ch_to_hsi(ch_num)	((ch_num) + 1)
 #if IS_ENABLED(CONFIG_GS_S2MPU) || IS_ENABLED(CONFIG_EXYNOS_PCIE_IOMMU)
 static const struct dma_map_ops pcie_dma_ops;
-static struct device fake_dma_dev;
 #define to_pci_dev_from_dev(dev) container_of((dev), struct pci_dev, dev)
 
 #define MODEM_CH_NUM    0
@@ -224,6 +223,28 @@ void s2mpu_update_refcnt(struct device *dev,
 }
 #endif
 
+/*
+ * Copies the parameters that are used when allocating/mapping DMA
+ * memory to the target device. This is necessary so that the target
+ * device can allocate memory through the direct DMA ops with the correct
+ * DMA parameters (i.e. coherency settings and DMA mask).
+ */
+static void exynos_pcie_rc_copy_dma_params(struct exynos_pcie *exynos_pcie)
+{
+	struct device *epdev = &exynos_pcie->ep_pci_dev->dev;
+	struct device *target_dev = &exynos_pcie->dup_ep_dev;
+
+	/* to avoid a recursive loop from
+	 * dma_alloc(epdev)->pcie_dma_alloc(epdev)->dma_alloc(target_dev)
+	 * set dma_ops for target_dev to NULL.
+	 */
+	set_dma_ops(target_dev, NULL);
+	target_dev->dma_mask = epdev->dma_mask;
+	target_dev->coherent_dma_mask = epdev->coherent_dma_mask;
+	target_dev->dma_parms = epdev->dma_parms;
+	target_dev->dma_coherent = epdev->dma_coherent;
+}
+
 static int get_ch_num(struct pci_dev *epdev)
 {
 	int ch_num = WIFI_CH_NUM;
@@ -239,12 +260,29 @@ static void *pcie_dma_alloc_attrs(struct device *dev, size_t size,
 {
 	void *cpu_addr;
 	struct pci_dev *epdev = to_pci_dev_from_dev(dev);
-	int ch_num = get_ch_num(epdev);
-	struct exynos_pcie *exynos_pcie = &g_pcie_rc[ch_num];
-	int ret;
+	int ch_num = 0;
+	struct exynos_pcie *exynos_pcie;
+	int ret = 0;
 
-	cpu_addr = dma_alloc_attrs(&fake_dma_dev, size,
+	if (unlikely(dev == NULL)) {
+		pr_err("EP device is NULL!!!\n");
+		return NULL;
+	}
+	ch_num = get_ch_num(epdev);
+
+	exynos_pcie = &g_pcie_rc[ch_num];
+
+	/* this is needed to ensure that the dup device is setup after the
+	 * end point had setup the DMA mask
+	 */
+	if (exynos_pcie->copy_dup_ep == 0) {
+		exynos_pcie_rc_copy_dma_params(exynos_pcie);
+		exynos_pcie->copy_dup_ep = 1;
+	}
+
+	cpu_addr = dma_alloc_attrs(&exynos_pcie->dup_ep_dev, size,
 				   dma_handle, flag, attrs);
+
 	if (exynos_pcie->s2mpu) {
 		s2mpu_update_refcnt(dev, *dma_handle, size, true, DMA_BIDIRECTIONAL);
 	} else if (exynos_pcie->use_sysmmu) {
@@ -252,7 +290,7 @@ static void *pcie_dma_alloc_attrs(struct device *dev, size_t size,
 				     DMA_BIDIRECTIONAL, pcie_ch_to_hsi(ch_num));
 		if (ret != 0) {
 			pr_err("Can't map PCIe SysMMU table!\n");
-			dma_free_attrs(&fake_dma_dev, size,
+			dma_free_attrs(&exynos_pcie->dup_ep_dev, size,
 				       cpu_addr, *dma_handle, attrs);
 			return NULL;
 		}
@@ -266,10 +304,18 @@ static void pcie_dma_free_attrs(struct device *dev, size_t size,
 				unsigned long attrs)
 {
 	struct pci_dev *epdev = to_pci_dev_from_dev(dev);
-	int ch_num = get_ch_num(epdev);
-	struct exynos_pcie *exynos_pcie = &g_pcie_rc[ch_num];
+	int ch_num = 0;
+	struct exynos_pcie *exynos_pcie;
 
-	dma_free_attrs(&fake_dma_dev, size, cpu_addr, dma_addr, attrs);
+	if (unlikely(dev == NULL)) {
+		pr_err("EP device is NULL!!!\n");
+		return;
+	}
+	ch_num = get_ch_num(epdev);
+
+	exynos_pcie = &g_pcie_rc[ch_num];
+
+	dma_free_attrs(&exynos_pcie->dup_ep_dev, size, cpu_addr, dma_addr, attrs);
 	if (exynos_pcie->s2mpu)
 		s2mpu_update_refcnt(dev, dma_addr, size, false, DMA_BIDIRECTIONAL);
 	else if (exynos_pcie->use_sysmmu)
@@ -282,12 +328,20 @@ static dma_addr_t pcie_dma_map_page(struct device *dev, struct page *page,
 				    unsigned long attrs)
 {
 	struct pci_dev *epdev = to_pci_dev_from_dev(dev);
-	int ch_num = get_ch_num(epdev);
-	struct exynos_pcie *exynos_pcie = &g_pcie_rc[ch_num];
+	int ch_num = 0;
+	struct exynos_pcie *exynos_pcie;
 	dma_addr_t dma_addr;
-	int ret;
+	int ret = 0;
 
-	dma_addr = dma_map_page_attrs(&fake_dma_dev, page, offset,
+	if (unlikely(dev == NULL)) {
+		pr_err("EP device is NULL!!!\n");
+		return -EINVAL;
+	}
+	ch_num = get_ch_num(epdev);
+
+	exynos_pcie = &g_pcie_rc[ch_num];
+
+	dma_addr = dma_map_page_attrs(&exynos_pcie->dup_ep_dev, page, offset,
 				      size, dir, attrs);
 	if (exynos_pcie->s2mpu) {
 		s2mpu_update_refcnt(dev, dma_addr, size, true, dir);
@@ -307,10 +361,18 @@ static void pcie_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
 				unsigned long attrs)
 {
 	struct pci_dev *epdev = to_pci_dev_from_dev(dev);
-	int ch_num = get_ch_num(epdev);
-	struct exynos_pcie *exynos_pcie = &g_pcie_rc[ch_num];
+	int ch_num = 0;
+	struct exynos_pcie *exynos_pcie;
 
-	dma_unmap_page_attrs(&fake_dma_dev, dma_addr, size, dir, attrs);
+	if (unlikely(dev == NULL)) {
+		pr_err("EP device is NULL!!!\n");
+		return;
+	}
+	ch_num = get_ch_num(epdev);
+
+	exynos_pcie = &g_pcie_rc[ch_num];
+
+	dma_unmap_page_attrs(&exynos_pcie->dup_ep_dev, dma_addr, size, dir, attrs);
 
 	if (exynos_pcie->s2mpu)
 		s2mpu_update_refcnt(dev, dma_addr, size, false, dir);
@@ -2677,6 +2739,8 @@ void exynos_pcie_rc_resumed_phydown(struct dw_pcie_rp *pp)
 	exynos_pcie_rc_enable_interrupts(pp, 0);
 	exynos_pcie_phy_isolation(exynos_pcie, PCIE_PHY_BYPASS);
 
+	exynos_pcie_rc_assert_phy_reset(pp);
+
 	if (exynos_pcie->phy_ops.phy_all_pwrdn)
 		exynos_pcie->phy_ops.phy_all_pwrdn(exynos_pcie, exynos_pcie->ch_num);
 
@@ -3200,7 +3264,7 @@ retry:
 	if (exynos_pcie->use_cache_coherency)
 		exynos_pcie_rc_set_iocc(pp, 1);
 
-	logbuffer_logk(exynos_pcie->log, LOGLEVEL_INFO, "D state: %x, LTSSM: %x (XO always on)",
+	logbuffer_logk(exynos_pcie->log, LOGLEVEL_INFO, "D state: %x, LTSSM: %x",
 		exynos_elbi_read(exynos_pcie, PCIE_PM_DSTATE) & PCIE_PM_DSTATE_MASK,
 		exynos_elbi_read(exynos_pcie, PCIE_ELBI_RDLH_LINKUP) & PCIE_ELBI_LTSSM_STATE_MASK);
 
@@ -3360,6 +3424,8 @@ int exynos_pcie_rc_poweron(int ch_num)
 		return -ENODEV;
 	}
 
+	mutex_lock(&exynos_pcie->power_onoff_lock);
+
 	pci = exynos_pcie->pci;
 	pp = &pci->pp;
 	dev = pci->dev;
@@ -3415,15 +3481,15 @@ int exynos_pcie_rc_poweron(int ch_num)
 		exynos_pcie->state = STATE_LINK_UP_TRY;
 		spin_unlock_irqrestore(&exynos_pcie->reg_lock, flags);
 
-		exynos_pcie->sudden_linkdown = 0;
-		exynos_pcie->cpl_timeout_recovery = 0;
-
 		enable_irq(pp->irq);
 
 		if (exynos_pcie_rc_establish_link(pp)) {
 			logbuffer_logk(exynos_pcie->log, LOGLEVEL_ERR, "pcie link up fail");
 			goto poweron_fail;
 		}
+
+		exynos_pcie->sudden_linkdown = 0;
+		exynos_pcie->cpl_timeout_recovery = 0;
 
 		val = exynos_elbi_read(exynos_pcie, PCIE_STATE_HISTORY_CHECK);
 		val &= ~(HISTORY_BUFFER_CONDITION_SEL);
@@ -3465,7 +3531,7 @@ int exynos_pcie_rc_poweron(int ch_num)
 				if (ret) {
 					dev_err(dev, "%s: Failed MSI initialization(%d)\n",
 						__func__, ret);
-
+					mutex_unlock(&exynos_pcie->power_onoff_lock);
 					return ret;
 				}
 			}
@@ -3485,8 +3551,6 @@ int exynos_pcie_rc_poweron(int ch_num)
 				if (exynos_pcie->ep_device_type == EP_BCM_WIFI) {
 					set_dma_ops(&exynos_pcie->ep_pci_dev->dev, &pcie_dma_ops);
 					dev_info(dev, "Wifi DMA operations are changed\n");
-					memcpy(&fake_dma_dev, exynos_pcie->pci->dev,
-					       sizeof(fake_dma_dev));
 				}
 			}
 #endif
@@ -3499,7 +3563,7 @@ int exynos_pcie_rc_poweron(int ch_num)
 					logbuffer_logk(exynos_pcie->log, LOGLEVEL_ERR,
 						      "%s: Failed MSI initialization(%d)",
 						      __func__, ret);
-
+					mutex_unlock(&exynos_pcie->power_onoff_lock);
 					return ret;
 				}
 			}
@@ -3517,11 +3581,13 @@ int exynos_pcie_rc_poweron(int ch_num)
 
 	dev_dbg(dev, "end poweron, state: %d\n", exynos_pcie->state);
 	logbuffer_log(exynos_pcie->log, "end poweron, state: %d\n", exynos_pcie->state);
+	mutex_unlock(&exynos_pcie->power_onoff_lock);
 
 	return 0;
 
 poweron_fail:
 	exynos_pcie->state = STATE_LINK_UP;
+	mutex_unlock(&exynos_pcie->power_onoff_lock);
 	exynos_pcie_rc_poweroff(exynos_pcie->ch_num);
 
 	return -EPIPE;
@@ -3540,6 +3606,8 @@ void exynos_pcie_rc_poweroff(int ch_num)
 		pr_err("%s: ch#%d PCIe device is not loaded\n", __func__, ch_num);
 		return;
 	}
+
+	mutex_lock(&exynos_pcie->power_onoff_lock);
 
 	pci = exynos_pcie->pci;
 	pp = &pci->pp;
@@ -3642,6 +3710,8 @@ void exynos_pcie_rc_poweroff(int ch_num)
 
 	dev_dbg(dev, "end poweroff, state: %d\n", exynos_pcie->state);
 	logbuffer_log(exynos_pcie->log, "end poweroff, state: %d\n", exynos_pcie->state);
+
+	mutex_unlock(&exynos_pcie->power_onoff_lock);
 }
 
 void exynos_pcie_pm_suspend(int ch_num)
@@ -4939,6 +5009,7 @@ skip_sep_request_irq:
 		msi_domain_info = (struct msi_domain_info *)msi_domain->host_data;
 		msi_domain_info->chip->irq_set_affinity = exynos_pcie_msi_set_affinity;
 		msi_domain_info->chip->irq_set_wake = exynos_pcie_rc_set_enable_wake;
+
 		if (exynos_pcie->ep_device_type == EP_QC_WIFI ||
 				exynos_pcie->ep_device_type == EP_SAMSUNG_MODEM) {
 			msi_domain_info->chip->irq_mask = pci_msi_mask_irq;
@@ -5211,6 +5282,8 @@ static int exynos_pcie_rc_probe(struct platform_device *pdev)
 	spin_lock_init(&exynos_pcie->reg_lock);
 	spin_lock_init(&exynos_pcie->s2mpu_refcnt_lock);
 
+	mutex_init(&exynos_pcie->power_onoff_lock);
+
 	exynos_pcie->ch_num = ch_num;
 	exynos_pcie->l1ss_enable = 1;
 	exynos_pcie->state = STATE_LINK_DOWN;
@@ -5246,12 +5319,11 @@ static int exynos_pcie_rc_probe(struct platform_device *pdev)
 	power_stats_init(exynos_pcie);
 	link_stats_init(exynos_pcie);
 
+	device_initialize(&exynos_pcie->dup_ep_dev);
+
 #if IS_ENABLED(CONFIG_GS_S2MPU)
 	s2mpu_dn = of_parse_phandle(np, "s2mpu", 0);
 	if (s2mpu_dn) {
-		memcpy(&fake_dma_dev, &pdev->dev, sizeof(fake_dma_dev));
-		fake_dma_dev.dma_ops = NULL;
-
 		exynos_pcie->s2mpu = s2mpu_fwnode_to_info(of_fwnode_handle(s2mpu_dn));
 		of_node_put(s2mpu_dn);
 		if (!exynos_pcie->s2mpu) {
@@ -5373,7 +5445,13 @@ probe_fail:
 
 static void exynos_pcie_rc_remove(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
+	struct dw_pcie *pci = container_of(&dev, struct dw_pcie, dev);
+	struct exynos_pcie *exynos_pcie = to_exynos_pcie(pci);
+
 	dev_info(&pdev->dev, "%s\n", __func__);
+
+	mutex_destroy(&exynos_pcie->power_onoff_lock);
 }
 
 #if IS_ENABLED(CONFIG_PM)

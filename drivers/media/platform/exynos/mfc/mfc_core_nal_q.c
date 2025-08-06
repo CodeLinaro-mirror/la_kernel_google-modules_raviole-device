@@ -1660,8 +1660,7 @@ static void __mfc_core_nal_q_handle_frame_unused_output(struct mfc_ctx *ctx,
 				UNUSED_TAG);
 
 		dec->ref_buf[dec->refcnt].fd[0] = mfc_buf->vb.vb2_buf.planes[0].m.fd;
-		if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-			dec->refcnt++;
+		dec->refcnt++;
 
 		vb2_buffer_done(&mfc_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
 		mfc_debug(2, "[NALQ][DPB] dst index [%d][%d] fd: %d is buffer done (not used)\n",
@@ -1764,6 +1763,7 @@ static void __mfc_core_nal_q_handle_frame_copy_timestamp(struct mfc_ctx *ctx,
 static void __mfc_core_nal_q_get_img_size(struct mfc_core *core, struct mfc_ctx *ctx,
 			DecoderOutputStr *pOutStr, enum mfc_get_img_size img_size)
 {
+	struct mfc_dec *dec = ctx->dec_priv;
 	unsigned int w, h;
 	int i;
 
@@ -1784,7 +1784,14 @@ static void __mfc_core_nal_q_get_img_size(struct mfc_core *core, struct mfc_ctx 
 	mfc_debug(2, "[NALQ][FRAME][DRC] resolution changed, %dx%d => %dx%d (stride: %d)\n", w, h,
 			ctx->img_width, ctx->img_height, ctx->raw_buf.stride[0]);
 
-	if (img_size == MFC_GET_RESOL_DPB_SIZE) {
+	if (img_size == MFC_GET_RESOL_SIZE) {
+		dec->disp_drc.width[dec->disp_drc.push_idx] = ctx->img_width;
+		dec->disp_drc.height[dec->disp_drc.push_idx] = ctx->img_height;
+		dec->disp_drc.disp_res_change = ++dec->disp_drc.disp_res_change % MFC_MAX_DRC_FRAME;
+		mfc_debug(3, "[NALQ][DRC] disp_res_change[%d] count %d\n",
+				dec->disp_drc.push_idx, dec->disp_drc.disp_res_change);
+		dec->disp_drc.push_idx = ++dec->disp_drc.push_idx % MFC_MAX_DRC_FRAME;
+	} else if (img_size == MFC_GET_RESOL_DPB_SIZE) {
 		ctx->scratch_buf_size = mfc_core_get_scratch_size();
 		for (i = 0; i < ctx->dst_fmt->num_planes; i++) {
 			ctx->min_dpb_size[i] = mfc_core_get_min_dpb_size(i);
@@ -1930,8 +1937,6 @@ static struct mfc_buf *__mfc_core_nal_q_handle_frame_output_del(struct mfc_core 
 			mutex_lock(&ctx->drc_wait_mutex);
 			ctx->wait_state = WAIT_G_FMT;
 			__mfc_core_nal_q_get_img_size(core, ctx, pOutStr, MFC_GET_RESOL_SIZE);
-			dec->disp_res_change++;
-			mfc_debug(2, "[NALQ][DRC] disp_res_change %d\n", dec->disp_res_change);
 			mfc_set_mb_flag(dst_mb, MFC_FLAG_DISP_RES_CHANGE);
 			mutex_unlock(&ctx->drc_wait_mutex);
 		}
@@ -2122,8 +2127,7 @@ static void __mfc_core_nal_q_handle_released_buf(struct mfc_core *core, struct m
 			dec->dpb[i].ref = 0;
 			if (dec->dpb[i].queued && (dec->dpb[i].new_fd != -1)) {
 				dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-				if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-					dec->refcnt++;
+				dec->refcnt++;
 				mfc_debug(3, "[NALQ][REFINFO] Queued DPB[%d] released fd: %d\n",
 						i, dec->dpb[i].fd[0]);
 				dec->dpb[i].fd[0] = dec->dpb[i].new_fd;
@@ -2132,8 +2136,7 @@ static void __mfc_core_nal_q_handle_released_buf(struct mfc_core *core, struct m
 						i, dec->dpb[i].fd[0]);
 			} else if (!dec->dpb[i].queued) {
 				dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-				if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-					dec->refcnt++;
+				dec->refcnt++;
 				mfc_debug(3, "[NALQ][REFINFO] Dqueued DPB[%d] released fd: %d\n",
 						i, dec->dpb[i].fd[0]);
 				/*
@@ -2159,8 +2162,7 @@ static void __mfc_core_nal_q_handle_released_buf(struct mfc_core *core, struct m
 		if (!(dec->dynamic_used & (1UL << i)) && dec->dpb[i].mapcnt
 				&& !dec->dpb[i].queued) {
 			dec->ref_buf[dec->refcnt].fd[0] = dec->dpb[i].fd[0];
-			if (dec->refcnt < MFC_MAX_BUFFERS - 1)
-				dec->refcnt++;
+			dec->refcnt++;
 			mfc_debug(3, "[NALQ][REFINFO] display DPB[%d] released fd: %d\n",
 					i, dec->dpb[i].fd[0]);
 			dec->dpb_table_used &= ~(1UL << i);

@@ -44,15 +44,18 @@
 /* At least get one more try to meet sub state sync requirement */
 #define ERR_RETRY_DELAY_MS 20
 #define ERR_RETRY_COUNT    3
+/* EAGAIN is only returned when charger init is pending */
+#define EAGAIN_RETRY_DELAY_MS 100
 
 /*
- * Fall back to DCP when neither SDP_*_CONN_UA nor SDP_*_CONFIG_UA is signalled.
- * SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS is for first SDP connect after boot.
- * This is done to accommodate enumeration delay during boot.
- * SDP_ENUMERATION_TIMEOUT_MS otherwise.
+ * Fall back to DCP when neither SDP_*_CONN_UA nor SDP_*_CONFIG_UA is signalled
+ * for a certain timeout value.
+ * SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS timeout is used for first SDP connect after boot
+ * (till update_sdp_enum_timeout sysfs attribute is not written to).
+ * SDP_ENUMERATION_TIMEOUT_MS is used otherwise.
  */
-#define SDP_ENUMERATION_TIMEOUT_MS     5000
-#define SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS 60000
+#define SDP_ENUMERATION_TIMEOUT_MS			5000
+#define SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS	600000
 
 /* Signal wakeup event to allow userspace to process the update */
 #define DCP_UPDATE_MS			10000
@@ -127,8 +130,11 @@ struct usb_psy_data {
 	struct alarm sdp_timeout_alarm;
 	/* Bottom half for sdp alarm */
 	struct kthread_work sdp_timeout_work;
-	/* first SDP timeout after boot */
-	bool first_sdp_timeout;
+	/*
+	 * Use SDP_ENUMERATION_TIMEOUT_MS as SDP enumeration timeout value when true, else use
+	 * SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS.
+	 */
+	bool update_sdp_enum_timeout;
 };
 
 void init_vote(struct usb_vote *vote, const char *reason,
@@ -140,39 +146,11 @@ void init_vote(struct usb_vote *vote, const char *reason,
 }
 EXPORT_SYMBOL_GPL(init_vote);
 
-static int usb_get_current_max_ma(struct usb_psy_data *usb)
+int usb_find_chg_psy(struct usb_psy_data *usb)
 {
-	union power_supply_propval val = {0};
-	int ret;
 	struct i2c_client *client = usb->tcpc_client;
 
-	if (!usb->chg_psy_name)
-		return usb->current_max_cache;
-
-	if (!usb->chg_psy) {
-		usb->chg_psy = power_supply_get_by_name(usb->chg_psy_name);
-		if (IS_ERR_OR_NULL(usb->chg_psy)) {
-			dev_err(&client->dev, "chg psy not up\n");
-			return usb->current_max_cache;
-		}
-	}
-
-	ret = power_supply_get_property(usb->chg_psy,
-					POWER_SUPPLY_PROP_CURRENT_MAX, &val);
-	if (ret < 0)
-		return ret;
-
-	return val.intval;
-}
-
-static int usb_set_current_max_ma(struct usb_psy_data *usb,
-				  int current_max)
-{
-	union power_supply_propval val = {0};
-	int ret;
-	struct i2c_client *client = usb->tcpc_client;
-
-	if (!usb->chg_psy) {
+	if (IS_ERR_OR_NULL(usb->chg_psy)) {
 		if (!usb->chg_psy_name) {
 			dev_err(&client->dev, "chg_psy_name not found\n");
 			return 0;
@@ -184,12 +162,26 @@ static int usb_set_current_max_ma(struct usb_psy_data *usb,
 		}
 	}
 
+	return 1;
+}
+
+/* b/310025560 removed the function usb_get_current_max_ma. Add it back if needed. */
+
+static int usb_set_current_max_ma(struct usb_psy_data *usb,
+				  int current_max)
+{
+	union power_supply_propval val = {0};
+	int ret;
+
+	if (!usb_find_chg_psy(usb))
+		return 0;
+
 	val.intval = current_max;
 	ret = power_supply_set_property(usb->chg_psy,
 					POWER_SUPPLY_PROP_CURRENT_MAX,
 					&val);
 
-	logbuffer_log(usb->log, "set input max current %d to %s, ret=%d",
+	logbuffer_logk(usb->log, LOGLEVEL_INFO, "set input max current %d to %s, ret=%d",
 		      current_max, usb->chg_psy_name, ret);
 	return ret;
 }
@@ -345,7 +337,7 @@ static int usb_psy_current_now_ma(struct usb_psy_data *usb, int *current_now)
 
 	if (!IS_ERR_OR_NULL(usb->main_chg_psy))
 		psy = usb->main_chg_psy;
-	else if (!IS_ERR_OR_NULL(usb->chg_psy))
+	else if (usb_find_chg_psy(usb))
 		psy = usb->chg_psy;
 
 	if (!psy) {
@@ -375,7 +367,7 @@ static int usb_psy_data_get_prop(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
-		val->intval = usb->sink_enabled ? usb_get_current_max_ma(usb) > ONLINE_THRESHOLD_UA
+		val->intval = usb->sink_enabled ? usb->current_max_cache > ONLINE_THRESHOLD_UA
 			? 1 : 0 : 0;
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
@@ -389,8 +381,9 @@ static int usb_psy_data_get_prop(struct power_supply *psy,
 		 * Report the voted value to reflect TA capability when
 		 * expedite_connect_status isn't set.
 		 */
-		val->intval = usb->expedite_connect_status ? CDP_DCP_ICL_UA :
-			usb->current_max_cache;
+		val->intval = usb->expedite_connect_status ?
+				max(CDP_DCP_ICL_UA, usb->current_max_cache) :
+				usb->current_max_cache;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
 		/* Report in uv */
@@ -424,6 +417,7 @@ static int usb_psy_data_set_prop(struct power_supply *psy,
 	struct usb_psy_data *usb = power_supply_get_drvdata(psy);
 	struct usb_psy_ops *ops = usb->psy_ops;
 	struct i2c_client *client = usb->tcpc_client;
+	int ret;
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
@@ -432,7 +426,14 @@ static int usb_psy_data_set_prop(struct power_supply *psy,
 		kthread_mod_delayed_work(usb->wq, &usb->icl_work, 0);
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		/* Enough to trigger just the uevent */
+		if (!usb_find_chg_psy(usb))
+			break;
+
+		ret = power_supply_set_property(usb->chg_psy,
+						POWER_SUPPLY_PROP_VOLTAGE_MAX,
+						val);
+		logbuffer_logk(usb->log, LOGLEVEL_INFO, "set voltage max %d to %s, ret=%d",
+			      val->intval, usb->chg_psy_name, ret);
 		break;
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT:
 		logbuffer_log(usb->log, "POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT lim:%d type:%d",
@@ -465,19 +466,22 @@ static int usb_psy_data_set_prop(struct power_supply *psy,
 	return 0;
 }
 
-void usb_psy_start_sdp_timeout(void *usb_psy)
+void usb_psy_start_sdp_timeout(void *usb)
 {
-	struct usb_psy_data *usb = usb_psy;
+	struct usb_psy_data *usb_psy = usb;
 
-	if (!usb)
+	if (!usb_psy)
 		return;
 
-	if (usb->usb_type == POWER_SUPPLY_USB_TYPE_SDP) {
-		alarm_start_relative(&usb->sdp_timeout_alarm,
-				     ms_to_ktime(usb->first_sdp_timeout ?
-				     SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS :
-				     SDP_ENUMERATION_TIMEOUT_MS));
-		usb->first_sdp_timeout = false;
+	if (usb_psy->usb_type == POWER_SUPPLY_USB_TYPE_SDP) {
+		logbuffer_logk(usb_psy->log, LOGLEVEL_INFO, "Starting alarm with expiry %d\n",
+			       usb_psy->update_sdp_enum_timeout ?
+					SDP_ENUMERATION_TIMEOUT_MS :
+					SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS);
+		alarm_start_relative(&usb_psy->sdp_timeout_alarm,
+				     ms_to_ktime(usb_psy->update_sdp_enum_timeout ?
+					SDP_ENUMERATION_TIMEOUT_MS :
+					SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS));
 	}
 }
 EXPORT_SYMBOL_GPL(usb_psy_start_sdp_timeout);
@@ -489,6 +493,7 @@ void usb_psy_set_sink_state(void *usb_psy, bool enabled)
 	if (!usb || !usb->usb_psy)
 		return;
 
+	logbuffer_logk(usb->log, LOGLEVEL_INFO, "sink_enabled: %c", enabled ? 'Y' : 'N');
 	usb->sink_enabled = enabled;
 	power_supply_changed(usb->usb_psy);
 }
@@ -701,11 +706,13 @@ static void icl_work_item(struct kthread_work *work)
 	struct usb_psy_data *usb =
 		container_of(container_of(work, struct kthread_delayed_work, work),
 			     struct usb_psy_data, icl_work);
+	int ret;
 
-	if (usb_set_current_max_ma(usb, usb->current_max_cache) < 0 &&
-	    !atomic_sub_and_test(1, &usb->retry_count))
+	ret = usb_set_current_max_ma(usb, usb->current_max_cache);
+	if (ret < 0 && !atomic_sub_and_test(1, &usb->retry_count))
 		kthread_mod_delayed_work(usb->wq, &usb->icl_work,
-					 msecs_to_jiffies(ERR_RETRY_DELAY_MS));
+					 msecs_to_jiffies(ret == -EAGAIN ?
+					 EAGAIN_RETRY_DELAY_MS : ERR_RETRY_DELAY_MS));
 }
 
 static void bc_icl_work_item(struct kthread_work *work)
@@ -727,6 +734,53 @@ static void sdp_icl_work_item(struct kthread_work *work)
 
 	set_sdp_current_limit(usb, usb->sdp_input_current_limit);
 }
+
+static ssize_t update_sdp_enum_timeout_show(struct device *dev, struct device_attribute *attr,
+					    char *buf )
+{
+	struct max77759_plat *plat;
+	struct usb_psy_data *usb;
+
+	plat = i2c_get_clientdata(to_i2c_client(dev));
+	if (!plat)
+		return -EAGAIN;
+
+	usb = plat->usb_psy_data;
+	if (!usb)
+		return -EAGAIN;
+	return sysfs_emit(buf, "%u\n", usb->update_sdp_enum_timeout);
+}
+
+static ssize_t update_sdp_enum_timeout_store(struct device *dev, struct device_attribute *attr,
+				     const char *buf, size_t count)
+{
+	struct max77759_plat *plat;
+	struct usb_psy_data *usb;
+
+	plat = i2c_get_clientdata(to_i2c_client(dev));
+	if (!plat)
+		return -EAGAIN;
+
+	usb = plat->usb_psy_data;
+	if (!usb)
+		return -EAGAIN;
+
+	if (usb->update_sdp_enum_timeout)
+		goto done;
+
+	usb->update_sdp_enum_timeout = true;
+
+	/* Cancel previous alarm if set and re-program with new value. */
+	if (alarm_try_to_cancel(&usb->sdp_timeout_alarm) <= 0)
+		goto done;
+
+	logbuffer_logk(usb->log, LOGLEVEL_INFO, "Cancelled alarm\n");
+
+	usb_psy_start_sdp_timeout(usb);
+done:
+	return count;
+}
+static DEVICE_ATTR_RW(update_sdp_enum_timeout);
 
 static void sdp_timeout_work_item(struct kthread_work *work)
 {
@@ -757,6 +811,7 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 	struct device *dev = &client->dev;
 	struct device_node *dn;
 	void *ret;
+	int retval;
 
 	if (!ops)
 		return ERR_PTR(-EINVAL);
@@ -776,7 +831,7 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 	usb->psy_ops = ops;
 	usb->chip = chip;
 	usb->non_compliant_bc12_callback = callback;
-	usb->first_sdp_timeout = true;
+	usb->update_sdp_enum_timeout = false;
 
 	usb->usb_type_wq = kthread_run_worker(0, "wq-tcpm-usb-psy-usb-type");
 	if (IS_ERR_OR_NULL(usb->usb_type_wq)) {
@@ -894,6 +949,13 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 	/* vote default value after icl_work is initialized */
 	gvotable_use_default(usb->dead_battery_el, true);
 
+	retval = device_create_file(dev, &dev_attr_update_sdp_enum_timeout);
+	if (retval < 0) {
+		dev_err(dev, "usb_psy: Unable to create device attr ret:%d", retval);
+		ret = NULL;
+		goto unreg_dead_battery_el;
+	}
+
 	return usb;
 
 unreg_dead_battery_el:
@@ -922,6 +984,8 @@ void usb_psy_teardown(void *usb_data)
 {
 	struct usb_psy_data *usb = (struct usb_psy_data *)usb_data;
 
+	if (usb->tcpc_client)
+		device_remove_file(&usb->tcpc_client->dev, &dev_attr_update_sdp_enum_timeout);
 	kthread_destroy_worker(usb->wq);
 	gvotable_destroy_election(usb->dead_battery_el);
 	gvotable_destroy_election(usb->usb_icl_proto_el);
