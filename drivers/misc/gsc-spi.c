@@ -376,7 +376,8 @@ static irqreturn_t gsc_irq_handler(int irq, void *handle)
 }
 
 static int gsc_request_named_gpio(struct gsc_data *gsc,
-				  const char *label, int *gpio)
+				  const char *label, int *gpio,
+				  unsigned long flags)
 {
 	struct device *dev = &gsc->spi->dev;
 	struct device_node *np = dev->of_node;
@@ -388,7 +389,7 @@ static int gsc_request_named_gpio(struct gsc_data *gsc,
 	}
 	*gpio = rc;
 
-	rc = devm_gpio_request(dev, *gpio, label);
+	rc = devm_gpio_request_one(dev, *gpio, flags, label);
 	if (rc) {
 		dev_err(dev, "failed to request gpio %d\n", *gpio);
 		return rc;
@@ -435,7 +436,7 @@ static int gsc_probe(struct spi_device *spi)
 
 	/* setup ctdl_ap_irq  */
 	ret = gsc_request_named_gpio(gsc, "gsc,ctdl_ap_irq",
-				     &gsc->ctdl_ap_irq);
+				     &gsc->ctdl_ap_irq, GPIOF_IN);
 	if (ret) {
 		dev_err(&spi->dev,
 			"gsc_request_named_gpio gsc,ctdl_ap_irq failed.\n");
@@ -458,14 +459,12 @@ static int gsc_probe(struct spi_device *spi)
 
 	/* setup ctdl_rst */
 	ret = gsc_request_named_gpio(gsc, "gsc,ctdl_rst",
-				     &gsc->ctdl_rst);
+				     &gsc->ctdl_rst, GPIOF_OUT_INIT_LOW);
 	if (ret) {
 		dev_err(&spi->dev,
 			"gsc_request_named_gpio gsc,ctdl_rst failed.\n");
 		goto free_gsc;
 	}
-
-	gpio_direction_output(gsc->ctdl_rst, 0);
 
 	/* create the device */
 	dev = device_create(gsc_class, &spi->dev, devt, NULL,
