@@ -315,7 +315,8 @@ kernel_module(
         "drivers/soc/google/gs-chipid.ko",
         "drivers/soc/google/gsa/gsa.ko",
         "drivers/soc/google/gsa/gsa_gsc.ko",
-        "drivers/soc/google/hardlockup-debug.ko",
+        # Disabled due to unmet dependencies. See b/438194676.
+        # "drivers/soc/google/hardlockup-debug.ko",
         "drivers/soc/google/hardlockup-watchdog.ko",
         "drivers/soc/google/kernel-top.ko",
         "drivers/soc/google/pixel_stat/pixel_stat_sysfs.ko",
