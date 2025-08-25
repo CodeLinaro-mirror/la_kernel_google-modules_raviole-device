@@ -862,7 +862,7 @@ void *usb_psy_setup(struct i2c_client *client, struct logbuffer *log,
 	usb->main_chg_psy_name = of_get_property(dn, "main-chg-psy-name", NULL);
 
 	usb_cfg.drv_data = usb;
-	usb_cfg.of_node =  dev->of_node;
+	usb_cfg.fwnode = dev_fwnode(dev);
 	usb->usb_psy = power_supply_register(dev, &usb_psy_desc, &usb_cfg);
 	if (IS_ERR(usb->usb_psy)) {
 		dev_err(dev, "usb: Power supply register failed");
