@@ -3353,9 +3353,9 @@ int exynos_pcie_rc_poweron(int ch_num)
 	struct dw_pcie *pci;
 	struct dw_pcie_rp *pp;
 	struct device *dev;
-	u32 val, vendor_id, device_id;
 	int ret;
 	unsigned long flags;
+	u32 val;
 
 	if (!exynos_pcie) {
 		pr_err("%s: ch#%d PCIe device is not loaded\n", __func__, ch_num);
@@ -3447,21 +3447,6 @@ int exynos_pcie_rc_poweron(int ch_num)
 
 		dev_dbg(dev, "[%s] exynos_pcie->probe_ok : %d\n", __func__, exynos_pcie->probe_ok);
 		if (!exynos_pcie->probe_ok) {
-			exynos_pcie_rc_rd_own_conf(pp, PCI_VENDOR_ID, 4, &val);
-			vendor_id = val & ID_MASK;
-			device_id = (val >> 16) & ID_MASK;
-
-			exynos_pcie->pci_dev = pci_get_device(vendor_id, device_id, NULL);
-			if (!exynos_pcie->pci_dev) {
-				logbuffer_logk(exynos_pcie->log, LOGLEVEL_ERR,
-					       "Failed to get pci device");
-
-				goto poweron_fail;
-			}
-			dev_dbg(dev, "(%s):ep_pci_device:vendor/device id = 0x%x\n", __func__, val);
-			logbuffer_log(exynos_pcie->log, "ep_pci_device:vendor/device id = 0x%x",
-				      val);
-
 			pci_rescan_bus(exynos_pcie->pci_dev->bus);
 			if (exynos_pcie->use_msi) {
 				ret = exynos_pcie_rc_msi_init(pp);
@@ -3472,14 +3457,6 @@ int exynos_pcie_rc_poweron(int ch_num)
 					return ret;
 				}
 			}
-
-			if (pci_save_state(exynos_pcie->pci_dev)) {
-				dev_err(dev, "Failed to save pcie state\n");
-
-				goto poweron_fail;
-			}
-			exynos_pcie->pci_saved_configs =
-				pci_store_saved_state(exynos_pcie->pci_dev);
 
 			exynos_pcie->ep_pci_dev = exynos_pcie_get_pci_dev(&pci->pp);
 
@@ -5168,6 +5145,7 @@ static int exynos_pcie_rc_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	int ret = 0;
 	int ch_num;
+	u32 val, vendor_id, device_id;
 #if IS_ENABLED(CONFIG_GS_S2MPU)
 	struct device_node *s2mpu_dn;
 #endif
@@ -5315,6 +5293,28 @@ static int exynos_pcie_rc_probe(struct platform_device *pdev)
 	ret = exynos_pcie_rc_add_port(pdev, pp, ch_num);
 	if (ret)
 		goto probe_fail;
+
+	exynos_pcie_rc_rd_own_conf(pp, PCI_VENDOR_ID, 4, &val);
+	vendor_id = val & ID_MASK;
+	device_id = (val >> 16) & ID_MASK;
+
+	exynos_pcie->pci_dev = pci_get_device(vendor_id, device_id, NULL);
+	if (!exynos_pcie->pci_dev) {
+		logbuffer_logk(exynos_pcie->log, LOGLEVEL_ERR,
+			       "Failed to get pci device");
+		goto probe_fail;
+	}
+	dev_dbg(&pdev->dev, "(%s):ep_pci_device:vendor/device id = 0x%x\n", __func__, val);
+	logbuffer_log(exynos_pcie->log, "ep_pci_device:vendor/device id = 0x%x",
+		      val);
+	exynos_pcie->pci_saved_configs = pci_store_saved_state(exynos_pcie->pci_dev);
+
+	/*
+	 * We power off PCIe without telling Linux, so we can't allow runtime
+	 * PM for the root port.
+	 */
+	pm_runtime_get_sync(&exynos_pcie->pci_dev->dev);
+	pm_runtime_forbid(&exynos_pcie->pci_dev->dev);
 
 	if (exynos_pcie->use_cache_coherency)
 		exynos_pcie_rc_set_iocc(pp, 1);
