@@ -3447,7 +3447,9 @@ int exynos_pcie_rc_poweron(int ch_num)
 
 		dev_dbg(dev, "[%s] exynos_pcie->probe_ok : %d\n", __func__, exynos_pcie->probe_ok);
 		if (!exynos_pcie->probe_ok) {
+			pci_lock_rescan_remove();
 			pci_rescan_bus(exynos_pcie->pci_dev->bus);
+			pci_unlock_rescan_remove();
 			if (exynos_pcie->use_msi) {
 				ret = exynos_pcie_rc_msi_init(pp);
 				if (ret) {
