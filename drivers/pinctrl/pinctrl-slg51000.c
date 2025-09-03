@@ -151,7 +151,7 @@ static int slg51000_gpio_get(struct gpio_chip *chip, unsigned int offset)
 	return val;
 }
 
-static void slg51000_gpio_set(struct gpio_chip *chip, unsigned int offset,
+static int slg51000_gpio_set(struct gpio_chip *chip, unsigned int offset,
 			     int value)
 {
 	int ret;
@@ -178,7 +178,7 @@ static void slg51000_gpio_set(struct gpio_chip *chip, unsigned int offset,
 	default:
 		pr_err("Error: %s Unsupported GPIO offset %d\n",
 			__func__, offset);
-		return;
+		return -EOPNOTSUPP;
 	}
 
 	ret = regmap_write(data->regmap, addr, val);
@@ -189,6 +189,8 @@ static void slg51000_gpio_set(struct gpio_chip *chip, unsigned int offset,
 
 	if (data->chip->exit_sw_test_mode)
 		data->chip->exit_sw_test_mode(data->regmap);
+
+	return ret;
 }
 
 static int slg51000_gpio_seq_get(struct gpio_chip *chip, unsigned int offset)
@@ -207,7 +209,7 @@ static int slg51000_gpio_seq_get(struct gpio_chip *chip, unsigned int offset)
 	return val & slg51000_ctrl_bit_tbl[offset];
 }
 
-static void slg51000_gpio_seq_set(struct gpio_chip *chip, unsigned int offset,
+static int slg51000_gpio_seq_set(struct gpio_chip *chip, unsigned int offset,
 			     int value)
 {
 	int ret;
@@ -221,7 +223,7 @@ static void slg51000_gpio_seq_set(struct gpio_chip *chip, unsigned int offset,
 			__func__, offset);
 	}
 
-	return;
+	return ret;
 }
 
 static int slg51000_generic_seq_get(struct gpio_chip *chip, unsigned int offset)
@@ -240,7 +242,7 @@ static int slg51000_generic_seq_get(struct gpio_chip *chip, unsigned int offset)
 	return val & BIT(offset);
 }
 
-static void slg51000_generic_seq_set(struct gpio_chip *chip,
+static int slg51000_generic_seq_set(struct gpio_chip *chip,
 				unsigned int offset, int value)
 {
 	int ret;
@@ -254,7 +256,7 @@ static void slg51000_generic_seq_set(struct gpio_chip *chip,
 			__func__, offset);
 	}
 
-	return;
+	return ret;
 }
 
 static int slg51000_gpio_direction_input(struct gpio_chip *chip,

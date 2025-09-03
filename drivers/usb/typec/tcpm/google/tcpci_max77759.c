@@ -712,7 +712,7 @@ static int ext_bst_en_gpio_get(struct gpio_chip *gpio, unsigned int offset)
 	return val & EXT_BST_EN;
 }
 
-static void ext_bst_en_gpio_set(struct gpio_chip *gpio, unsigned int offset, int value)
+static int ext_bst_en_gpio_set(struct gpio_chip *gpio, unsigned int offset, int value)
 {
 	struct max77759_plat *chip = gpiochip_get_data(gpio);
 	struct regmap *regmap = chip->data.regmap;
@@ -742,6 +742,8 @@ static void ext_bst_en_gpio_set(struct gpio_chip *gpio, unsigned int offset, int
 
 		ovp_operation(chip, OVP_ON);
 	}
+
+	return ret;
 }
 
 static int ext_bst_en_gpio_init(struct max77759_plat *chip)
