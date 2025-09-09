@@ -1969,6 +1969,7 @@ static struct mfc_buf *__mfc_core_nal_q_handle_frame_output_del(struct mfc_core 
 			ctx->wait_state = WAIT_G_FMT;
 			__mfc_core_nal_q_get_crop_info(core, ctx, pOutStr);
 			mfc_set_mb_flag(dst_mb, MFC_FLAG_DISP_RES_CHANGE);
+			dec->disp_drc.disp_crop_change = 1;
 			mutex_unlock(&ctx->drc_wait_mutex);
 		}
 

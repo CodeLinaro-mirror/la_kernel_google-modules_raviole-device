@@ -417,6 +417,7 @@ static struct mfc_buf *__mfc_handle_frame_output_del(struct mfc_core *core,
 			ctx->wait_state = WAIT_G_FMT;
 			mfc_core_dec_get_crop_info(core, ctx);
 			mfc_set_mb_flag(dst_mb, MFC_FLAG_DISP_RES_CHANGE);
+			dec->disp_drc.disp_crop_change = 1;
 			mutex_unlock(&ctx->drc_wait_mutex);
 		}
 
