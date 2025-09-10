@@ -21,8 +21,14 @@ load(
     "merged_kernel_uapi_headers",
     "vendor_dlkm_image",
 )
-load("//common:modules.bzl", "get_gki_modules_list")
-load(":slider.bzl", "SLIDER_DTBOS", "SLIDER_DTBS")
+load(
+    ":slider.bzl",
+    "SLIDER_DIST_GKI_MODULES",
+    "SLIDER_DTBOS",
+    "SLIDER_DTBS",
+    "SLIDER_MODULE_OUTS",
+    "slider_vendor_dlkm_modules_list",
+)
 
 package(
     default_visibility = [
@@ -139,25 +145,6 @@ kernel_module_group(
     ],
 )
 
-_SLIDER_MODULE_OUTS = [
-    # keep sorted
-    "drivers/hwtracing/coresight/coresight.ko",
-    "drivers/hwtracing/coresight/coresight-etm4x.ko",
-    "drivers/hwtracing/coresight/coresight-funnel.ko",
-    "drivers/hwtracing/coresight/coresight-replicator.ko",
-    "drivers/hwtracing/coresight/coresight-tmc.ko",
-    "drivers/i2c/i2c-dev.ko",
-    "drivers/misc/eeprom/at24.ko",
-    "drivers/perf/arm_dsu_pmu.ko",
-    "drivers/pps/clients/pps-gpio.ko",
-    "drivers/scsi/sg.ko",
-    "drivers/spi/spidev.ko",
-    "drivers/watchdog/softdog.ko",
-    "net/core/pktgen.ko",
-    "net/mac80211/mac80211.ko",
-    "net/wireless/cfg80211.ko",
-]
-
 kernel_build(
     name = "slider",
     srcs = glob([
@@ -194,7 +181,7 @@ kernel_build(
         "dtbs",
     ],
     makefile = "//common:Makefile",
-    module_outs = _SLIDER_MODULE_OUTS,
+    module_outs = SLIDER_MODULE_OUTS,
     strip_modules = True,
     trim_nonlisted_kmi = False,
 )
@@ -387,28 +374,8 @@ write_file(
     ],
 )
 
-_GKI_MODULES = [
-    m
-    for m in get_gki_modules_list("arm64")
-    # List of GKI modules to omit
-    if m not in [
-        # keep sorted
-        "arch/arm64/geniezone/gzvm.ko",
-        "drivers/ptp/ptp_kvm.ko",
-    ]
-]
-
-write_file(
+slider_vendor_dlkm_modules_list(
     name = "slider_vendor_dlkm_modules_list",
-    out = "slider_vendor_dlkm_modules",
-    content = [
-        # List of in-tree modules
-        "^kernel/" + m
-        for m in _GKI_MODULES + _SLIDER_MODULE_OUTS
-    ] + [
-        # Add all external modules
-        "^extra/.*",
-    ],
 )
 
 dtbo(
@@ -497,7 +464,7 @@ slider_dist_targets = [
     "//common:kernel_aarch64_headers",
     "//common:test_mappings_zip",
     "//common:tests_zip_arm64",
-] + ["//common:kernel_aarch64/" + m for m in _GKI_MODULES]
+] + SLIDER_DIST_GKI_MODULES
 
 pkg_files(
     name = "slider_dist_files",
