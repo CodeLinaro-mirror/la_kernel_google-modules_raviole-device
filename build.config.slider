@@ -8,7 +8,6 @@ INITRAMFS_VENDOR_RAMDISK_FRAGMENT_NAME=dlkm
 GKI_SKIP_CP_KERNEL_HDR=1
 
 DTC_INCLUDE=${ROOT_DIR}/private/google-modules/soc/gs/include/dtc
-MKDTIMG_FLAGS="--page_size=4096 --id=/:board_id --rev=/:board_rev"
 
 VENDOR_RAMDISK_CMDS="modify_vendor_ramdisk"
 function modify_vendor_ramdisk() {

@@ -10,7 +10,7 @@ load(
     "//build/kernel/kleaf:kernel.bzl",
     "checkpatch",
     "dtb_image",
-    "dtbo",
+    "dtbo_image",
     "extract_symbols",
     "initramfs",
     "kernel_build",
@@ -378,10 +378,14 @@ slider_vendor_dlkm_modules_list(
     name = "slider_vendor_dlkm_modules_list",
 )
 
-dtbo(
+dtbo_image(
     name = "slider_dtbo",
     srcs = [":slider/" + e for e in SLIDER_DTBOS],
-    kernel_build = ":slider",
+    opts = [
+        "--page_size=4096",
+        "--id=/:board_id",
+        "--rev=/:board_rev",
+    ],
 )
 
 dtb_image(
