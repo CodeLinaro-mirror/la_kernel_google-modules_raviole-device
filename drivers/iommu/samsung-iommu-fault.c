@@ -501,19 +501,25 @@ static int samsung_sysmmu_fault_notifier(struct device *dev, void *data)
 	struct samsung_sysmmu_fault_info *fi = data;
 	struct sysmmu_drvdata *drvdata = fi->drvdata;
 	unsigned int i;
-	int ret, result = 0;
+	int ret = -EFAULT;
 
 	for (i = 0; i < client->sysmmu_count; i++) {
 		if (drvdata == client->sysmmus[i] && drvdata->domain) {
 			ret = report_iommu_fault(&drvdata->domain->domain, dev,
 						 fi->addr, fi->type);
+			/*
+			 * If fault handler is not installed, the return value is -ENOSYS.
+			 * If fault handler is installed,
+			 *    If it return 0 or -EAGAIN, treat it as non-fatal
+			 *    Else return the error code
+			 */
 			if (ret == -EAGAIN)
-				result = ret;
+				ret = 0;
 			break;
 		}
 	}
 
-	return result;
+	return ret;
 }
 
 irqreturn_t samsung_sysmmu_irq_thread(int irq, void *dev_id)
@@ -546,7 +552,7 @@ irqreturn_t samsung_sysmmu_irq_thread(int irq, void *dev_id)
 
 	ret = iommu_group_for_each_dev(group, &fi,
 				       samsung_sysmmu_fault_notifier);
-	if (ret == -EAGAIN) {
+	if (ret == 0) {
 		if (is_secure) {
 			if (drvdata->async_fault_mode && !drvdata->hide_page_fault)
 				sysmmu_show_secure_fault_information(drvdata, itype, addr);
