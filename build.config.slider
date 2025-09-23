@@ -7,8 +7,6 @@ INITRAMFS_VENDOR_RAMDISK_FRAGMENT_NAME=dlkm
 # Prevent GKI kernel build from overwriting our kernel-uapi-headers.tar.gz file
 GKI_SKIP_CP_KERNEL_HDR=1
 
-DTC_INCLUDE=${ROOT_DIR}/private/google-modules/soc/gs/include/dtc
-
 VENDOR_RAMDISK_CMDS="modify_vendor_ramdisk"
 function modify_vendor_ramdisk() {
   ln -f init.recovery.gs101.rc init.recovery.slider.rc

@@ -3,6 +3,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@kleaf//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
+load("@rules_devicetree//devicetree:devicetree_library.bzl", "devicetree_library")
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load("//build/kernel/kleaf:constants.bzl", "COMMON_KCFLAGS")
@@ -24,8 +25,6 @@ load(
 load(
     ":slider.bzl",
     "SLIDER_DIST_GKI_MODULES",
-    "SLIDER_DTBOS",
-    "SLIDER_DTBS",
     "SLIDER_MODULE_OUTS",
     "slider_vendor_dlkm_modules_list",
 )
@@ -78,6 +77,23 @@ filegroup(
         "include/dt-bindings/**",
         "include/dtc/**",
     ]),
+)
+
+devicetree_library(
+    name = "dtc_includes_override",
+    hdrs = [":gs.dt-bindings"],
+    includes = [
+        "include/dtc",
+    ],
+)
+
+devicetree_library(
+    name = "dtc_includes",
+    deps = [
+        # do not sort
+        ":dtc_includes_override",
+        "//common:dtc_includes_aarch64",
+    ],
 )
 
 filegroup(
@@ -150,8 +166,6 @@ kernel_build(
     srcs = glob([
         "build.config.*",
         "**/Kconfig",
-        "include/dt-bindings/**",
-        "include/dtc/**",
     ]) + [
         # keep sorted
         "Kconfig.ext",
@@ -167,18 +181,15 @@ kernel_build(
         "//private/google-modules/trusty:trusty.kconfig",
         "//private/google-modules/video/gchips:video.gchips.kconfig",
     ],
-    outs = SLIDER_DTBS,
+    outs = [],
     base_kernel = "//common:kernel_aarch64",
     build_config = "build.config.slider",
     collect_unstripped_modules = True,
     defconfig_fragments = ["arch/arm64/configs/slider_gki.fragment"],
-    dtstree = "//private/google-modules/soc/gs/arch/arm64/boot/dts:dt",
-    implicit_outs = SLIDER_DTBOS,
     kcflags = COMMON_KCFLAGS,
     kconfig_ext = "Kconfig.ext",
     make_goals = [
         "modules",
-        "dtbs",
     ],
     makefile = "//common:Makefile",
     module_outs = SLIDER_MODULE_OUTS,
@@ -380,7 +391,7 @@ slider_vendor_dlkm_modules_list(
 
 dtbo_image(
     name = "slider_dtbo",
-    srcs = [":slider/" + e for e in SLIDER_DTBOS],
+    srcs = ["//private/google-modules/soc/gs/arch/arm64/boot/dts:dtbos"],
     opts = [
         "--page_size=4096",
         "--id=/:board_id",
@@ -390,7 +401,7 @@ dtbo_image(
 
 dtb_image(
     name = "slider_dtb",
-    srcs = [":slider/" + dtb for dtb in SLIDER_DTBS],
+    srcs = ["//private/google-modules/soc/gs/arch/arm64/boot/dts:dtbs"],
     out = "dtb.img",
 )
 
@@ -443,8 +454,17 @@ hermetic_genrule(
     cmd = "cp -L $< $@",
 )
 
+# Check that dtbo can be applied on base dtbs.
+hermetic_genrule(
+    name = "slider_check_dt_overlay",
+    srcs = ["//private/google-modules/soc/gs/arch/arm64/boot/dts:composite_dtbs"],
+    outs = ["slider_check_dt_overlay_flag_file"],
+    cmd = "touch $@",
+)
+
 slider_dist_targets = [
     ":slider",
+    ":slider_check_dt_overlay",
     ":slider_dtb",
     ":slider_dtbo",
     ":slider_initramfs",
@@ -468,6 +488,7 @@ slider_dist_targets = [
     "//common:kernel_aarch64_headers",
     "//common:test_mappings_zip",
     "//common:tests_zip_arm64",
+    "//private/google-modules/soc/gs/arch/arm64/boot/dts:dtbs",
 ] + SLIDER_DIST_GKI_MODULES
 
 pkg_files(

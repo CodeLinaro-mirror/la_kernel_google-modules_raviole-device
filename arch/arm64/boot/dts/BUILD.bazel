@@ -1,27 +1,676 @@
 # SPDX-License-Identifier: GPL-2.0
 
-load("//build/kernel/kleaf:kernel.bzl", "kernel_dtstree")
+load("@rules_devicetree//devicetree:devicetree_library.bzl", "devicetree_library")
+load("@rules_devicetree//devicetree:dtb.bzl", "dtb")
+load("@rules_devicetree//devicetree:dtb_composite.bzl", "dtb_composite")
+load("@rules_devicetree//devicetree:dtbo.bzl", "dtbo")
 
-kernel_dtstree(
-    name = "dt",
-    srcs = glob(
-        [
-            "google/**/*.dtsi",
-            "google/**/*.dts",
-            "google/**/*.dtso",
-            "google/**/*.h",
-        ],
-        exclude = [
-            "**/.*",
-            "**/.*/**",
-            "**/BUILD.bazel",
-            "**/*.bzl",
-        ],
-    ) + [
-        # keep sorted
-        "Makefile",
-        "google/Makefile",
-        "//private/google-modules/soc/gs:gs.dt-bindings",
+devicetree_library(
+    name = "all_dtsi",
+    hdrs = glob([
+        "google/**/*.dtsi",
+        "google/**/*.h",
+    ]) + [
+        # Some .dtsi includes .dtso. This is bad, but let's accomodate it.
+        "google/gs101-oriole.dtso",
+    ],
+    includes = [
+        "google",
+    ],
+    deps = [
+        "//private/google-modules/soc/gs:dtc_includes",
+    ],
+)
+
+dtb(
+    name = "gs101-a0.dtb",
+    srcs = ["google/gs101-a0.dts"],
+    generate_symbols = True,
+    deps = [":all_dtsi"],
+)
+
+dtb(
+    name = "gs101-b0.dtb",
+    srcs = ["google/gs101-b0.dts"],
+    generate_symbols = True,
+    deps = [":all_dtsi"],
+)
+
+# Overlays
+
+dtbo(
+    name = "gs101-slider.dtbo",
+    srcs = ["google/gs101-slider.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-slider2.dtbo",
+    srcs = ["google/gs101-slider2.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-slider2-o6r4.dtbo",
+    srcs = ["google/gs101-slider2-o6r4.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-whitefin.dtbo",
+    srcs = ["google/gs101-whitefin.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-whitefin2.dtbo",
+    srcs = ["google/gs101-whitefin2.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-whitefin2v2.dtbo",
+    srcs = ["google/gs101-whitefin2v2.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole.dtbo",
+    srcs = ["google/gs101-oriole.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole-evt1_1.dtbo",
+    srcs = ["google/gs101-oriole-evt1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole-evt-wingboard.dtbo",
+    srcs = ["google/gs101-oriole-evt-wingboard.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole-evt1.dtbo",
+    srcs = ["google/gs101-oriole-evt1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole-proto1.dtbo",
+    srcs = ["google/gs101-oriole-proto1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-oriole-proto1_1.dtbo",
+    srcs = ["google/gs101-oriole-proto1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven.dtbo",
+    srcs = ["google/gs101-raven.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven-evt1_1.dtbo",
+    srcs = ["google/gs101-raven-evt1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven-evt-wingboard.dtbo",
+    srcs = ["google/gs101-raven-evt-wingboard.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven-evt1.dtbo",
+    srcs = ["google/gs101-raven-evt1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven-proto1.dtbo",
+    srcs = ["google/gs101-raven-proto1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-raven-proto1_1.dtbo",
+    srcs = ["google/gs101-raven-proto1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-dev.dtbo",
+    srcs = ["google/gs101-bluejay-dev.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-proto1_0.dtbo",
+    srcs = ["google/gs101-bluejay-proto1_0.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-proto1_1.dtbo",
+    srcs = ["google/gs101-bluejay-proto1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-evt1_0.dtbo",
+    srcs = ["google/gs101-bluejay-evt1_0.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-evt1_1.dtbo",
+    srcs = ["google/gs101-bluejay-evt1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-evt1_2.dtbo",
+    srcs = ["google/gs101-bluejay-evt1_2.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-dvt1_0.dtbo",
+    srcs = ["google/gs101-bluejay-dvt1_0.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-dvt1_1.dtbo",
+    srcs = ["google/gs101-bluejay-dvt1_1.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-pvt1_0.dtbo",
+    srcs = ["google/gs101-bluejay-pvt1_0.dtso"],
+    deps = [":all_dtsi"],
+)
+
+dtbo(
+    name = "gs101-bluejay-mp1_0.dtbo",
+    srcs = ["google/gs101-bluejay-mp1_0.dtso"],
+    deps = [":all_dtsi"],
+)
+
+# Composite DTBS on gs101-a0
+
+dtb_composite(
+    name = "gs101-slider-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-slider.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-slider2-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-slider2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-slider2-o6r4-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-slider2-o6r4.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-whitefin.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin2-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-whitefin2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin2v2-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-whitefin2v2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt-wingboard-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole-evt-wingboard.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole-evt1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-proto1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole-proto1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-proto1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-oriole-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt-wingboard-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven-evt-wingboard.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven-evt1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-proto1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven-proto1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-proto1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-raven-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dev-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-dev.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-proto1_0-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-proto1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-proto1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_0-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-evt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_2-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-evt1_2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dvt1_0-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-dvt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dvt1_1-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-dvt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-pvt1_0-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-pvt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-mp1_0-gs101-a0.dtb",
+    base = "gs101-a0.dtb",
+    overlays = ["gs101-bluejay-mp1_0.dtbo"],
+)
+
+# Composite DTBS on gs101-b0
+
+dtb_composite(
+    name = "gs101-slider-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-slider.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-slider2-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-slider2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-slider2-o6r4-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-slider2-o6r4.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-whitefin.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin2-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-whitefin2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-whitefin2v2-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-whitefin2v2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt-wingboard-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole-evt-wingboard.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-evt1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole-evt1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-proto1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole-proto1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-oriole-proto1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-oriole-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt-wingboard-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven-evt-wingboard.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-evt1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven-evt1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-proto1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven-proto1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-raven-proto1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-raven-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dev-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-dev.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-proto1_0-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-proto1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-proto1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-proto1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_0-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-evt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-evt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-evt1_2-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-evt1_2.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dvt1_0-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-dvt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-dvt1_1-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-dvt1_1.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-pvt1_0-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-pvt1_0.dtbo"],
+)
+
+dtb_composite(
+    name = "gs101-bluejay-mp1_0-gs101-b0.dtb",
+    base = "gs101-b0.dtb",
+    overlays = ["gs101-bluejay-mp1_0.dtbo"],
+)
+
+# Convenient filegroups
+
+filegroup(
+    name = "dtbs",
+    srcs = [
+        "gs101-a0.dtb",
+        "gs101-b0.dtb",
+    ],
+    visibility = [
+        "//private/devices/google:__subpackages__",
+        "//private/google-modules/soc/gs:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "dtbos",
+    srcs = [
+        "gs101-bluejay-dev.dtbo",
+        "gs101-bluejay-dvt1_0.dtbo",
+        "gs101-bluejay-dvt1_1.dtbo",
+        "gs101-bluejay-evt1_0.dtbo",
+        "gs101-bluejay-evt1_1.dtbo",
+        "gs101-bluejay-evt1_2.dtbo",
+        "gs101-bluejay-mp1_0.dtbo",
+        "gs101-bluejay-proto1_0.dtbo",
+        "gs101-bluejay-proto1_1.dtbo",
+        "gs101-bluejay-pvt1_0.dtbo",
+        "gs101-oriole.dtbo",
+        "gs101-oriole-evt-wingboard.dtbo",
+        "gs101-oriole-evt1.dtbo",
+        "gs101-oriole-evt1_1.dtbo",
+        "gs101-oriole-proto1.dtbo",
+        "gs101-oriole-proto1_1.dtbo",
+        "gs101-raven.dtbo",
+        "gs101-raven-evt-wingboard.dtbo",
+        "gs101-raven-evt1.dtbo",
+        "gs101-raven-evt1_1.dtbo",
+        "gs101-raven-proto1.dtbo",
+        "gs101-raven-proto1_1.dtbo",
+        "gs101-slider.dtbo",
+        "gs101-slider2.dtbo",
+        "gs101-slider2-o6r4.dtbo",
+        "gs101-whitefin.dtbo",
+        "gs101-whitefin2.dtbo",
+        "gs101-whitefin2v2.dtbo",
+    ],
+    visibility = [
+        "//private/devices/google:__subpackages__",
+        "//private/google-modules/soc/gs:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "composite_dtbs-gs101-a0",
+    srcs = [
+        "gs101-bluejay-dev-gs101-a0.dtb",
+        "gs101-bluejay-dvt1_0-gs101-a0.dtb",
+        "gs101-bluejay-dvt1_1-gs101-a0.dtb",
+        "gs101-bluejay-evt1_0-gs101-a0.dtb",
+        "gs101-bluejay-evt1_1-gs101-a0.dtb",
+        "gs101-bluejay-evt1_2-gs101-a0.dtb",
+        "gs101-bluejay-mp1_0-gs101-a0.dtb",
+        "gs101-bluejay-proto1_0-gs101-a0.dtb",
+        "gs101-bluejay-proto1_1-gs101-a0.dtb",
+        "gs101-bluejay-pvt1_0-gs101-a0.dtb",
+        "gs101-oriole-evt-wingboard-gs101-a0.dtb",
+        "gs101-oriole-evt1-gs101-a0.dtb",
+        "gs101-oriole-evt1_1-gs101-a0.dtb",
+        "gs101-oriole-gs101-a0.dtb",
+        "gs101-oriole-proto1-gs101-a0.dtb",
+        "gs101-oriole-proto1_1-gs101-a0.dtb",
+        "gs101-raven-evt-wingboard-gs101-a0.dtb",
+        "gs101-raven-evt1-gs101-a0.dtb",
+        "gs101-raven-evt1_1-gs101-a0.dtb",
+        "gs101-raven-gs101-a0.dtb",
+        "gs101-raven-proto1-gs101-a0.dtb",
+        "gs101-raven-proto1_1-gs101-a0.dtb",
+        "gs101-slider-gs101-a0.dtb",
+        "gs101-slider2-gs101-a0.dtb",
+        "gs101-slider2-o6r4-gs101-a0.dtb",
+        "gs101-whitefin-gs101-a0.dtb",
+        "gs101-whitefin2-gs101-a0.dtb",
+        "gs101-whitefin2v2-gs101-a0.dtb",
+    ],
+)
+
+filegroup(
+    name = "composite_dtbs-gs101-b0",
+    srcs = [
+        "gs101-bluejay-dev-gs101-b0.dtb",
+        "gs101-bluejay-dvt1_0-gs101-b0.dtb",
+        "gs101-bluejay-dvt1_1-gs101-b0.dtb",
+        "gs101-bluejay-evt1_0-gs101-b0.dtb",
+        "gs101-bluejay-evt1_1-gs101-b0.dtb",
+        "gs101-bluejay-evt1_2-gs101-b0.dtb",
+        "gs101-bluejay-mp1_0-gs101-b0.dtb",
+        "gs101-bluejay-proto1_0-gs101-b0.dtb",
+        "gs101-bluejay-proto1_1-gs101-b0.dtb",
+        "gs101-bluejay-pvt1_0-gs101-b0.dtb",
+        "gs101-oriole-evt-wingboard-gs101-b0.dtb",
+        "gs101-oriole-evt1-gs101-b0.dtb",
+        "gs101-oriole-evt1_1-gs101-b0.dtb",
+        "gs101-oriole-gs101-b0.dtb",
+        "gs101-oriole-proto1-gs101-b0.dtb",
+        "gs101-oriole-proto1_1-gs101-b0.dtb",
+        "gs101-raven-evt-wingboard-gs101-b0.dtb",
+        "gs101-raven-evt1-gs101-b0.dtb",
+        "gs101-raven-evt1_1-gs101-b0.dtb",
+        "gs101-raven-gs101-b0.dtb",
+        "gs101-raven-proto1-gs101-b0.dtb",
+        "gs101-raven-proto1_1-gs101-b0.dtb",
+        "gs101-slider-gs101-b0.dtb",
+        "gs101-slider2-gs101-b0.dtb",
+        "gs101-slider2-o6r4-gs101-b0.dtb",
+        "gs101-whitefin-gs101-b0.dtb",
+        "gs101-whitefin2-gs101-b0.dtb",
+        "gs101-whitefin2v2-gs101-b0.dtb",
+    ],
+)
+
+filegroup(
+    name = "composite_dtbs",
+    srcs = [
+        ":composite_dtbs-gs101-a0",
+        ":composite_dtbs-gs101-b0",
     ],
     visibility = [
         "//private/devices/google:__subpackages__",
