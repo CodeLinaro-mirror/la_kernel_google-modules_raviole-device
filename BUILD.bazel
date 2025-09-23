@@ -75,7 +75,6 @@ filegroup(
     name = "gs.dt-bindings",
     srcs = glob([
         "include/dt-bindings/**",
-        "include/dtc/**",
     ]),
 )
 
@@ -83,7 +82,7 @@ devicetree_library(
     name = "dtc_includes_override",
     hdrs = [":gs.dt-bindings"],
     includes = [
-        "include/dtc",
+        "include",
     ],
 )
 
