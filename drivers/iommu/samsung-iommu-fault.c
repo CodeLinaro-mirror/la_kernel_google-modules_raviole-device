@@ -504,8 +504,8 @@ static int samsung_sysmmu_fault_notifier(struct device *dev, void *data)
 	int ret = -EFAULT;
 
 	for (i = 0; i < client->sysmmu_count; i++) {
-		if (drvdata == client->sysmmus[i] && drvdata->domain) {
-			ret = report_iommu_fault(&drvdata->domain->domain, dev,
+		if (drvdata == client->sysmmus[i] && drvdata->domain[fi->vid]) {
+			ret = report_iommu_fault(&drvdata->domain[fi->vid]->domain, dev,
 						 fi->addr, fi->type);
 			/*
 			 * If fault handler is not installed, the return value is -ENOSYS.

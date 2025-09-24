@@ -45,7 +45,7 @@ struct sysmmu_drvdata {
 	struct list_head list[MAX_VIDS];
 	struct iommu_device iommu;
 	struct device *dev;
-	struct samsung_sysmmu_domain *domain; /* domain we belong to */
+	struct samsung_sysmmu_domain *domain[MAX_VIDS];
 	struct iommu_group *group;
 	void __iomem *sfrbase;
 	struct clk *clk;
