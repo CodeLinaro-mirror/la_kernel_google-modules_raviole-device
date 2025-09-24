@@ -1,12 +1,3 @@
 . ${ROOT_DIR}/${KERNEL_DIR}/build.config.constants
 
 KCONFIG_EXT_MODULES_PREFIX=$(realpath ${ROOT_DIR} --relative-to ${ROOT_DIR}/${KERNEL_DIR})/
-
-VENDOR_RAMDISK_CMDS="modify_vendor_ramdisk"
-function modify_vendor_ramdisk() {
-  ln -f init.recovery.gs101.rc init.recovery.slider.rc
-  ln -f init.recovery.gs101.rc init.recovery.whitefin.rc
-  ln -f init.recovery.gs101.rc init.recovery.oriole.rc
-  ln -f init.recovery.gs101.rc init.recovery.raven.rc
-  ln -f init.recovery.gs101.rc init.recovery.bluejay.rc
-}
