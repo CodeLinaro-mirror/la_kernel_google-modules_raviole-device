@@ -294,7 +294,7 @@ static inline void samsung_sysmmu_detach_drvdata(struct sysmmu_drvdata *data)
 		list_del(&data->list[0]);
 		data->pgtable[0] = 0;
 		data->group = NULL;
-		data->domain = NULL;
+		data->domain[0] = NULL;
 	}
 	spin_unlock_irqrestore(&data->lock, flags);
 }
@@ -429,7 +429,7 @@ static int samsung_sysmmu_attach_dev(struct iommu_domain *dom,
 			groupdata->has_vcr &= drvdata->has_vcr;
 			drvdata->group = group;
 			drvdata->pgtable[0] = page_table;
-			drvdata->domain = domain;
+			drvdata->domain[0] = domain;
 
 			if (pm_runtime_active(drvdata->dev))
 				__sysmmu_enable(drvdata);
@@ -1052,7 +1052,7 @@ static int samsung_sysmmu_set_dev_pasid(struct iommu_domain *dom, struct device 
 		if (drvdata->attached_count[vid]++ == 0) {
 			list_add(&drvdata->list[vid], &groupdata->sysmmu_list[vid]);
 			drvdata->pgtable[vid] = page_table;
-			drvdata->domain = domain;
+			drvdata->domain[vid] = domain;
 
 			if (pm_runtime_active(drvdata->dev))
 				__sysmmu_enable_vid(drvdata, vid);
@@ -1107,7 +1107,7 @@ static void samsung_sysmmu_remove_dev_pasid(struct device *dev, ioasid_t pasid,
 		if (--drvdata->attached_count[vid] == 0) {
 			list_del(&drvdata->list[vid]);
 			drvdata->pgtable[vid] = 0;
-			drvdata->domain = NULL;
+			drvdata->domain[vid] = NULL;
 			if (pm_runtime_active(drvdata->dev))
 				__sysmmu_disable_vid(drvdata, vid);
 		}
