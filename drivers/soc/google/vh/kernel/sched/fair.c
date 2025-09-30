@@ -1207,7 +1207,7 @@ static void prio_changed(struct task_struct *p, int old_prio, int new_prio)
 	update_rq_clock(rq);
 
 	queued = task_on_rq_queued(p);
-	running = task_current(rq, p);
+	running = task_current_donor(rq, p);
 
 	if (queued)
 		p->sched_class->dequeue_task(rq, p, DEQUEUE_SAVE | DEQUEUE_NOCLOCK);
