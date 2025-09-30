@@ -2594,6 +2594,9 @@ static struct task_struct *detach_important_task(struct rq *src_rq, int dst_cpu)
 		if (task_on_cpu(src_rq, p))
 			continue;
 
+		if (task_current_donor(src_rq, p))
+			continue;
+
 		if (!get_prefer_idle(p))
 			continue;
 
