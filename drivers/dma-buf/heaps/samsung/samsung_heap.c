@@ -436,4 +436,5 @@ module_init(samsung_dma_heap_init);
 module_exit(samsung_dma_heap_exit);
 MODULE_DESCRIPTION("DMA-BUF Samsung Heap");
 MODULE_IMPORT_NS("DMA_BUF");
+MODULE_IMPORT_NS("DMA_BUF_HEAP");
 MODULE_LICENSE("GPL v2");
