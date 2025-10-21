@@ -234,7 +234,7 @@ static int s2mpg1x_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 	case PIN_CONFIG_INPUT_ENABLE:
 		// do nothing
 		break;
-	case PIN_CONFIG_OUTPUT:
+	case PIN_CONFIG_LEVEL:
 		ret = s2mpg1x_read_reg(gc->id, gc->i2c,
 				       GPIO_CTRL_BASE[gc->id] +
 				       GPIO_CTRL2_OFFSET,
@@ -335,7 +335,7 @@ static int s2mpg1x_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 			if (!argument)
 				return -EINVAL;
 			break;
-		case PIN_CONFIG_OUTPUT:
+		case PIN_CONFIG_LEVEL:
 			data = argument ? BIT(pin) : 0;
 			ret = s2mpg1x_update_reg(gc->id, gc->i2c,
 						 GPIO_CTRL_BASE[gc->id] +
