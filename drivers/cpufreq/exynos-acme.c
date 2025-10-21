@@ -286,7 +286,7 @@ static int exynos_cpufreq_verify(struct cpufreq_policy_data *new_policy)
 				 domain->min_freq_qos,
 				 domain->max_freq_qos);
 
-	ret = cpufreq_frequency_table_verify(new_policy, domain->freq_table);
+	ret = cpufreq_frequency_table_verify(new_policy);
 	if (!ret)
 		arch_update_hw_pressure(&domain->cpus, new_policy->max);
 	return ret;
