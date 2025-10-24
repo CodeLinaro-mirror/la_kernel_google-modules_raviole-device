@@ -4,7 +4,7 @@
 """
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("//common:modules.bzl", "get_gki_modules_list")
+load("//common:bazel/modules.bzl", "get_gki_modules_list")
 
 SLIDER_MODULE_OUTS = [
     # keep sorted
