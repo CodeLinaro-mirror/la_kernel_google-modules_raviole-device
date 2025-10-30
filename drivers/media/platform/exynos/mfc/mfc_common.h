@@ -100,8 +100,8 @@
 #define vb_to_mfc_buf(x)		\
 	container_of(x, struct mfc_buf, vb.vb2_buf)
 
-#define fh_to_mfc_ctx(x)		\
-	container_of(x, struct mfc_ctx, fh)
+#define file_to_mfc_ctx(x)		\
+	container_of(file_to_v4l2_fh(x), struct mfc_ctx, fh)
 
 #define call_bop(b, op, args...)	\
 	(b->op ? b->op(args) : 0)

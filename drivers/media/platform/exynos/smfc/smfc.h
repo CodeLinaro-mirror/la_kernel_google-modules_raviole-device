@@ -230,9 +230,9 @@ struct smfc_ctx {
 
 extern const struct v4l2_ioctl_ops smfc_v4l2_ioctl_ops;
 
-static inline struct smfc_ctx *v4l2_fh_to_smfc_ctx(struct v4l2_fh *fh)
+static inline struct smfc_ctx *v4l2_file_to_smfc_ctx(struct file *file)
 {
-	return container_of(fh, struct smfc_ctx, fh);
+	return container_of(file_to_v4l2_fh(file), struct smfc_ctx, fh);
 }
 
 /* return the previous flag */

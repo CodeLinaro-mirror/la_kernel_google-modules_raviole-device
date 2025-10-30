@@ -498,7 +498,7 @@ static void __mfc_dec_update_pix_format(struct mfc_ctx *ctx, struct v4l2_format 
 static int mfc_dec_g_fmt_vid_cap_mplane(struct file *file, void *priv,
 						struct v4l2_format *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dev *dev = ctx->dev;
 	struct mfc_core *core;
 	struct mfc_core_ctx *core_ctx;
@@ -627,7 +627,7 @@ static int mfc_dec_g_fmt_vid_cap_mplane(struct file *file, void *priv,
 static int mfc_dec_g_fmt_vid_out_mplane(struct file *file, void *priv,
 						struct v4l2_format *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dec *dec = ctx->dec_priv;
 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 
@@ -654,7 +654,7 @@ static int mfc_dec_g_fmt_vid_out_mplane(struct file *file, void *priv,
 /* Try format */
 static int mfc_dec_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_fmt *fmt;
 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 
@@ -672,7 +672,7 @@ static int mfc_dec_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
 static int mfc_dec_s_fmt_vid_cap_mplane(struct file *file, void *priv,
 							struct v4l2_format *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 	struct mfc_fmt *fmt = NULL;
 
@@ -702,7 +702,7 @@ static int mfc_dec_s_fmt_vid_out_mplane(struct file *file, void *priv,
 							struct v4l2_format *f)
 {
 	struct mfc_dev *dev = video_drvdata(file);
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dec *dec = ctx->dec_priv;
 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
 	struct mfc_fmt *fmt = NULL;
@@ -755,7 +755,7 @@ static int mfc_dec_reqbufs(struct file *file, void *priv,
 		struct v4l2_requestbuffers *reqbufs)
 {
 	struct mfc_dev *dev = video_drvdata(file);
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dec *dec = ctx->dec_priv;
 	struct mfc_core *core;
 	struct mfc_core_ctx *core_ctx;
@@ -868,7 +868,7 @@ static int mfc_dec_reqbufs(struct file *file, void *priv,
 static int mfc_dec_querybuf(struct file *file, void *priv,
 						   struct v4l2_buffer *buf)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	int ret;
 
 	mfc_debug_enter();
@@ -900,7 +900,7 @@ static int mfc_dec_querybuf(struct file *file, void *priv,
 /* Queue a buffer */
 static int mfc_dec_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dev *dev = ctx->dev;
 	int ret = -EINVAL;
 
@@ -958,7 +958,7 @@ static int mfc_dec_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
 /* Dequeue a buffer */
 static int mfc_dec_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dec *dec = ctx->dec_priv;
 	struct dec_dpb_ref_info *dstBuf, *srcBuf;
 	struct hdr10_plus_meta *dst_sei_meta, *src_sei_meta;
@@ -1050,7 +1050,7 @@ static int mfc_dec_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
 static int mfc_dec_streamon(struct file *file, void *priv,
 			   enum v4l2_buf_type type)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	int ret = -EINVAL;
 
 	mfc_debug_enter();
@@ -1081,7 +1081,7 @@ static int mfc_dec_streamon(struct file *file, void *priv,
 static int mfc_dec_streamoff(struct file *file, void *priv,
 			    enum v4l2_buf_type type)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	int ret = -EINVAL;
 
 	mfc_debug_enter();
@@ -1109,7 +1109,7 @@ static int mfc_dec_streamoff(struct file *file, void *priv,
 static int mfc_dec_query_ext_ctrl(struct file *file, void *priv,
 				  struct v4l2_query_ext_ctrl *qc)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct v4l2_query_ext_ctrl *c;
 
 	c = __mfc_dec_get_ctrl(qc->id);
@@ -1475,7 +1475,7 @@ static void __mfc_dec_update_disp_res(struct mfc_ctx *ctx, struct v4l2_selection
 static int mfc_dec_g_selection(struct file *file, void *priv,
 		struct v4l2_selection *s)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct mfc_dev *dev = ctx->dev;
 	struct mfc_core *core;
 	struct mfc_core_ctx *core_ctx;
@@ -1545,7 +1545,7 @@ static int mfc_dec_g_selection(struct file *file, void *priv,
 static int mfc_dec_g_ext_ctrls(struct file *file, void *priv,
 			struct v4l2_ext_controls *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct v4l2_ext_control *ext_ctrl;
 	struct v4l2_control ctrl;
 	int i;
@@ -1576,7 +1576,7 @@ static int mfc_dec_g_ext_ctrls(struct file *file, void *priv,
 static int mfc_dec_s_ext_ctrls(struct file *file, void *priv,
 				struct v4l2_ext_controls *f)
 {
-	struct mfc_ctx *ctx = fh_to_mfc_ctx(file->private_data);
+	struct mfc_ctx *ctx = file_to_mfc_ctx(file);
 	struct v4l2_ext_control *ext_ctrl;
 	struct v4l2_control ctrl;
 	int i;

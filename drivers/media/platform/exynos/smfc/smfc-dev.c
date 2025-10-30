@@ -549,7 +549,7 @@ err_control:
 
 static int exynos_smfc_release(struct file *filp)
 {
-	struct smfc_ctx *ctx = v4l2_filp_to_smfc_ctx(filp);
+	struct smfc_ctx *ctx = v4l2_file_to_smfc_ctx(filp);
 
 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
 	v4l2_ctrl_handler_free(&ctx->v4l2_ctrlhdlr);
