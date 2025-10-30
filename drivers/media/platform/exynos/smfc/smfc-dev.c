@@ -501,9 +501,7 @@ static int exynos_smfc_open(struct file *filp)
 		goto err_m2m_ctx_init;
 	}
 
-	v4l2_fh_add(&ctx->fh);
-
-	filp->private_data = &ctx->fh;
+	v4l2_fh_add(&ctx->fh, filp);
 
 	if (!IS_ERR(smfc->clk_gate)) {
 		ret = clk_prepare(smfc->clk_gate);
@@ -543,7 +541,7 @@ err_clk:
 err_m2m_ctx_init:
 	v4l2_ctrl_handler_free(&ctx->v4l2_ctrlhdlr);
 err_control:
-	v4l2_fh_del(&ctx->fh);
+	v4l2_fh_del(&ctx->fh, filp);
 	v4l2_fh_exit(&ctx->fh);
 	kfree(ctx);
 	return ret;
@@ -551,11 +549,11 @@ err_control:
 
 static int exynos_smfc_release(struct file *filp)
 {
-	struct smfc_ctx *ctx = v4l2_fh_to_smfc_ctx(filp->private_data);
+	struct smfc_ctx *ctx = v4l2_filp_to_smfc_ctx(filp);
 
 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
 	v4l2_ctrl_handler_free(&ctx->v4l2_ctrlhdlr);
-	v4l2_fh_del(&ctx->fh);
+	v4l2_fh_del(&ctx->fh, filp);
 	v4l2_fh_exit(&ctx->fh);
 
 	if (!IS_ERR(ctx->smfc->clk_gate)) {

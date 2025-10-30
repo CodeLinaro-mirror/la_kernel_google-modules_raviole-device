@@ -419,8 +419,7 @@ static int mfc_open(struct file *file)
 		goto err_vdev;
 
 	v4l2_fh_init(&ctx->fh, vdev);
-	file->private_data = &ctx->fh;
-	v4l2_fh_add(&ctx->fh);
+	v4l2_fh_add(&ctx->fh, file);
 
 	ctx->dev = dev;
 
@@ -538,7 +537,7 @@ err_ctx_init:
 	dev->ctx[ctx->num] = 0;
 
 err_ctx_num:
-	v4l2_fh_del(&ctx->fh);
+	v4l2_fh_del(&ctx->fh, file);
 	v4l2_fh_exit(&ctx->fh);
 
 err_vdev:
@@ -575,7 +574,7 @@ static int mfc_release(struct file *file)
 	MFC_TRACE_CTX_LT("[INFO] release is called (ctx:%d, total:%d)\n", ctx->num, dev->num_inst);
 
 	/* Free resources */
-	v4l2_fh_del(&ctx->fh);
+	v4l2_fh_del(&ctx->fh, file);
 	v4l2_fh_exit(&ctx->fh);
 
 	/*
