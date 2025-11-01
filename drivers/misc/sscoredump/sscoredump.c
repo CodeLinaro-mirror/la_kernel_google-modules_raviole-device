@@ -767,7 +767,7 @@ static int sscoredump_probe(struct platform_device *pdev)
 	sdev->crash_hdr.header_size = sizeof(struct crashinfo_img_hdr);
 
 	/* initialize a new device of our class */
-	minor = ida_simple_get(&sscd_ida, 0, SSCD_MAX_DEVS, GFP_KERNEL);
+	minor = ida_alloc_max(&sscd_ida, SSCD_MAX_DEVS, GFP_KERNEL);
 	if (minor < 0) {
 		pr_err("unable to reserve dev_minor\n");
 		goto fail1;
@@ -806,7 +806,7 @@ static int sscoredump_probe(struct platform_device *pdev)
 	return 0;
 
 fail2:
-	ida_simple_remove(&sscd_ida, minor);
+	ida_free(&sscd_ida, minor);
 fail1:
 	kfree(sdev);
 
@@ -830,7 +830,7 @@ static void sscoredump_remove(struct platform_device *pdev)
 	mutex_unlock(&sscd_mutex);
 
 	cdev_device_del(&sdev->chrdev, &sdev->dev);
-	ida_simple_remove(&sscd_ida, minor);
+	ida_free(&sscd_ida, minor);
 
 	put_device(&sdev->dev);
 }

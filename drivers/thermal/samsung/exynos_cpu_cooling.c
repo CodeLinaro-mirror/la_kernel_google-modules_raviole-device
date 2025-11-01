@@ -1023,7 +1023,7 @@ __exynos_cpu_cooling_register(struct device_node *np,
 		goto free_idle_time;
 	}
 
-	ret = ida_simple_get(&cpufreq_ida, 0, 0, GFP_KERNEL);
+	ret = ida_alloc(&cpufreq_ida, GFP_KERNEL);
 	if (ret < 0) {
 		cdev = ERR_PTR(ret);
 		goto free_table;
@@ -1109,7 +1109,7 @@ __exynos_cpu_cooling_register(struct device_node *np,
 remove_qos_req:
 	freq_qos_remove_request(&cpufreq_cdev->qos_req);
 remove_ida:
-	ida_simple_remove(&cpufreq_ida, cpufreq_cdev->id);
+	ida_free(&cpufreq_ida, cpufreq_cdev->id);
 free_table:
 	kfree(cpufreq_cdev->freq_table);
 free_idle_time:
