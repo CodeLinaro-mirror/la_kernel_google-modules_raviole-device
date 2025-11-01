@@ -8,6 +8,7 @@
  */
 
 #include <scsi/scsi_cmnd.h>
+#include <ufs_trace_types.h>
 #include <ufshcd-priv.h>
 #include "ufs-exynos-gs.h"
 
