@@ -4670,7 +4670,8 @@ static void __maybe_unused exynos_pcie_rc_set_tpoweron(struct dw_pcie_rp *pp, in
 }
 #endif
 
-static int exynos_pcie_msi_set_affinity(struct irq_data *irq_data, const struct cpumask *mask,
+static int __maybe_unused
+exynos_pcie_msi_set_affinity(struct irq_data *irq_data, const struct cpumask *mask,
 					bool force)
 {
 	struct dw_pcie_rp *pp;
@@ -4964,8 +4965,6 @@ EXPORT_SYMBOL_GPL(register_separated_msi_vector);
 
 static int exynos_pcie_rc_add_port(struct platform_device *pdev, struct dw_pcie_rp *pp, int ch_num)
 {
-	struct irq_domain *msi_domain;
-	struct msi_domain_info *msi_domain_info;
 	int ret, i, sep_irq;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct exynos_pcie *exynos_pcie = to_exynos_pcie(pci);
@@ -5031,7 +5030,12 @@ skip_sep_request_irq:
 	// Reset this back to 36-bits
 	dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(36));
 
+/* TODO(b/442591113): migrate away from legacy MSI setup. */
+#if 0
 	if (pp->msi_domain) {
+		struct msi_domain_info *msi_domain_info;
+		struct irq_domain *msi_domain;
+
 		msi_domain = pp->msi_domain;
 		msi_domain_info = (struct msi_domain_info *)msi_domain->host_data;
 		msi_domain_info->chip->irq_set_affinity = exynos_pcie_msi_set_affinity;
@@ -5043,6 +5047,7 @@ skip_sep_request_irq:
 			msi_domain_info->chip->irq_unmask = pci_msi_unmask_irq;
 		}
 	}
+#endif
 
 	return 0;
 }
