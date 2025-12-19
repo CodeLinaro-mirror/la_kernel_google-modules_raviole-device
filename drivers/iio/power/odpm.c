@@ -286,7 +286,7 @@ static int odpm_io_write_lpf_reg(struct odpm_info *info,
 	return s2mpg1x_meter_set_lpf_coefficient(info->chip.hw_id, info->i2c, ch, data);
 }
 
-int odpm_configure_chip(struct odpm_info *info)
+static int odpm_configure_chip(struct odpm_info *info)
 {
 	int ch;
 	int ret;
@@ -337,7 +337,7 @@ int odpm_meter_sw_reset(struct odpm_info *info) {
 }
 #endif
 
-int odpm_configure_start_measurement(struct odpm_info *info)
+static int odpm_configure_start_measurement(struct odpm_info *info)
 {
 	u64 timestamp_capture_ns = 0;
 	int ch;
