@@ -612,7 +612,7 @@ static void smfc_m2m_device_run(void *priv)
 	unsigned char thumb_quality_factor = ctx->thumb_quality_factor;
 	unsigned char enable_hwfc = ctx->enable_hwfc;
 
-	ret = in_irq() ? pm_runtime_get(ctx->smfc->dev) : pm_runtime_get_sync(ctx->smfc->dev);
+	ret = in_hardirq() ? pm_runtime_get(ctx->smfc->dev) : pm_runtime_get_sync(ctx->smfc->dev);
 	if (ret < 0) {
 		pr_err("Failed to enable power\n");
 		goto err_pm;

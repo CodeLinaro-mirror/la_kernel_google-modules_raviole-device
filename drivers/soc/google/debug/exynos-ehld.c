@@ -389,7 +389,7 @@ unsigned long long exynos_ehld_event_read_cpu(unsigned int cpu)
 	unsigned long long total = 0;
 	unsigned long long enabled, running;
 
-	if (!in_irq() && event) {
+	if (!in_hardirq() && event) {
 		total = perf_event_read_value(event, &enabled, &running);
 		ehld_info(0, "%s: cpu%u - enabled: %llu, running: %llu, total: %llu\n",
 				__func__, cpu, enabled, running, total);
