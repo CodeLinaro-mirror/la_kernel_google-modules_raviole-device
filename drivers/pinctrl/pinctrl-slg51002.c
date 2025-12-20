@@ -497,7 +497,7 @@ static int slg51002_pinctrl_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to find %s DT node\n", pdev->name);
 		return -EINVAL;
 	}
-	slg51002_pctl->gc.fwnode = of_node_to_fwnode(dp);
+	slg51002_pctl->gc.fwnode = of_fwnode_handle(dp);
 	if (of_property_read_u32(dp, "ngpios", &ngpios)) {
 		dev_err(&pdev->dev, "Failed to get ngpios from %s DT node\n",
 			pdev->name);

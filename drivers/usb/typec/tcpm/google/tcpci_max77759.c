@@ -766,7 +766,7 @@ static int ext_bst_en_gpio_init(struct max77759_plat *chip)
 	dp = of_find_node_by_name(chip->dev->of_node, chip->gpio.label);
 	if (!dp)
 		dev_err(chip->dev, "Failed to find %s DT node\n", chip->gpio.label);
-	chip->gpio.fwnode = of_node_to_fwnode(dp);
+	chip->gpio.fwnode = of_fwnode_handle(dp);
 	ret = devm_gpiochip_add_data(chip->dev, &chip->gpio, chip);
 	if (ret)
 		dev_err(chip->dev, "Failed to initialize gpio chip\n");
