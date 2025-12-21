@@ -11,6 +11,7 @@
 #include <linux/io.h>
 #include <linux/cpuidle.h>
 #include <linux/delay.h>
+#include <linux/devfreq-governor.h>
 #include <linux/err.h>
 #include <linux/errno.h>
 #include <linux/interrupt.h>
@@ -29,8 +30,6 @@
 #include <trace/hooks/cpuidle.h>
 #include <linux/spinlock.h>
 
-// Note: This header comes from $KERNEL_SRC/drivers/devfreq
-#include <governor.h>
 #include "governor_memlat.h"
 
 static DEFINE_PER_CPU(bool, is_idle);

@@ -18,6 +18,7 @@
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/device.h>
+#include <linux/devfreq-governor.h>
 #include <linux/platform_device.h>
 #include <linux/of.h>
 #include <linux/slab.h>
@@ -47,8 +48,6 @@
 #include "../../soc/google/acpm/acpm_ipc.h"
 #endif
 #include <soc/google/debug-snapshot.h>
-
-#include "governor.h"
 
 #include "gs-ppc.h"
 #include "thermal_core.h"

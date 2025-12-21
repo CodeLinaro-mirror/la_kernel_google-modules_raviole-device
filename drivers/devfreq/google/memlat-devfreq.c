@@ -11,6 +11,7 @@
  *
  */
 
+#include <linux/devfreq-governor.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
@@ -20,7 +21,6 @@
 #include <soc/google/ect_parser.h>
 #include <dt-bindings/soc/google/gs101-devfreq.h>
 #include <trace/events/clock.h>
-#include "governor.h"
 #include "governor_memlat.h"
 
 #define MEMLAT_DEVFREQ_MODULE_NAME	"gs101-memlat-devfreq"

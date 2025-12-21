@@ -19,9 +19,8 @@
 #include <linux/timer.h>
 #include <linux/kthread.h>
 #include <linux/pm_opp.h>
-#include "governor.h"
-
 #include <linux/devfreq.h>
+#include <linux/devfreq-governor.h>
 #include <soc/google/exynos-devfreq.h>
 #include <trace/events/clock.h>
 #include <uapi/linux/sched/types.h>

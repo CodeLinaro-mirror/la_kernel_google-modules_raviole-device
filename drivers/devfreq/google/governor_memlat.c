@@ -11,6 +11,7 @@
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/delay.h>
+#include <linux/devfreq-governor.h>
 #include <linux/ktime.h>
 #include <linux/time.h>
 #include <linux/err.h>
@@ -25,8 +26,6 @@
 #include <dt-bindings/soc/google/gs101-devfreq.h>
 #include <trace/events/clock.h>
 
-// Note: this header comes from $KERNEL_SRC/drivers/devfreq
-#include <governor.h>
 #include "governor_memlat.h"
 
 #define CREATE_TRACE_POINTS
