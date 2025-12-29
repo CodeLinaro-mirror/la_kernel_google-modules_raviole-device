@@ -1296,6 +1296,9 @@ static int __mfc_core_nal_q_run_in_buf_dec(struct mfc_core *core, struct mfc_cor
 	pInStr->ScratchBufAddr = core_ctx->codec_buf.daddr;
 	pInStr->ScratchBufSize = ctx->scratch_buf_size;
 
+	MFC_TRACE_CTX("scratch buf addr: 0x%#llx, size: %ld\n",
+			core_ctx->codec_buf.daddr, ctx->scratch_buf_size);
+
 	if (call_cop(ctx, set_buf_ctrls_val_nal_q_dec, ctx,
 				&ctx->src_ctrls[src_index], pInStr) < 0)
 		mfc_err("[NALQ] failed in set_buf_ctrls_val\n");

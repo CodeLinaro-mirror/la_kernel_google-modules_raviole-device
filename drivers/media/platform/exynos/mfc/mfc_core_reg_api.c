@@ -188,6 +188,8 @@ int mfc_core_set_dec_codec_buffers(struct mfc_core_ctx *core_ctx)
 	/* set codec buffers */
 	MFC_CORE_WRITEL(buf_addr, MFC_REG_D_SCRATCH_BUFFER_ADDR);
 	MFC_CORE_WRITEL(ctx->scratch_buf_size, MFC_REG_D_SCRATCH_BUFFER_SIZE);
+	mfc_core_info("[FRAME] scratch buf addr: 0x%#llx size %ld\n",
+			buf_addr, ctx->scratch_buf_size);
 	buf_addr += ctx->scratch_buf_size;
 	buf_size -= ctx->scratch_buf_size;
 
