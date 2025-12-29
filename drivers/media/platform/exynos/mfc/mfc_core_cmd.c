@@ -511,7 +511,7 @@ static int __mfc_set_scratch_dpb_buffer(struct mfc_core *core, struct mfc_ctx *c
 	/* set scratch buffers */
 	MFC_CORE_WRITEL(core_ctx->scratch_buf.daddr, MFC_REG_D_SCRATCH_BUFFER_ADDR);
 	MFC_CORE_WRITEL(ctx->scratch_buf_size, MFC_REG_D_SCRATCH_BUFFER_SIZE);
-	mfc_debug(2, "[FRAME] scratch buf addr: 0x%#llx size %ld\n",
+	mfc_core_info("[FRAME] scratch buf addr: 0x%#llx size %ld\n",
 			core_ctx->scratch_buf.daddr, ctx->scratch_buf_size);
 
 	return 0;

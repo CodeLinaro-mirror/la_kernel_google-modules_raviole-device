@@ -439,6 +439,8 @@ int mfc_alloc_codec_buffers(struct mfc_core_ctx *core_ctx)
 			return -ENOMEM;
 		}
 		core_ctx->codec_buffer_allocated = 1;
+		mfc_core_info("[MEMINFO] Codec buf size: %ld, addr: %#llx\n",
+			core_ctx->codec_buf.size, core_ctx->codec_buf.daddr);
 	} else if (ctx->codec_mode == MFC_REG_CODEC_MPEG2_DEC) {
 		core_ctx->codec_buffer_allocated = 1;
 	}
@@ -511,7 +513,7 @@ int mfc_alloc_scratch_buffer(struct mfc_core_ctx *core_ctx)
 		core_ctx->scratch_buffer_allocated = 1;
 	}
 
-	mfc_debug(2, "[MEMINFO] scratch buf ctx[%d] size: %ld, addr: 0x%08llx\n",
+	mfc_core_info("[MEMINFO] scratch buf ctx[%d] size: %ld, addr: 0x%08llx\n",
 			core_ctx->num, ctx->scratch_buf_size,
 			core_ctx->scratch_buf.daddr);
 
