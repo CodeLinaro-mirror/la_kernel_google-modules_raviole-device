@@ -105,7 +105,7 @@ void exynos_pcie_rc_pcie_phy_otp_config(void *phy_base_regs, int ch_num)
 
 void exynos_pcie_rc_pcie_phy_config(struct exynos_pcie *exynos_pcie, int ch_num)
 {
-	void __iomem *elbi_base_regs = exynos_pcie->elbi_base;
+	void __iomem *elbi_base_regs = exynos_pcie->pci->elbi_base;
 	void __iomem *phy_base_regs = exynos_pcie->phy_base;
 	void __iomem *phy_pcs_base_regs = exynos_pcie->phy_pcs_base;
 	int num_lanes = exynos_pcie->num_lanes;
