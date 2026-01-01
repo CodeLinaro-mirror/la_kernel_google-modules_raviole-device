@@ -2192,9 +2192,9 @@ static int exynos_pcie_rc_get_resource(struct platform_device *pdev,
 
 	temp_rsc = platform_get_resource_byname(pdev, IORESOURCE_MEM, "elbi");
 	exynos_pcie->elbi_base_physical_addr = temp_rsc->start;
-	exynos_pcie->elbi_base = devm_ioremap_resource(&pdev->dev, temp_rsc);
-	if (IS_ERR(exynos_pcie->elbi_base)) {
-		ret = PTR_ERR(exynos_pcie->elbi_base);
+	exynos_pcie->pci->elbi_base = devm_ioremap_resource(&pdev->dev, temp_rsc);
+	if (IS_ERR(exynos_pcie->pci->elbi_base)) {
+		ret = PTR_ERR(exynos_pcie->pci->elbi_base);
 
 		return ret;
 	}

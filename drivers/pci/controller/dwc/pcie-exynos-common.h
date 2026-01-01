@@ -239,7 +239,6 @@ struct exynos_pcie {
 #endif
 	struct s2mpu_info	*s2mpu;
 	struct pci_dev		*ep_pci_dev;
-	void __iomem		*elbi_base;
 	void __iomem		*udbg_base;
 	void __iomem		*phy_base;
 	void __iomem		*sysreg_base;
@@ -361,6 +360,23 @@ struct separated_msi_vector {
 	int flags;
 };
 
+#define PCIE_EXYNOS_PCI_OP_READ(base, type)					\
+static inline type exynos_##base##_read(struct exynos_pcie *pcie, u32 reg)	\
+{										\
+		u32 data = 0;							\
+		data = readl((pcie->pci->base##_base) + reg);			\
+		return (type)data;						\
+}										\
+
+#define PCIE_EXYNOS_PCI_OP_WRITE(base, type)							\
+static inline void exynos_##base##_write(struct exynos_pcie *pcie, type value, type reg)	\
+{												\
+		writel(value, pcie->pci->base##_base + reg);					\
+}
+
+PCIE_EXYNOS_PCI_OP_READ(elbi, u32);
+PCIE_EXYNOS_PCI_OP_WRITE(elbi, u32);
+
 #define PCIE_EXYNOS_OP_READ(base, type)						\
 static inline type exynos_##base##_read(struct exynos_pcie *pcie, u32 reg)	\
 {										\
@@ -375,13 +391,11 @@ static inline void exynos_##base##_write(struct exynos_pcie *pcie, type value, t
 		writel(value, pcie->base##_base + reg);						\
 }
 
-PCIE_EXYNOS_OP_READ(elbi, u32);
 PCIE_EXYNOS_OP_READ(udbg, u32);
 PCIE_EXYNOS_OP_READ(phy, u32);
 PCIE_EXYNOS_OP_READ(phy_pcs, u32);
 PCIE_EXYNOS_OP_READ(sysreg, u32);
 PCIE_EXYNOS_OP_READ(ia, u32);
-PCIE_EXYNOS_OP_WRITE(elbi, u32);
 PCIE_EXYNOS_OP_WRITE(udbg, u32);
 PCIE_EXYNOS_OP_WRITE(phy, u32);
 PCIE_EXYNOS_OP_WRITE(phy_pcs, u32);
