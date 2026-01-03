@@ -393,7 +393,8 @@ static struct samsung_sysmmu_domain *attach_helper(struct iommu_domain *dom, str
 }
 
 static int samsung_sysmmu_attach_dev(struct iommu_domain *dom,
-				     struct device *dev)
+				     struct device *dev,
+				     struct iommu_domain *old)
 {
 	struct sysmmu_clientdata *client;
 	struct samsung_sysmmu_domain *domain;
