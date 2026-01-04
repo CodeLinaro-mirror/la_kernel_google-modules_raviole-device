@@ -1445,7 +1445,7 @@ static int s3c2410wdt_dev_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(s3c_wdt_pm_ops, s3c2410wdt_dev_suspend, s3c2410wdt_dev_resume);
 
 #ifdef CONFIG_PM
-static int s3c2410wdt_syscore_suspend(void)
+static int s3c2410wdt_syscore_suspend(void *data)
 {
 	struct s3c2410_wdt *wdt = s3c_wdt[LITTLE_CLUSTER];
 
@@ -1461,7 +1461,7 @@ static int s3c2410wdt_syscore_suspend(void)
 	return 0;
 }
 
-static void s3c2410wdt_syscore_resume(void)
+static void s3c2410wdt_syscore_resume(void *data)
 {
 	int ret;
 	unsigned int val;
@@ -1515,9 +1515,13 @@ static void s3c2410wdt_syscore_resume(void)
 #define s3c2410_wdt_syscore_resume		NULL
 #endif
 
-static struct syscore_ops s3c2410wdt_syscore_ops = {
+static const struct syscore_ops s3c2410wdt_syscore_ops = {
 	.suspend	= s3c2410wdt_syscore_suspend,
 	.resume		= s3c2410wdt_syscore_resume,
+};
+
+static struct syscore s3c2410wdt_syscore = {
+	.ops = &s3c2410wdt_syscore_ops,
 };
 
 static int s3c2410wdt_pm_notifier(struct notifier_block *notifier,
@@ -1789,7 +1793,7 @@ static int s3c2410wdt_probe(struct platform_device *pdev)
 
 	wtcon = readl(wdt->reg_base + S3C2410_WTCON);
 	if (cluster_index == LITTLE_CLUSTER) {
-		register_syscore_ops(&s3c2410wdt_syscore_ops);
+		register_syscore(&s3c2410wdt_syscore);
 
 		/* register panic handler for watchdog reset */
 		wdt_block.nb_panic_block.notifier_call = s3c2410wdt_panic_handler;

@@ -1416,7 +1416,7 @@ static void samsung_pinctrl_resume_dev(struct samsung_pinctrl_drv_data *drvdata)
  *
  * Save data for all banks across all devices.
  */
-static int samsung_pinctrl_suspend(void)
+static int samsung_pinctrl_suspend(void *data)
 {
 	struct samsung_pinctrl_drv_data *drvdata;
 
@@ -1432,7 +1432,7 @@ static int samsung_pinctrl_suspend(void)
  *
  * Restore data for all banks across all devices.
  */
-static void samsung_pinctrl_resume(void)
+static void samsung_pinctrl_resume(void *data)
 {
 	struct samsung_pinctrl_drv_data *drvdata;
 
@@ -1467,9 +1467,13 @@ EXPORT_SYMBOL(exynos_eint_to_pin_num);
 #define samsung_pinctrl_resume		NULL
 #endif
 
-static struct syscore_ops samsung_pinctrl_syscore_ops = {
+static const struct syscore_ops samsung_pinctrl_syscore_ops = {
 	.suspend	= samsung_pinctrl_suspend,
 	.resume		= samsung_pinctrl_resume,
+};
+
+static struct syscore samsung_pinctrl_syscore = {
+	.ops = &samsung_pinctrl_syscore_ops,
 };
 
 static const struct of_device_id samsung_pinctrl_dt_match[] = {
@@ -1537,7 +1541,7 @@ static int __init samsung_pinctrl_drv_register(void)
 	 * initcall level than any arch-specific init calls that install syscore
 	 * ops that turn off pad retention (like exynos_pm_resume).
 	 */
-	register_syscore_ops(&samsung_pinctrl_syscore_ops);
+	register_syscore(&samsung_pinctrl_syscore);
 
 	return platform_driver_register(&samsung_pinctrl_driver);
 }
