@@ -72,7 +72,7 @@ static enum pixel_slowio_optype pixel_ufs_get_slowio_optype(u8 opcode)
 }
 
 static void pixel_ufs_log_slowio(struct ufs_hba *hba,
-		struct ufshcd_lrb *lrbp, s64 iotime_us)
+		struct scsi_cmnd *cmd, s64 iotime_us)
 {
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
 	sector_t sector = ULONG_MAX;
@@ -86,8 +86,8 @@ static void pixel_ufs_log_slowio(struct ufs_hba *hba,
 	if (likely(iotime_us < ufs->slowio_min_us))
 		return;
 
-	if (lrbp->cmd) {
-		opcode = (u8)(*lrbp->cmd->cmnd);
+	if (ufshcd_is_scsi_cmd(cmd)) {
+		opcode = cmd->cmnd[0];
 		optype = pixel_ufs_get_slowio_optype(opcode);
 		if (optype < PIXEL_SLOWIO_OP_MAX) {
 			if (iotime_us < ufs->slowio[optype][PIXEL_SLOWIO_US])
@@ -97,7 +97,7 @@ static void pixel_ufs_log_slowio(struct ufs_hba *hba,
 		if (optype == PIXEL_SLOWIO_READ ||
 			optype == PIXEL_SLOWIO_WRITE ||
 			optype == PIXEL_SLOWIO_UNMAP) {
-			struct request *rq = scsi_cmd_to_rq(lrbp->cmd);
+			struct request *rq = scsi_cmd_to_rq(cmd);
 			if (rq && rq->bio) {
 				sector = blk_rq_pos(rq);
 				affected_bytes = blk_rq_bytes(rq);
@@ -112,15 +112,15 @@ static void pixel_ufs_log_slowio(struct ufs_hba *hba,
 }
 
 /* classify request type on statistics by scsi command opcode*/
-static int pixel_ufs_get_cmd_type(struct ufshcd_lrb *lrbp,
+static int pixel_ufs_get_cmd_type(struct scsi_cmnd *cmd,
 				  enum req_type_stats *cmd_type)
 {
 	u8 scsi_op_code;
 
-	if (!lrbp->cmd)
+	if (!ufshcd_is_scsi_cmd(cmd))
 		return -EINVAL;
 
-	scsi_op_code = (u8)(*lrbp->cmd->cmnd);
+	scsi_op_code = cmd->cmnd[0];
 	switch (scsi_op_code) {
 	case READ_10:
 	case READ_16:
@@ -248,8 +248,9 @@ static inline void record_ufs_stats(struct ufs_hba *hba)
 	}
 }
 
-void pixel_ufs_update_req_stats(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
+void pixel_ufs_update_req_stats(struct ufs_hba *hba, struct scsi_cmnd *cmd)
 {
+	struct ufshcd_lrb *lrbp = scsi_cmd_priv(cmd);
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
 	struct pixel_req_stats *rst;
 	enum req_type_stats cmd_type;
@@ -257,9 +258,9 @@ void pixel_ufs_update_req_stats(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		lrbp->issue_time_stamp);
 
 	/* Log for slow I/O */
-	pixel_ufs_log_slowio(hba, lrbp, delta);
+	pixel_ufs_log_slowio(hba, cmd, delta);
 
-	if (pixel_ufs_get_cmd_type(lrbp, &cmd_type))
+	if (pixel_ufs_get_cmd_type(cmd, &cmd_type))
 		return;
 
 	/* Update request statistic if need */
@@ -324,20 +325,20 @@ static inline void __update_io_stats(struct ufs_hba *hba,
 }
 
 static void pixel_ufs_update_io_stats(struct ufs_hba *hba,
-		struct ufshcd_lrb *lrbp, bool is_start)
+		struct scsi_cmnd *cmd, bool is_start)
 {
 	struct request *rq;
 	u32 affected_bytes;
 	bool is_write;
 	enum req_type_stats cmd_type;
 
-	if (pixel_ufs_get_cmd_type(lrbp, &cmd_type))
+	if (pixel_ufs_get_cmd_type(cmd, &cmd_type))
 		return;
 
 	if (cmd_type != REQ_TYPE_READ && cmd_type != REQ_TYPE_WRITE)
 		return;
 
-	rq = scsi_cmd_to_rq(lrbp->cmd);
+	rq = scsi_cmd_to_rq(cmd);
 
 	affected_bytes = blk_rq_bytes(rq);
 
@@ -602,25 +603,26 @@ static void pixel_ufs_trace_fdeviceinit(struct ufs_hba *hba,
 }
 
 static void pixel_ufs_trace_upiu_cmd(struct ufs_hba *hba,
-		struct ufshcd_lrb *lrbp, bool is_start)
+		struct scsi_cmnd *cmd, bool is_start)
 {
 	u8 event = 0, lun = 0, opcode = 0, idn = 0, tag = 0, group_id = 0;
+	struct ufshcd_lrb *lrbp = scsi_cmd_priv(cmd);
 	sector_t sector = 0;
 	int affected_bytes = 0;
 
 	lun = lrbp->lun;
-	tag = lrbp->task_tag;
+	tag = scsi_cmd_to_rq(cmd)->tag;
 
-	if (lrbp->cmd) {
+	if (ufshcd_is_scsi_cmd(cmd)) {
 		event = (is_start) ? EVENT_SCSI_SEND : EVENT_SCSI_COMPL;
-		opcode = lrbp->cmd->cmnd[0];
-		sector = blk_rq_pos(scsi_cmd_to_rq(lrbp->cmd));
+		opcode = cmd->cmnd[0];
+		sector = blk_rq_pos(scsi_cmd_to_rq(cmd));
 
-		affected_bytes = blk_rq_bytes(scsi_cmd_to_rq(lrbp->cmd));
+		affected_bytes = blk_rq_bytes(scsi_cmd_to_rq(cmd));
 		if (opcode == WRITE_10 || opcode == READ_10)
-			group_id = lrbp->cmd->cmnd[6] & 0x3f;
+			group_id = cmd->cmnd[6] & 0x3f;
 		else if (opcode == WRITE_16 || opcode == READ_16)
-			group_id = lrbp->cmd->cmnd[14] & 0x3f;
+			group_id = cmd->cmnd[14] & 0x3f;
 	} else {
 		if (hba->dev_cmd.type == DEV_CMD_TYPE_NOP)
 			event = (is_start) ? EVENT_NOP_OUT : EVENT_NOP_IN;
@@ -696,10 +698,10 @@ static void pixel_ufs_check_int_errors(void *data, struct ufs_hba *hba,
 }
 
 static void pixel_ufs_send_command(void *data, struct ufs_hba *hba,
-					struct ufshcd_lrb *lrbp)
+					struct scsi_cmnd *cmd)
 {
-	pixel_ufs_update_io_stats(hba, lrbp, true);
-	pixel_ufs_trace_upiu_cmd(hba, lrbp, true);
+	pixel_ufs_update_io_stats(hba, cmd, true);
+	pixel_ufs_trace_upiu_cmd(hba, cmd, true);
 }
 
 static inline enum utp_ocs ufshcd_get_tr_ocs(struct ufshcd_lrb *lrbp)
@@ -713,22 +715,23 @@ static inline int ufshcd_get_req_rsp(struct utp_upiu_rsp *ucd_rsp_ptr)
 }
 
 static void pixel_ufs_compl_command(void *data, struct ufs_hba *hba,
-					struct ufshcd_lrb *lrbp)
+					struct scsi_cmnd *cmd)
 {
+	struct ufshcd_lrb *lrbp = scsi_cmd_priv(cmd);
 	int scsi_status;
 	u8 response_code, opcode;
 	u8 *asc, *sense_buffer;
 	enum utp_ocs ocs;
 	struct request *rq;
 
-	pixel_ufs_update_io_stats(hba, lrbp, false);
-	pixel_ufs_update_req_stats(hba, lrbp);
-	pixel_ufs_trace_upiu_cmd(hba, lrbp, false);
+	pixel_ufs_update_io_stats(hba, cmd, false);
+	pixel_ufs_update_req_stats(hba, cmd);
+	pixel_ufs_trace_upiu_cmd(hba, cmd, false);
 
-	if (!lrbp->cmd)
+	if (!ufshcd_is_scsi_cmd(cmd))
 		return;
 
-	opcode = lrbp->cmd->cmnd[0];
+	opcode = cmd->cmnd[0];
 	if (opcode != SYNCHRONIZE_CACHE && opcode != START_STOP &&
 			opcode != WRITE_10 && opcode != READ_10)
 		return;
@@ -751,10 +754,10 @@ static void pixel_ufs_compl_command(void *data, struct ufs_hba *hba,
 
 	/*
 	 * Clear the failfast flags to make the SCSI core retry
-	 * lrbp->cmd. The block layer core sets REQ_FAILFAST_MASK for
+	 * cmd. The block layer core sets REQ_FAILFAST_MASK for
 	 * readahead requests.
 	 */
-	rq = scsi_cmd_to_rq(lrbp->cmd);
+	rq = scsi_cmd_to_rq(cmd);
 	if (rq)
 		rq->cmd_flags &= ~REQ_FAILFAST_MASK;
 
@@ -777,9 +780,10 @@ static void pixel_ufs_compl_command(void *data, struct ufs_hba *hba,
 }
 
 static void pixel_ufs_prepare_command(void *data, struct ufs_hba *hba,
-			struct request *rq, struct ufshcd_lrb *lrbp, int *err)
+			struct scsi_cmnd *cmd, int *err)
 {
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
+	struct request *rq = scsi_cmd_to_rq(cmd);
 
 	u8 opcode;
 
@@ -791,11 +795,11 @@ static void pixel_ufs_prepare_command(void *data, struct ufs_hba *hba,
 	if (hba->dev_info.wspecversion <= 0x300)
 		return;
 
-	opcode = (u8)(*lrbp->cmd->cmnd);
+	opcode = cmd->cmnd[0];
 	if (opcode == WRITE_10)
-		lrbp->cmd->cmnd[6] = 0x11;
+		cmd->cmnd[6] = 0x11;
 	else if (opcode == WRITE_16)
-		lrbp->cmd->cmnd[14] = 0x11;
+		cmd->cmnd[14] = 0x11;
 }
 
 static ssize_t life_time_estimation_c_show(struct device *dev,

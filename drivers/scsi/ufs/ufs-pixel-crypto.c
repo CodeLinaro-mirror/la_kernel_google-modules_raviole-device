@@ -22,7 +22,7 @@
 #include <trace/hooks/ufshcd.h>
 
 static void pixel_ufs_crypto_fill_prdt(void *unused, struct ufs_hba *hba,
-				       struct ufshcd_lrb *lrbp,
+				       struct scsi_cmnd *cmd,
 				       unsigned int segments, int *err);
 
 #define CRYPTO_DATA_UNIT_SIZE 4096
@@ -423,9 +423,10 @@ void pixel_ufs_crypto_resume(struct ufs_hba *hba)
 
 /* Configure inline encryption (or decryption) on requests that require it. */
 static void pixel_ufs_crypto_fill_prdt(void *unused, struct ufs_hba *hba,
-				       struct ufshcd_lrb *lrbp,
+				       struct scsi_cmnd *cmd,
 				       unsigned int segments, int *err)
 {
+	struct ufshcd_lrb *lrbp = scsi_cmd_priv(cmd);
 	struct pixel_ufs_prdt_entry *prdt =
 		(struct pixel_ufs_prdt_entry *)lrbp->ucd_prdt_ptr;
 	unsigned int i;
