@@ -402,6 +402,9 @@ initramfs(
     ramdisk_compression = "lz4",
     trim_unused_modules = True,
     vendor_boot_name = "vendor_boot",
+    vendor_ramdisk_dev_nodes = [
+        "//private/google-modules/soc/gs:vendor_dev_nodes.slider",
+    ],
 )
 
 filegroup(
