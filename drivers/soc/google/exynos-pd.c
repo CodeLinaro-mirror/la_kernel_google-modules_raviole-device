@@ -169,12 +169,6 @@ static int __exynos_pd_power_on(struct exynos_pm_domain *pd)
 
 	pr_debug("pd_power_on:(%s)+\n", pd->name);
 
-	if (atomic_read(&pd->need_sync) > 0) {
-		pd->turn_off_on_sync = false;
-		ret = 1;
-		goto acc_unlock;
-	}
-
 	if (unlikely(!pd->pd_control)) {
 		pr_debug("%s is logical sub power domain, does not have power on control\n",
 			 pd->name);
@@ -245,16 +239,6 @@ static int __exynos_pd_power_off(struct exynos_pm_domain *pd)
 	ktime_t now;
 
 	pr_debug("pd_power_off:(%s)+\n", pd->name);
-
-	/* Until all consumers have probed, delay actual turn OFF of PD until
-	 * sync, tell GENPD that PD was turned OFF successfully to get correct
-	 * accounting, GENPD will request it to be back ON if needed.
-	 */
-	if (atomic_read(&pd->need_sync) > 0) {
-		pd->turn_off_on_sync = true;
-		ret = 1;
-		goto acc_unlock;
-	}
 
 	if (unlikely(!pd->pd_control)) {
 		pr_debug("%s is logical sub power domain, does not have power off control\n",
@@ -488,10 +472,8 @@ static int exynos_pd_probe(struct platform_device *pdev)
 	if (initial_state > 0) {
 		pd->pd_stat.last_on_time = now;
 		pd->pd_stat.on_count = 1;
-		atomic_set(&pd->need_sync, 1);
 	} else {
 		pd->pd_stat.last_off_time = now;
-		atomic_set(&pd->need_sync, 0);
 	}
 
 	if (of_property_read_bool(np, "skip-idle-ip"))
@@ -533,8 +515,6 @@ static int exynos_pd_probe(struct platform_device *pdev)
 						pd->name);
 				} else {
 					pd->parent = parent_pd;
-					atomic_add(atomic_read(&pd->need_sync),
-						   &parent_pd->need_sync);
 					dev_info(&parent_pd_pdev->dev, "has new subdomain %s\n",
 						 pd->name);
 				}
@@ -547,42 +527,6 @@ static int exynos_pd_probe(struct platform_device *pdev)
 	cal_register_pd_lookup_cmu_id(exynos_pd_lookup_cmu_id);
 	dev_dbg(dev, "PM Domain Initialized\n");
 	return ret;
-}
-
-static void exynos_pd_sync_state(struct exynos_pm_domain *pd)
-{
-	int need_sync;
-
-	mutex_lock(&pd->access_lock);
-	need_sync = atomic_dec_return(&pd->need_sync);
-
-	/* PD never needed sync or other child dec first */
-	if (need_sync < 0)
-		goto sync_unlock;
-
-	if (need_sync == 0) {
-		pr_info("%s sync_state: turn_off = %d\n", pd->name, pd->turn_off_on_sync);
-		if (pd->turn_off_on_sync)
-			__exynos_pd_power_off(pd);
-		mutex_unlock(&pd->access_lock);
-		if (pd->parent)
-			exynos_pd_sync_state(pd->parent);
-		/* Return right here because we already unlocked the mutex */
-		return;
-	} else {
-		pr_info("%s sync_state: children need sync\n", pd->name);
-	}
-
-sync_unlock:
-	mutex_unlock(&pd->access_lock);
-}
-
-static void dev_sync_state(struct device *dev)
-{
-	struct exynos_pm_domain *pd;
-
-	pd = platform_get_drvdata(to_platform_device(dev));
-	exynos_pd_sync_state(pd);
 }
 
 static const struct of_device_id of_exynos_pd_match[] = {
@@ -605,7 +549,6 @@ static struct platform_driver exynos_pd_driver = {
 	.driver = {
 		.name = "exynos-pd",
 		.of_match_table = of_exynos_pd_match,
-		.sync_state = dev_sync_state,
 		.pm = &exynos_pd_pm_ops
 	},
 	.probe		= exynos_pd_probe,

@@ -60,9 +60,6 @@ struct exynos_pm_domain {
 	struct exynos_bcm_pd_info *bcm;
 #endif
 	bool power_down_skipped;
-	/* Total number of descendants needing sync, including self */
-	atomic_t need_sync;
-	bool turn_off_on_sync;
 	unsigned int need_smc;
 	unsigned int cmu_id;
 	bool skip_idle_ip;
