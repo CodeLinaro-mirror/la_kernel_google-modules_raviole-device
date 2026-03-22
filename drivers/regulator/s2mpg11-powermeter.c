@@ -19,7 +19,7 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 #include <linux/regulator/of_regulator.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #include <linux/mfd/samsung/s2mpg11-register.h>
 #include <linux/mfd/samsung/s2mpg1x-meter.h>
 #include <linux/io.h>

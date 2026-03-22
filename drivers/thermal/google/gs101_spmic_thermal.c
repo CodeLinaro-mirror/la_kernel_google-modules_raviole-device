@@ -16,7 +16,7 @@
 #include <linux/interrupt.h>
 #include <linux/types.h>
 #include <linux/kthread.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #include <linux/mfd/samsung/s2mpg11-register.h>
 
 #include <thermal_core.h>

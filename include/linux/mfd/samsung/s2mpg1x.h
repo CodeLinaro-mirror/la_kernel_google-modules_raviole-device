@@ -35,7 +35,7 @@ enum s2mpg1x_id {
 	} while (0)
 
 #include <linux/mfd/samsung/s2mpg10-local.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #elif IS_ENABLED(CONFIG_SOC_GS201)
 #define SWITCH_ID_FUNC(id, func, args...)                                      \
 	do {                                                                   \

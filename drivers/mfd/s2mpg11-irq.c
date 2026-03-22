@@ -12,7 +12,7 @@
 #include <linux/interrupt.h>
 #include <linux/gpio.h>
 #include <linux/wakeup_reason.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #include <linux/mfd/samsung/s2mpg11-register.h>
 
 static const u8 s2mpg11_mask_reg[] = {
@@ -26,7 +26,7 @@ static const u8 s2mpg11_mask_reg[] = {
 };
 
 static struct i2c_client *get_i2c(struct s2mpg11_dev *s2mpg11,
-				  enum s2mpg11_irq_source src)
+				  enum s2mpg11_pmic_reg src)
 {
 	switch (src) {
 	case S2MPG11_PMIC_INT1 ... S2MPG11_PMIC_INT6:
@@ -38,7 +38,7 @@ static struct i2c_client *get_i2c(struct s2mpg11_dev *s2mpg11,
 
 struct s2mpg11_irq_data {
 	int mask;
-	enum s2mpg11_irq_source group;
+	enum s2mpg11_pmic_reg group;
 };
 
 #define DECLARE_IRQ(idx, _group, _mask)	\

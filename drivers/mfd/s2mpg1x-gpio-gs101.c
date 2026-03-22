@@ -25,7 +25,7 @@
 #include <linux/pinctrl/pinctrl.h>
 #include <linux/pinctrl/pinmux.h>
 #include <linux/mfd/samsung/s2mpg10-local.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #include <linux/mfd/samsung/s2mpg1x.h>
 
 const struct pinctrl_pin_desc s2mpg10_pins[] = {

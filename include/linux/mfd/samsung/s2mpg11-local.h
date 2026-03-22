@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * include/linux/mfd/samsung/s2mpg11.h
+ * include/linux/mfd/samsung/s2mpg11-local.h
  *
  * Copyright (C) 2016 Samsung Electronics
  *
@@ -9,6 +9,7 @@
 
 #ifndef __S2MPG11_MFD_H__
 #define __S2MPG11_MFD_H__
+#include <linux/mfd/samsung/s2mpg11.h>
 #include <linux/platform_device.h>
 #include <linux/thermal.h>
 #include <linux/regmap.h>
@@ -28,16 +29,7 @@ struct s2mpg11_regulator_data {
 	struct device_node *reg_node;
 };
 
-enum s2mpg11_irq_source {
-	S2MPG11_PMIC_INT1 = 0,
-	S2MPG11_PMIC_INT2,
-	S2MPG11_PMIC_INT3,
-	S2MPG11_PMIC_INT4,
-	S2MPG11_PMIC_INT5,
-	S2MPG11_PMIC_INT6,
-
-	S2MPG11_IRQ_GROUP_NR,
-};
+#define S2MPG11_IRQ_GROUP_NR (S2MPG11_PMIC_INT6 + 1)
 
 #define S2MPG11_NUM_IRQ_PMIC_REGS 6
 

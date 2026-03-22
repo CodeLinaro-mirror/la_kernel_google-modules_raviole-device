@@ -31,7 +31,7 @@
 #if defined(CONFIG_SOC_GS101)
 #include <dt-bindings/clock/gs101.h>
 #include <linux/mfd/samsung/s2mpg10-local.h>
-#include <linux/mfd/samsung/s2mpg11.h>
+#include <linux/mfd/samsung/s2mpg11-local.h>
 #include <linux/mfd/samsung/rtc-s2mpg10.h>
 #include <dt-bindings/soc/google/gs101-devfreq.h>
 #elif defined(CONFIG_SOC_GS201)
