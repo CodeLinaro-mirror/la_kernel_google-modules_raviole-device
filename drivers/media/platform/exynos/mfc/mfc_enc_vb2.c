@@ -105,22 +105,6 @@ static int mfc_enc_queue_setup(struct vb2_queue *vq,
 	return 0;
 }
 
-static void mfc_enc_unlock(struct vb2_queue *q)
-{
-	struct mfc_ctx *ctx = q->drv_priv;
-	struct mfc_dev *dev = ctx->dev;
-
-	mutex_unlock(&dev->mfc_mutex);
-}
-
-static void mfc_enc_lock(struct vb2_queue *q)
-{
-	struct mfc_ctx *ctx = q->drv_priv;
-	struct mfc_dev *dev = ctx->dev;
-
-	mutex_lock(&dev->mfc_mutex);
-}
-
 static int mfc_enc_buf_init(struct vb2_buffer *vb)
 {
 	struct vb2_queue *vq = vb->vb2_queue;
@@ -430,8 +414,6 @@ static void mfc_enc_buf_queue(struct vb2_buffer *vb)
 
 struct vb2_ops mfc_enc_qops = {
 	.queue_setup		= mfc_enc_queue_setup,
-	.wait_prepare		= mfc_enc_unlock,
-	.wait_finish		= mfc_enc_lock,
 	.buf_init		= mfc_enc_buf_init,
 	.buf_prepare		= mfc_enc_buf_prepare,
 	.buf_finish		= mfc_enc_buf_finish,

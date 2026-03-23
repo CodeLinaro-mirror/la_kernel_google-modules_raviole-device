@@ -436,8 +436,6 @@ static struct vb2_ops smfc_vb2_ops = {
 	.buf_finish	= smfc_vb2_buf_finish,
 	.buf_cleanup	= smfc_vb2_buf_cleanup,
 	.buf_queue	= smfc_vb2_buf_queue,
-	.wait_finish	= vb2_ops_wait_finish,
-	.wait_prepare	= vb2_ops_wait_prepare,
 	.stop_streaming	= smfc_vb2_stop_streaming,
 };
 

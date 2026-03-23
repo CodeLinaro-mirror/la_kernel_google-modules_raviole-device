@@ -137,6 +137,7 @@ static void __mfc_deinit_dec_ctx(struct mfc_ctx *ctx)
 
 static int __mfc_init_dec_ctx(struct mfc_ctx *ctx)
 {
+	struct mfc_dev *dev = ctx->dev;
 	struct mfc_dec *dec;
 	int ret = 0;
 	int i;
@@ -220,6 +221,7 @@ static int __mfc_init_dec_ctx(struct mfc_ctx *ctx)
 	ctx->vq_src.ops = &mfc_dec_qops;
 	ctx->vq_src.mem_ops = mfc_mem_ops();
 	ctx->vq_src.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+	ctx->vq_src.lock = &dev->mfc_mutex;
 	ret = vb2_queue_init(&ctx->vq_src);
 	if (ret) {
 		mfc_ctx_err("Failed to initialize videobuf2 queue(output)\n");
@@ -233,6 +235,7 @@ static int __mfc_init_dec_ctx(struct mfc_ctx *ctx)
 	ctx->vq_dst.ops = &mfc_dec_qops;
 	ctx->vq_dst.mem_ops = mfc_mem_ops();
 	ctx->vq_dst.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+	ctx->vq_dst.lock = &dev->mfc_mutex;
 	ret = vb2_queue_init(&ctx->vq_dst);
 	if (ret) {
 		mfc_ctx_err("Failed to initialize videobuf2 queue(capture)\n");
@@ -270,6 +273,7 @@ static void __mfc_deinit_enc_ctx(struct mfc_ctx *ctx)
 
 static int __mfc_init_enc_ctx(struct mfc_ctx *ctx)
 {
+	struct mfc_dev *dev = ctx->dev;
 	struct mfc_enc *enc;
 	struct mfc_enc_params *p;
 	int ret = 0;
@@ -328,6 +332,7 @@ static int __mfc_init_enc_ctx(struct mfc_ctx *ctx)
 	ctx->vq_src.ops = &mfc_enc_qops;
 	ctx->vq_src.mem_ops = mfc_mem_ops();
 	ctx->vq_src.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+	ctx->vq_src.lock = &dev->mfc_mutex;
 	ret = vb2_queue_init(&ctx->vq_src);
 	if (ret) {
 		mfc_ctx_err("Failed to initialize videobuf2 queue(output)\n");
@@ -342,6 +347,7 @@ static int __mfc_init_enc_ctx(struct mfc_ctx *ctx)
 	ctx->vq_dst.ops = &mfc_enc_qops;
 	ctx->vq_dst.mem_ops = mfc_mem_ops();
 	ctx->vq_dst.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+	ctx->vq_dst.lock = &dev->mfc_mutex;
 	ret = vb2_queue_init(&ctx->vq_dst);
 	if (ret) {
 		mfc_ctx_err("Failed to initialize videobuf2 queue(capture)\n");
