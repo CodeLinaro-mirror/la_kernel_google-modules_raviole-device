@@ -93,6 +93,7 @@ itmon.ko
 kernel-top.ko
 keycombo.ko
 keydebug.ko
+kvm-dummy-iommu.ko
 logbuffer.ko
 mailbox-wc.ko
 mali_kbase.ko
