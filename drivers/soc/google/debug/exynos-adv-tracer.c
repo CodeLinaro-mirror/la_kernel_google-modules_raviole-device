@@ -42,7 +42,6 @@ static void adv_tracer_ipc_sscd_release(struct device *dev)
 static struct sscd_platform_data sscd_pdata;
 static struct platform_device sscd_dev = {
 	.name            = DEVICE_NAME,
-	.driver_override = SSCD_NAME,
 	.id              = -1,
 	.dev             = {
 		.platform_data = &sscd_pdata,
@@ -563,6 +562,7 @@ static int adv_tracer_ipc_init(struct platform_device *pdev)
 		eat_ipc->intr_bitoffset = INTR_FLAG_OFFSET;
 
 #ifdef ADV_TRACER_SSCOREDUMP
+	device_set_driver_override(&sscd_dev.dev, SSCD_NAME);
 	platform_device_register(&sscd_dev);
 #endif
 
