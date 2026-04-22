@@ -718,9 +718,17 @@ static int exynos_ufs_link_startup_notify(struct ufs_hba *hba,
 	return ret;
 }
 
+static int exynos_ufs_negotiate_pwr_mode(struct ufs_hba *hba,
+					 const struct ufs_pa_layer_attr *pwr_max,
+					 struct ufs_pa_layer_attr *pwr_req)
+{
+	/* Set PMC parameters to be requested */
+	exynos_ufs_init_pmc_req(hba, pwr_max, pwr_req);
+	return 0;
+}
+
 static int exynos_ufs_pwr_change_notify(struct ufs_hba *hba,
 					enum ufs_notify_change_status notify,
-					const struct ufs_pa_layer_attr *pwr_max,
 					struct ufs_pa_layer_attr *pwr_req)
 {
 	struct exynos_ufs *ufs = to_exynos_ufs(hba);
@@ -738,9 +746,6 @@ static int exynos_ufs_pwr_change_notify(struct ufs_hba *hba,
 
 		if (!IS_C_STATE_ON(ufs) || ufs->h_state != H_REQ_BUSY)
 			PRINT_STATES(ufs);
-
-		/* Set PMC parameters to be requested */
-		exynos_ufs_init_pmc_req(hba, pwr_max, pwr_req);
 
 		/* cal */
 		ufs->cal_param.pmd = act_pmd;
@@ -970,6 +975,7 @@ static struct ufs_hba_variant_ops exynos_ufs_ops = {
 	.setup_clocks = exynos_ufs_setup_clocks,
 	.hce_enable_notify = exynos_ufs_hce_enable_notify,
 	.link_startup_notify = exynos_ufs_link_startup_notify,
+	.negotiate_pwr_mode = exynos_ufs_negotiate_pwr_mode,
 	.pwr_change_notify = exynos_ufs_pwr_change_notify,
 	.setup_xfer_req = exynos_ufs_set_nexus_t_xfer_req,
 	.setup_task_mgmt = exynos_ufs_set_nexus_t_task_mgmt,
