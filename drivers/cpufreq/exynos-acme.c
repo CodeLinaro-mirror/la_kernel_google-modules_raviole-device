@@ -380,8 +380,8 @@ static int __exynos_cpufreq_suspend(struct cpufreq_policy *policy,
 
 	freq = domain->resume_freq;
 
-	freq_qos_update_request(policy->min_freq_req, freq);
-	freq_qos_update_request(policy->max_freq_req, freq);
+	freq_qos_update_request(&policy->min_freq_req, freq);
+	freq_qos_update_request(&policy->max_freq_req, freq);
 
 	flush_work(update_work);
 
@@ -399,8 +399,8 @@ static int __exynos_cpufreq_resume(struct cpufreq_policy *policy,
 	if (!domain)
 		return -EINVAL;
 
-	freq_qos_update_request(policy->max_freq_req, domain->max_freq);
-	freq_qos_update_request(policy->min_freq_req, domain->min_freq);
+	freq_qos_update_request(&policy->max_freq_req, domain->max_freq);
+	freq_qos_update_request(&policy->min_freq_req, domain->min_freq);
 
 	return 0;
 }
