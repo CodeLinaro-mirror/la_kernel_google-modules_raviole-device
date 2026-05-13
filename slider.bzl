@@ -21,8 +21,6 @@ SLIDER_MODULE_OUTS = [
     "drivers/spi/spidev.ko",
     "drivers/watchdog/softdog.ko",
     "net/core/pktgen.ko",
-    "net/mac80211/mac80211.ko",
-    "net/wireless/cfg80211.ko",
 ]
 
 # List of GKI modules to omit
