@@ -199,7 +199,8 @@ static irqreturn_t exynos_seclog_irq_handler(int irq, void *dev_id)
 }
 
 #ifdef CONFIG_OF_RESERVED_MEM
-static int __init exynos_seclog_reserved_mem_setup(struct reserved_mem *remem)
+static int __init exynos_seclog_reserved_mem_setup(unsigned long node,
+						   struct reserved_mem *remem)
 {
 	ldata.phys_addr = remem->base;
 	ldata.size = remem->size;
@@ -210,7 +211,11 @@ static int __init exynos_seclog_reserved_mem_setup(struct reserved_mem *remem)
 	return 0;
 }
 
-RESERVEDMEM_OF_DECLARE(seclog_mem, "exynos,seclog", exynos_seclog_reserved_mem_setup);
+static const struct reserved_mem_ops exynos_seclog_reserved_mem_ops = {
+	.node_init = exynos_seclog_reserved_mem_setup,
+};
+
+RESERVEDMEM_OF_DECLARE(seclog_mem, "exynos,seclog", &exynos_seclog_reserved_mem_ops);
 #endif	/* CONFIG_OF_RESERVED_MEM */
 
 static int exynos_seclog_probe(struct platform_device *pdev)
