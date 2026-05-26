@@ -205,8 +205,8 @@ static const struct samsung_pll_rate_table *samsung_get_pll_settings(
 	return NULL;
 }
 
-static long samsung_pll_round_rate(struct clk_hw *hw,
-			unsigned long drate, unsigned long *prate)
+static int samsung_pll_determine_rate(struct clk_hw *hw,
+				      struct clk_rate_request *req)
 {
 	struct samsung_composite_pll *pll = to_comp_pll(hw);
 	const struct samsung_pll_rate_table *rate_table = pll->rate_table;
@@ -214,12 +214,15 @@ static long samsung_pll_round_rate(struct clk_hw *hw,
 
 	/* Assumming rate_table is in descending order */
 	for (i = 0; i < pll->rate_count; i++) {
-		if (drate >= rate_table[i].rate)
-			return rate_table[i].rate;
+		if (req->rate >= rate_table[i].rate) {
+			req->rate = rate_table[i].rate;
+			return 0;
+		}
 	}
 
 	/* return minimum supported value */
-	return rate_table[i - 1].rate;
+	req->rate = rate_table[i - 1].rate;
+	return 0;
 }
 
 static int samsung_composite_pll_is_enabled(struct clk_hw *hw)
@@ -462,7 +465,7 @@ static int samsung_pll1460x_set_rate(struct clk_hw *hw, unsigned long drate,
 static const struct clk_ops samsung_pll145xx_clk_ops = {
 	.recalc_rate = samsung_pll145xx_recalc_rate,
 	.set_rate = samsung_pll145xx_set_rate,
-	.round_rate = samsung_pll_round_rate,
+	.determine_rate = samsung_pll_determine_rate,
 	.enable = samsung_composite_pll_enable,
 	.disable = samsung_composite_pll_disable,
 	.is_enabled = samsung_composite_pll_is_enabled,
@@ -471,7 +474,7 @@ static const struct clk_ops samsung_pll145xx_clk_ops = {
 static const struct clk_ops samsung_pll1460x_clk_ops = {
 	.recalc_rate = samsung_pll1460x_recalc_rate,
 	.set_rate = samsung_pll1460x_set_rate,
-	.round_rate = samsung_pll_round_rate,
+	.determine_rate = samsung_pll_determine_rate,
 	.enable = samsung_composite_pll_enable,
 	.disable = samsung_composite_pll_disable,
 	.is_enabled = samsung_composite_pll_is_enabled,
@@ -615,7 +618,7 @@ static int samsung_pll255xx_set_rate(struct clk_hw *hw, unsigned long drate,
 static const struct clk_ops samsung_pll255xx_clk_ops = {
 	.recalc_rate = samsung_pll255xx_recalc_rate,
 	.set_rate = samsung_pll255xx_set_rate,
-	.round_rate = samsung_pll_round_rate,
+	.determine_rate = samsung_pll_determine_rate,
 	.enable = samsung_composite_pll_enable_onchange,
 	.disable = samsung_composite_pll_disable_onchange,
 	.is_enabled = samsung_composite_pll_is_enabled,
@@ -717,7 +720,7 @@ static int samsung_pll2650x_set_rate(struct clk_hw *hw, unsigned long drate,
 static const struct clk_ops samsung_pll2650x_clk_ops = {
 	.recalc_rate = samsung_pll2650x_recalc_rate,
 	.set_rate = samsung_pll2650x_set_rate,
-	.round_rate = samsung_pll_round_rate,
+	.determine_rate = samsung_pll_determine_rate,
 	.enable = samsung_composite_pll_enable_onchange,
 	.disable = samsung_composite_pll_disable_onchange,
 	.is_enabled = samsung_composite_pll_is_enabled,
@@ -891,18 +894,19 @@ static int samsung_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
 	return bestdiv;
 }
 
-static long samsung_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+static int samsung_divider_determine_rate(struct clk_hw *hw,
+					  struct clk_rate_request *req)
 {
 	int div = 1;
 
-	div = samsung_divider_bestdiv(hw, rate, prate);
+	div = samsung_divider_bestdiv(hw, req->rate, &req->best_parent_rate);
 	if (div == 0) {
 		pr_err("divider value should not be %d\n", div);
 		div = 1;
 	}
 
-	return *prate / div;
+	req->rate = req->best_parent_rate / div;
+	return 0;
 }
 
 static int samsung_divider_set_rate(struct clk_hw *hw, unsigned long rate,
@@ -954,7 +958,7 @@ static int samsung_divider_set_rate(struct clk_hw *hw, unsigned long rate,
 
 static const struct clk_ops samsung_composite_divider_ops = {
 	.recalc_rate = samsung_divider_recalc_rate,
-	.round_rate = samsung_divider_round_rate,
+	.determine_rate = samsung_divider_determine_rate,
 	.set_rate = samsung_divider_set_rate,
 };
 
@@ -1362,11 +1366,11 @@ unsigned long cal_vclk_gate_recalc_rate(struct clk_hw *hw,
 	return ret;
 }
 
-long cal_vclk_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+static int cal_vclk_determine_rate(struct clk_hw *hw,
+				    struct clk_rate_request *req)
 {
-	/* round_rate ops is not needed when using cal */
-	return (long)rate;
+	/* determine_rate ops is not needed when using cal */
+	return 0;
 }
 
 int cal_vclk_set_rate(struct clk_hw *hw, unsigned long rate,
@@ -1570,19 +1574,19 @@ static const struct clk_ops samsung_vclk_ops = {
 	.disable = cal_vclk_disable,
 	.is_enabled = cal_vclk_is_enabled,
 	.recalc_rate = cal_vclk_recalc_rate,
-	.round_rate = cal_vclk_round_rate,
+	.determine_rate = cal_vclk_determine_rate,
 	.set_rate = cal_vclk_set_rate,
 };
 
 static const struct clk_ops samsung_vclk_dfs_ops = {
 	.recalc_rate = cal_vclk_dfs_recalc_rate,
-	.round_rate = cal_vclk_round_rate,
+	.determine_rate = cal_vclk_determine_rate,
 	.set_rate = cal_vclk_dfs_set_rate,
 };
 
 static const struct clk_ops samsung_vclk_dfs_sw_ops = {
 	.recalc_rate = cal_vclk_dfs_sw_recalc_rate,
-	.round_rate = cal_vclk_round_rate,
+	.determine_rate = cal_vclk_determine_rate,
 	.set_rate = cal_vclk_dfs_set_rate_switch,
 };
 
