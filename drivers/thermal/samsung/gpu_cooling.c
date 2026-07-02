@@ -1019,7 +1019,7 @@ static struct thermal_cooling_device *__gpufreq_cooling_register(struct device_n
 	snprintf(dev_name, sizeof(dev_name), "thermal-gpufreq-%d",
 		 gpufreq_cdev->id);
 
-	cool_dev = thermal_of_cooling_device_register(np, dev_name,
+	cool_dev = thermal_of_cooling_device_register(np, 0, dev_name,
 						      gpufreq_cdev, cooling_ops);
 	if (IS_ERR(cool_dev)) {
 		pr_warn("%s: register cooling device %s failed\n", __func__,

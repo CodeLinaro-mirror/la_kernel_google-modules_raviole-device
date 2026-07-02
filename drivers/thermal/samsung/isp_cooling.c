@@ -373,7 +373,7 @@ __isp_cooling_register(struct device_node *np,
 	snprintf(dev_name, sizeof(dev_name), "thermal-isp-%d",
 		 isp_dev->id);
 
-	cool_dev = thermal_of_cooling_device_register(np, dev_name, isp_dev,
+	cool_dev = thermal_of_cooling_device_register(np, 0, dev_name, isp_dev,
 						      &isp_cooling_ops);
 	if (IS_ERR(cool_dev)) {
 		release_idr(&isp_idr, isp_dev->id);

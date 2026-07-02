@@ -1061,7 +1061,7 @@ __exynos_cpu_cooling_register(struct device_node *np,
 		goto remove_ida;
 	}
 
-	cdev = thermal_of_cooling_device_register(np, dev_name, cpufreq_cdev,
+	cdev = thermal_of_cooling_device_register(np, 0, dev_name, cpufreq_cdev,
 						  cooling_ops);
 	if (IS_ERR(cdev))
 		goto remove_qos_req;

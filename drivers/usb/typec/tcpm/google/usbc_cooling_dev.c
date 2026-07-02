@@ -560,7 +560,7 @@ static int usb_cdev_probe(struct platform_device *pdev)
 
 	/* Register cooling device */
 	usb_cdev_info->cooling_dev =
-		thermal_of_cooling_device_register(dev_of_node(usb_cdev_info->dev), "usbc-port",
+		thermal_of_cooling_device_register(dev_of_node(usb_cdev_info->dev), 0, "usbc-port",
 						   usb_cdev_info, &usb_cdev_ops);
 
 	if (IS_ERR(usb_cdev_info->cooling_dev)) {
