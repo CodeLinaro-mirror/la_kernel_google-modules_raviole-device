@@ -2427,7 +2427,7 @@ static int exynos_devfreq_probe(struct platform_device *pdev)
 		return -ENODEV;
 
 	// Register cooling device
-	data->cooling_dev = devm_thermal_of_cooling_device_register(data->dev,
+	data->cooling_dev = devm_thermal_of_child_cooling_device_register(data->dev,
 			dev_of_node(data->dev), (char *)devfreq_domain_name,
 			data, &exynos_devfreq_cooling_ops);
 
