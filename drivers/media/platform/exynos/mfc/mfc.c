@@ -1146,7 +1146,7 @@ static int mfc_probe(struct platform_device *pdev)
 	g_mfc_dev = dev;
 
 	mfc_init_debugfs(dev);
-	__platform_driver_register(&mfc_core_driver, THIS_MODULE);
+	platform_driver_register(&mfc_core_driver);
 	of_platform_populate(np, NULL, NULL, device);
 
 	dev_info(&pdev->dev, "%s is completed\n", __func__);
