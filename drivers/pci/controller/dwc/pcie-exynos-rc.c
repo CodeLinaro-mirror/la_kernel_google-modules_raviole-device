@@ -242,7 +242,7 @@ static void exynos_pcie_rc_copy_dma_params(struct exynos_pcie *exynos_pcie)
 	target_dev->dma_mask = epdev->dma_mask;
 	target_dev->coherent_dma_mask = epdev->coherent_dma_mask;
 	target_dev->dma_parms = epdev->dma_parms;
-	target_dev->dma_coherent = epdev->dma_coherent;
+	dev_assign_dma_coherent(target_dev, dev_dma_coherent(epdev));
 }
 
 static int get_ch_num(struct pci_dev *epdev)
