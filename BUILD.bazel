@@ -192,6 +192,7 @@ kernel_build(
     ],
     makefile = "//common:Makefile",
     module_outs = SLIDER_MODULE_OUTS,
+    pahole = "//common:pahole",
     strip_modules = True,
     trim_nonlisted_kmi = False,
 )
