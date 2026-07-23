@@ -478,10 +478,10 @@ void usb_psy_start_sdp_timeout(void *usb)
 			       usb_psy->update_sdp_enum_timeout ?
 					SDP_ENUMERATION_TIMEOUT_MS :
 					SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS);
-		alarm_start_relative(&usb_psy->sdp_timeout_alarm,
-				     ms_to_ktime(usb_psy->update_sdp_enum_timeout ?
+		alarm_start_timer(&usb_psy->sdp_timeout_alarm,
+				  ms_to_ktime(usb_psy->update_sdp_enum_timeout ?
 					SDP_ENUMERATION_TIMEOUT_MS :
-					SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS));
+					SDP_ENUMERATION_TIMEOUT_FIRST_CONNECT_MS), true);
 	}
 }
 EXPORT_SYMBOL_GPL(usb_psy_start_sdp_timeout);

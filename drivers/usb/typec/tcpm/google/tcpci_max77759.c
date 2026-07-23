@@ -1706,8 +1706,8 @@ static void floating_cable_sink_detected_handler_locked(struct max77759_plat *ch
 	    "floating_cable_or_sink_detected count: %d", chip->floating_cable_or_sink_detected);
 	if (chip->floating_cable_or_sink_detected >= FLOATING_CABLE_OR_SINK_INSTANCE_THRESHOLD) {
 		max777x9_disable_auto_ultra_low_power_mode(chip, true);
-		alarm_start_relative(&chip->reenable_auto_ultra_low_power_mode_alarm,
-				     ms_to_ktime(AUTO_ULTRA_LOW_POWER_MODE_REENABLE_MS));
+		alarm_start_timer(&chip->reenable_auto_ultra_low_power_mode_alarm,
+				  ms_to_ktime(AUTO_ULTRA_LOW_POWER_MODE_REENABLE_MS), true);
 	}
 }
 
@@ -3114,7 +3114,7 @@ static int max77759_aicl_active_cb(struct gvotable_election *el, const char *rea
 
 	if (is_aicl_limited(chip)) {
 		/* Recheck after AICL_CHECK_MS */
-		alarm_start_relative(&chip->aicl_check_alarm, ms_to_ktime(AICL_CHECK_MS));
+		alarm_start_timer(&chip->aicl_check_alarm, ms_to_ktime(AICL_CHECK_MS), true);
 	} else {
 		alarm_cancel(&chip->aicl_check_alarm);
 		kthread_cancel_work_sync(&chip->aicl_check_alarm_work);

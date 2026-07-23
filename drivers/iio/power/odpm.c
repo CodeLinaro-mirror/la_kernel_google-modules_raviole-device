@@ -379,8 +379,8 @@ static void odpm_alarm_handler(struct alarm *alarm, ktime_t time)
 
 	/* schedule the periodic reading from the chip */
 	queue_work(info->work_queue, &info->work_refresh);
-	alarm_start_relative(&info->alarmtimer_refresh,
-			     ms_to_ktime(info->chip.max_refresh_time_ms));
+	alarm_start_timer(&info->alarmtimer_refresh,
+			  ms_to_ktime(info->chip.max_refresh_time_ms), true);
 }
 
 static void odpm_periodic_refresh_work(struct work_struct *work)
@@ -405,8 +405,8 @@ static void odpm_periodic_refresh_setup(struct odpm_info *info)
 	/* setup the latest moment for reading the regs before saturation */
 	/* register the timer */
 	alarm_init(&info->alarmtimer_refresh, ALARM_BOOTTIME, odpm_alarm_handler);
-	alarm_start_relative(&info->alarmtimer_refresh,
-			     ms_to_ktime(info->chip.max_refresh_time_ms));
+	alarm_start_timer(&info->alarmtimer_refresh,
+			  ms_to_ktime(info->chip.max_refresh_time_ms), true);
 }
 
 static bool odpm_match_int_sampling_rate(struct odpm_info *info,
@@ -968,8 +968,8 @@ static int odpm_reset_timer(struct odpm_info *info)
 		return ret;
 	} else {
 		alarm_init(&info->alarmtimer_refresh, ALARM_BOOTTIME, odpm_alarm_handler);
-		alarm_start_relative(&info->alarmtimer_refresh,
-				     ms_to_ktime(info->chip.max_refresh_time_ms));
+		alarm_start_timer(&info->alarmtimer_refresh,
+				  ms_to_ktime(info->chip.max_refresh_time_ms), true);
 	}
 	return ret;
 }

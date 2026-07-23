@@ -368,8 +368,8 @@ static void usb_cdev_work(struct work_struct *work)
 	}
 
 resched:
-	alarm_start_relative(&usb_cdev_info->unplug_alarm,
-			     ms_to_ktime(usb_cdev_info->cooling_device_polling_interval_ms));
+	alarm_start_timer(&usb_cdev_info->unplug_alarm,
+			  ms_to_ktime(usb_cdev_info->cooling_device_polling_interval_ms), true);
 free_event:
 	pm_relax(usb_cdev_info->dev);
 	devm_kfree(usb_cdev_info->dev, event);
