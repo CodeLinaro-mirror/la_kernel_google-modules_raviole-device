@@ -8,10 +8,6 @@ load("//common:bazel/modules.bzl", "get_gki_modules_list")
 
 SLIDER_MODULE_OUTS = [
     # keep sorted
-    "drivers/hwtracing/coresight/coresight.ko",
-    "drivers/hwtracing/coresight/coresight-etm4x.ko",
-    "drivers/hwtracing/coresight/coresight-funnel.ko",
-    "drivers/hwtracing/coresight/coresight-replicator.ko",
     "drivers/hwtracing/coresight/coresight-tmc.ko",
     "drivers/i2c/i2c-dev.ko",
     "drivers/misc/eeprom/at24.ko",
