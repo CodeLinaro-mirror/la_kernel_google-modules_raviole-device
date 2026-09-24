@@ -369,7 +369,7 @@ static long bootdump_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
 	case IOCTL_GET_CPIF_VERSION:
 		mif_info("%s: IOCTL_GET_CPIF_VERSION\n", iod->name);
 
-		strncpy(version.string, get_cpif_driver_version(), sizeof(version.string) - 1);
+		strscpy_pad(version.string, get_cpif_driver_version());
 		ret = copy_to_user((void __user *)arg, &version, sizeof(version));
 		if (ret) {
 			mif_err("copy_to_user() error:%d\n", ret);

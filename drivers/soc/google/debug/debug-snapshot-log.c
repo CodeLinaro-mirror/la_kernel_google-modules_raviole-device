@@ -333,8 +333,7 @@ void dbg_snapshot_regulator(unsigned long long timestamp, char *f_name,
 	dss_log->regulator[i].time = local_clock();
 	dss_log->regulator[i].cpu = raw_smp_processor_id();
 	dss_log->regulator[i].acpm_time = timestamp;
-	strncpy(dss_log->regulator[i].name, f_name,
-			min_t(int, strlen(f_name), SZ_16 - 1));
+	strscpy(dss_log->regulator[i].name, f_name);
 	dss_log->regulator[i].reg = addr;
 	dss_log->regulator[i].en = en;
 	dss_log->regulator[i].voltage = volt;
@@ -447,7 +446,6 @@ void dbg_snapshot_acpm(unsigned long long timestamp, const char *log,
 			unsigned int data)
 {
 	unsigned long i;
-	int len;
 
 	if (!dbg_snapshot_is_log_item_enabled(DSS_LOG_ACPM_ID))
 		return;
@@ -457,9 +455,7 @@ void dbg_snapshot_acpm(unsigned long long timestamp, const char *log,
 
 	dss_log->acpm[i].time = local_clock();
 	dss_log->acpm[i].acpm_time = timestamp;
-	len = sizeof(dss_log->acpm[i].log) - 1;
-	strncpy(dss_log->acpm[i].log, log, len);
-	dss_log->acpm[i].log[len] = '\0';
+	strscpy_pad(dss_log->acpm[i].log, log);
 	dss_log->acpm[i].data = data;
 }
 EXPORT_SYMBOL_GPL(dbg_snapshot_acpm);

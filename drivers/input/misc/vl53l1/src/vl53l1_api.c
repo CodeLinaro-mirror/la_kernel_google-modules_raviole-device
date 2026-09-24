@@ -332,8 +332,7 @@ VL53L1_Error VL53L1_GetDeviceInfo(VL53L1_DEV Dev,
 
 	pLLData = VL53L1DevStructGetLLDriverHandle(Dev);
 
-	strncpy(pVL53L1_DeviceInfo->ProductId, "",
-			VL53L1_DEVINFO_STRLEN-1);
+	strscpy_pad(pVL53L1_DeviceInfo->ProductId, "");
 	pVL53L1_DeviceInfo->ProductType =
 			pLLData->nvm_copy_data.identification__module_type;
 
@@ -343,16 +342,13 @@ VL53L1_Error VL53L1_GetDeviceInfo(VL53L1_DEV Dev,
 
 #ifndef VL53L1_USE_EMPTY_STRING
 	if (pVL53L1_DeviceInfo->ProductRevisionMinor == 0)
-		strncpy(pVL53L1_DeviceInfo->Name,
-				VL53L1_STRING_DEVICE_INFO_NAME0,
-				VL53L1_DEVINFO_STRLEN-1);
+		strscpy_pad(pVL53L1_DeviceInfo->Name,
+				VL53L1_STRING_DEVICE_INFO_NAME0);
 	else
-		strncpy(pVL53L1_DeviceInfo->Name,
-				VL53L1_STRING_DEVICE_INFO_NAME1,
-				VL53L1_DEVINFO_STRLEN-1);
-	strncpy(pVL53L1_DeviceInfo->Type,
-			VL53L1_STRING_DEVICE_INFO_TYPE,
-			VL53L1_DEVINFO_STRLEN-1);
+		strscpy_pad(pVL53L1_DeviceInfo->Name,
+				VL53L1_STRING_DEVICE_INFO_NAME1);
+	strscpy_pad(pVL53L1_DeviceInfo->Type,
+			VL53L1_STRING_DEVICE_INFO_TYPE);
 
 	if (pVL53L1_DeviceInfo->ProductType == 0xAA) {
 		pVL53L1_DeviceInfo->Name[5] = '3';

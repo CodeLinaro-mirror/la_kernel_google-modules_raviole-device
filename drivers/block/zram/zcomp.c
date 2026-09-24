@@ -67,8 +67,7 @@ int zcomp_register(const char *algo_name, const struct zcomp_operation *op)
 		goto out;
 	}
 
-	strncpy(zcomp->algo_name, algo_name, len);
-	zcomp->algo_name[len] = '\0';
+	strscpy(zcomp->algo_name, algo_name);
 	zcomp->op = op;
 
 	down_write(&zcomp_rwsem);

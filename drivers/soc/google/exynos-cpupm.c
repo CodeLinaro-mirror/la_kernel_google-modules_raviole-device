@@ -1255,7 +1255,7 @@ static int exynos_cpupm_mode_init(struct platform_device *pdev)
 		if (!mode)
 			return -ENOMEM;
 
-		strncpy(mode->name, dn->name, NAME_LEN - 1);
+		strscpy(mode->name, dn->name);
 
 		ret = of_property_read_u32(dn, "target-residency",
 					   &mode->target_residency);

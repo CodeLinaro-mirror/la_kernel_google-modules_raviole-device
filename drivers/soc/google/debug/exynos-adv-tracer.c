@@ -299,7 +299,7 @@ static int adv_tracer_ipc_channel_init(unsigned int id, unsigned int offset,
 	channel->id = id;
 	channel->offset = offset;
 	channel->len = len;
-	strncpy(channel->id_name, name, sizeof(unsigned int) - 1);
+	strscpy(channel->id_name, name);
 
 	/* channel->buff_regs -> shared buffer by owns */
 	channel->buff_regs = (void __iomem *)(eat_ipc->mailbox_base + offset);

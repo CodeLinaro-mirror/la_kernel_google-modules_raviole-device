@@ -528,7 +528,7 @@ void mif_init_irq(struct modem_irq *irq, unsigned int num, const char *name,
 {
 	spin_lock_init(&irq->lock);
 	irq->num = num;
-	strncpy(irq->name, name, (MAX_NAME_LEN - 1));
+	strscpy(irq->name, name);
 	irq->flags = flags;
 	mif_info("name:%s num:%d flags:0x%08lX\n", name, num, flags);
 }

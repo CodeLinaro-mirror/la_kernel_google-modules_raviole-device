@@ -335,8 +335,7 @@ static int exynos_dm_parse_dt(struct device_node *np, struct exynos_dm_device *d
 			dm->dm_data[index].available = true;
 
 			if (!of_property_read_string(child_np, "dm_type_name", &name)) {
-				strncpy(dm->dm_data[index].dm_type_name,
-					name, EXYNOS_DM_TYPE_NAME_LEN);
+				strscpy(dm->dm_data[index].dm_type_name, name);
 			}
 
 			INIT_LIST_HEAD(&dm->dm_data[index].min_constraints);
@@ -500,9 +499,8 @@ int register_exynos_dm_constraint_table(int dm_type,
 
 	mutex_lock(&exynos_dm->lock);
 
-	strncpy(constraint_list->dm_type_name,
-		exynos_dm->dm_data[constraint_list->dm_constraint].dm_type_name,
-		EXYNOS_DM_TYPE_NAME_LEN);
+	strscpy(constraint_list->dm_type_name,
+		exynos_dm->dm_data[constraint_list->dm_constraint].dm_type_name);
 	constraint_list->const_freq = 0;
 	constraint_list->gov_freq = 0;
 	constraint_list->dm_driver = dm_type;
@@ -539,9 +537,8 @@ int register_exynos_dm_constraint_table(int dm_type,
 		sub_constraint_list->const_freq = UINT_MAX;
 		sub_constraint_list->gov_freq = UINT_MAX;
 
-		strncpy(sub_constraint_list->dm_type_name,
-			exynos_dm->dm_data[sub_constraint_list->dm_constraint].dm_type_name,
-			EXYNOS_DM_TYPE_NAME_LEN);
+		strscpy(sub_constraint_list->dm_type_name,
+			exynos_dm->dm_data[sub_constraint_list->dm_constraint].dm_type_name);
 
 		sub_constraint_list->freq_table =
 			kcalloc(sub_constraint_list->table_length,

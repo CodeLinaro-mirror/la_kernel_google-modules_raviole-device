@@ -1157,7 +1157,7 @@ exynos_cpufreq_cooling_register(struct device_node *np, struct cpufreq_policy *p
 		pr_err("%s: could not find tz-cooling-name\n", __func__);
 		return ERR_PTR(-EINVAL);
 	}
-	strncpy(cooling_name, name, sizeof(cooling_name));
+	strscpy(cooling_name, name);
 
 	if (of_property_read_bool(np, "use-em-coeff"))
 		goto regist;

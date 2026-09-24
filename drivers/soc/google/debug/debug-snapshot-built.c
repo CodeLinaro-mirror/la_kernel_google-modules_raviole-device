@@ -14,6 +14,7 @@
 #include <linux/vmalloc.h>
 #include <linux/of_address.h>
 #include <linux/of_reserved_mem.h>
+#include <linux/sched.h>
 #include <linux/sched/clock.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>
@@ -57,9 +58,8 @@ void dbg_snapshot_task(int cpu, void *v_task)
 	orig_dss_log->task[cpu][i].time = cpu_clock(cpu);
 	orig_dss_log->task[cpu][i].task = (struct task_struct *)v_task;
 	orig_dss_log->task[cpu][i].pid = (int)((struct task_struct *)v_task)->pid;
-	strncpy(orig_dss_log->task[cpu][i].task_comm,
-			orig_dss_log->task[cpu][i].task->comm,
-			TASK_COMM_LEN - 1);
+	get_task_comm(orig_dss_log->task[cpu][i].task_comm,
+		      orig_dss_log->task[cpu][i].task);
 }
 
 void dbg_snapshot_work(void *worker, void *v_task, work_func_t fn, int en)
@@ -78,7 +78,7 @@ void dbg_snapshot_work(void *worker, void *v_task, work_func_t fn, int en)
 		(ARRAY_SIZE(orig_dss_log->work[0]) - 1);
 	orig_dss_log->work[cpu][i].time = cpu_clock(cpu);
 	orig_dss_log->work[cpu][i].worker = (struct worker *)worker;
-	strncpy(orig_dss_log->work[cpu][i].task_comm, task->comm, TASK_COMM_LEN - 1);
+	get_task_comm(orig_dss_log->work[cpu][i].task_comm, task);
 	orig_dss_log->work[cpu][i].fn = fn;
 	orig_dss_log->work[cpu][i].en = en;
 }

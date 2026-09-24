@@ -275,7 +275,7 @@ static void fill_elf##elf_type##_shdr(void *elf_addr, u32 shdr_offset,	\
 	shdr->sh_offset = sh_offset;					\
 	shdr->sh_size = CRASHINFO_REASON_SIZE;				\
 	shdr->sh_name = 11;						\
-	strncpy((char *)(elf_addr + shdr->sh_offset),			\
+	strscpy_pad((char *)(elf_addr + shdr->sh_offset),			\
 		crash_info ? crash_info : "N/A", shdr->sh_size);	\
 	sh_offset += shdr->sh_size;					\
 	shdr++;								\
@@ -491,8 +491,7 @@ static int sscd_report(struct platform_device *pdev, struct sscd_segment *segs,
 	}
 
 	/* preserve crash info */
-	strncpy(sdev->crash_hdr.crashinfo, crash_info,
-		sizeof(sdev->crash_hdr.crashinfo));
+	strscpy_pad(sdev->crash_hdr.crashinfo, crash_info);
 
 	/* check if active reader exists */
 	if (!atomic_read(&sdev->opened)) {

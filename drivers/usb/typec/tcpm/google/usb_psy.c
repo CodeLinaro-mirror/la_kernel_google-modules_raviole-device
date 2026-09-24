@@ -140,7 +140,7 @@ struct usb_psy_data {
 void init_vote(struct usb_vote *vote, const char *reason,
 	       unsigned int priority, unsigned int val)
 {
-	strncpy(vote->reason, reason, sizeof(vote->reason));
+	strscpy_pad(vote->reason, reason);
 	vote->priority = priority;
 	vote->val = val;
 }

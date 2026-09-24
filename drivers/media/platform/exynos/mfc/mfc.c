@@ -986,7 +986,7 @@ static struct video_device *__mfc_video_device_register(struct mfc_dev *dev,
 		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
 		return NULL;
 	}
-	strncpy(vfd->name, name, sizeof(vfd->name) - 1);
+	strscpy(vfd->name, name);
 	vfd->fops = &mfc_fops;
 	vfd->minor = -1;
 	vfd->release = video_device_release;

@@ -100,8 +100,8 @@ static int __mfc_dec_check_ctrl_val(struct mfc_ctx *ctx, struct v4l2_control *ct
 static int mfc_dec_querycap(struct file *file, void *priv,
 			   struct v4l2_capability *cap)
 {
-	strncpy(cap->driver, "MFC", sizeof(cap->driver) - 1);
-	strncpy(cap->card, "decoder", sizeof(cap->card) - 1);
+	strscpy(cap->driver, "MFC");
+	strscpy(cap->card, "decoder");
 
 	return 0;
 }

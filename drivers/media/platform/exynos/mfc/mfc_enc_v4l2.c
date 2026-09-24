@@ -156,8 +156,8 @@ static inline int __mfc_enc_h264_profile(struct mfc_ctx *ctx, int profile)
 static int mfc_enc_querycap(struct file *file, void *priv,
 			   struct v4l2_capability *cap)
 {
-	strncpy(cap->driver, "MFC", sizeof(cap->driver) - 1);
-	strncpy(cap->card, "encoder", sizeof(cap->card) - 1);
+	strscpy(cap->driver, "MFC");
+	strscpy(cap->card, "encoder");
 
 	return 0;
 }

@@ -473,14 +473,10 @@ static int smfc_v4l2_querycap(struct file *filp, void *priv, struct v4l2_capabil
 {
 	struct smfc_dev *smfc = v4l2_file_to_smfc_ctx(filp)->smfc;
 
-	strncpy(cap->driver, MODULE_NAME, sizeof(cap->driver));
-	strncpy(cap->bus_info, dev_name(smfc->dev), sizeof(cap->bus_info));
+	strscpy(cap->driver, MODULE_NAME);
+	strscpy(cap->bus_info, dev_name(smfc->dev));
 	scnprintf(cap->card, sizeof(cap->card), "Still MFC %02x.%02x.%04x",
 		  (smfc->hwver >> 24) & 0xFF, (smfc->hwver >> 16) & 0xFF, smfc->hwver & 0xFFFF);
-
-	cap->driver[sizeof(cap->driver) - 1] = '\0';
-	cap->card[sizeof(cap->card) - 1] = '\0';
-	cap->bus_info[sizeof(cap->bus_info) - 1] = '\0';
 
 	cap->device_caps = smfc->devdata->device_caps;
 	cap->device_caps |= V4L2_CAP_EXYNOS_JPEG_DMABUF_OFFSET;
@@ -496,8 +492,7 @@ static int smfc_v4l2_enum_fmt(struct file *filp, void *priv, struct v4l2_fmtdesc
 		return -EINVAL;
 
 	fmt = &smfc_image_formats[f->index];
-	strncpy(f->description, fmt->description, sizeof(f->description));
-	f->description[sizeof(f->description) - 1] = '\0';
+	strscpy(f->description, fmt->description);
 	f->pixelformat = fmt->v4l2_pixfmt;
 	if (fmt->bpp_buf[0] == 0)
 		f->flags = V4L2_FMT_FLAG_COMPRESSED;

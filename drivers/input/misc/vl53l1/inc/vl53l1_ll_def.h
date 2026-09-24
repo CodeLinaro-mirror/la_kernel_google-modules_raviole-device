@@ -1096,7 +1096,7 @@ struct VL53L1_additional_data_t {
 	while (0)
 
 #define VL53L1_COPYSTRING(str, ...) \
-	(strncpy(str, ##__VA_ARGS__, VL53L1_MAX_STRING_LENGTH-1))
+	(strscpy(str, ##__VA_ARGS__, VL53L1_MAX_STRING_LENGTH))
 
 
 #endif /* _VL53L1_LL_DEF_H_ */

@@ -710,9 +710,7 @@ static int smfc_init_v4l2(struct device *dev, struct smfc_dev *smfc)
 	int ret;
 	size_t str_len;
 
-	strncpy(smfc->v4l2_dev.name, "exynos-hwjpeg",
-		sizeof(smfc->v4l2_dev.name) - 1);
-	smfc->v4l2_dev.name[sizeof(smfc->v4l2_dev.name) - 1] = '\0';
+	strscpy(smfc->v4l2_dev.name, "exynos-hwjpeg");
 
 	ret = v4l2_device_register(dev, &smfc->v4l2_dev);
 	if (ret) {
@@ -729,8 +727,7 @@ static int smfc_init_v4l2(struct device *dev, struct smfc_dev *smfc)
 
 	str_len = sizeof(smfc->videodev->name);
 	if (smfc->device_id < 0) {
-		strncpy(smfc->videodev->name, MODULE_NAME, str_len);
-		smfc->videodev->name[str_len - 1] = '\0';
+		strscpy(smfc->videodev->name, MODULE_NAME);
 	} else {
 		scnprintf(smfc->videodev->name, str_len,
 			  "%s.%d", MODULE_NAME, smfc->device_id);

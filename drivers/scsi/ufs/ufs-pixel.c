@@ -390,77 +390,77 @@ static int pixel_ufs_init_cmd_log(struct ufs_hba *hba)
 							GFP_KERNEL);
 
 	/* set command type string*/
-	strncpy(ufs->cmd_log.event_str[EVENT_UNDEF], "event_undef",
+	strscpy(ufs->cmd_log.event_str[EVENT_UNDEF], "event_undef",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_DME_SEND], "dme_send",
+	strscpy(ufs->cmd_log.event_str[EVENT_DME_SEND], "dme_send",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_DME_COMPL], "dme_compl",
+	strscpy(ufs->cmd_log.event_str[EVENT_DME_COMPL], "dme_compl",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_SCSI_SEND], "scsi_send",
+	strscpy(ufs->cmd_log.event_str[EVENT_SCSI_SEND], "scsi_send",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_SCSI_COMPL], "scsi_compl",
+	strscpy(ufs->cmd_log.event_str[EVENT_SCSI_COMPL], "scsi_compl",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_NOP_OUT], "nop_out",
+	strscpy(ufs->cmd_log.event_str[EVENT_NOP_OUT], "nop_out",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_NOP_IN], "nop_in",
+	strscpy(ufs->cmd_log.event_str[EVENT_NOP_IN], "nop_in",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_QUERY_SEND], "query_send",
+	strscpy(ufs->cmd_log.event_str[EVENT_QUERY_SEND], "query_send",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_QUERY_COMPL], "query_compl",
+	strscpy(ufs->cmd_log.event_str[EVENT_QUERY_COMPL], "query_compl",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_TM_SEND], "tm_send",
+	strscpy(ufs->cmd_log.event_str[EVENT_TM_SEND], "tm_send",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_TM_ERR], "tm_err",
+	strscpy(ufs->cmd_log.event_str[EVENT_TM_ERR], "tm_err",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_TM_COMPL], "tm_compl",
+	strscpy(ufs->cmd_log.event_str[EVENT_TM_COMPL], "tm_compl",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_INTR_FATAL_ERR], "intr_fatal_err",
+	strscpy(ufs->cmd_log.event_str[EVENT_INTR_FATAL_ERR], "intr_fatal_err",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_INTR_UIC_ERR], "intr_uic_err",
+	strscpy(ufs->cmd_log.event_str[EVENT_INTR_UIC_ERR], "intr_uic_err",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.event_str[EVENT_INTR_H8_ERR], "intr_h8_err",
+	strscpy(ufs->cmd_log.event_str[EVENT_INTR_H8_ERR], "intr_h8_err",
 		MAX_EVENT_STR_LEN);
 
 	/* set command opcode string */
-	strncpy(ufs->cmd_log.cmd_str[CMD_UNDEF], "cmd_undef",
+	strscpy(ufs->cmd_log.cmd_str[CMD_UNDEF], "cmd_undef",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_GET], "dme_get",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_GET], "dme_get",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_SET], "dme_set",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_SET], "dme_set",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_PWR_ON], "dme_pwr_on",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_PWR_ON], "dme_pwr_on",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_PWR_OFF], "dme_pwr_off",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_PWR_OFF], "dme_pwr_off",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_RESET], "dme_reset",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_RESET], "dme_reset",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_LINKSTARTUP], "dme_linkstartup",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_LINKSTARTUP], "dme_linkstartup",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_H8_ENTER], "dme_h8_enter",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_H8_ENTER], "dme_h8_enter",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_DME_H8_EXIT], "dme_h8_exit",
+	strscpy(ufs->cmd_log.cmd_str[CMD_DME_H8_EXIT], "dme_h8_exit",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_WRITE_10], "write_10",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_WRITE_10], "write_10",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_READ_10], "read_10",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_READ_10], "read_10",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_WRITE_16], "write_16",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_WRITE_16], "write_16",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_READ_16], "read_16",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_READ_16], "read_16",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_SYNC], "sync",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_SYNC], "sync",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_UNMAP], "unmap",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_UNMAP], "unmap",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_SSU], "ssu",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_SSU], "ssu",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_PROTOCOL_IN], "protocol_in",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_PROTOCOL_IN], "protocol_in",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_PROTOCOL_OUT], "protocol_out",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_PROTOCOL_OUT], "protocol_out",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_ZBC_IN], "zbc_in: report_zone",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_ZBC_IN], "zbc_in: report_zone",
 		MAX_EVENT_STR_LEN);
-	strncpy(ufs->cmd_log.cmd_str[CMD_SCSI_ZBC_OUT], "zbc_out: zone_reset",
+	strscpy(ufs->cmd_log.cmd_str[CMD_SCSI_ZBC_OUT], "zbc_out: zone_reset",
 		MAX_EVENT_STR_LEN);
 
 	ufs->enable_cmd_log = 0;
