@@ -10,7 +10,7 @@ SLIDER_MODULE_OUTS = [
     # keep sorted
     "drivers/hwtracing/coresight/coresight-tmc.ko",
     "drivers/i2c/i2c-dev.ko",
-    "drivers/misc/eeprom/at24.ko",
+    "drivers/nvmem/at24.ko",
     "drivers/perf/arm_dsu_pmu.ko",
     "drivers/pps/clients/pps-gpio.ko",
     "drivers/scsi/sg.ko",
